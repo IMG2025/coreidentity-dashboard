@@ -1,0 +1,72 @@
+const delay = (ms) => new Promise(r => setTimeout(r, ms));
+let deployedAgents = [];
+
+export const api = {
+  async getAgents(category, search) {
+    await delay(300);
+    let agents = get105Agents();
+    if (category && category !== 'all') agents = agents.filter(a => a.category.toLowerCase() === category.toLowerCase());
+    if (search) {
+      const s = search.toLowerCase();
+      agents = agents.filter(a => a.name.toLowerCase().includes(s) || a.description.toLowerCase().includes(s));
+    }
+    return agents;
+  },
+  async deployAgent(agentId) {
+    await delay(1000);
+    const agent = get105Agents().find(a => a.id === parseInt(agentId));
+    const d = {
+      id: Date.now(),
+      agentId,
+      agentName: agent.name,
+      agentIcon: agent.icon,
+      status: 'deploying',
+      deployedAt: new Date().toISOString()
+    };
+    deployedAgents.push(d);
+    setTimeout(() => { d.status = 'running'; }, 3000);
+    return d;
+  },
+  async getDeployedAgents() {
+    return deployedAgents;
+  },
+  async stopAgent(id) {
+    const d = deployedAgents.find(x => x.id === parseInt(id));
+    if (d) d.status = 'stopped';
+    return d;
+  }
+};
+
+function get105Agents() {
+  const base = [
+    { id: 1, name: 'Data Insights AI', category: 'Data Analysis', description: 'Advanced analytics and insights from any dataset', rating: 4.9, deployments: 2134, compliance: ['SOC2'], icon: '📊', price: 'Premium' },
+    { id: 2, name: 'Predictive Analytics', category: 'Data Analysis', description: 'ML-powered predictions and forecasting', rating: 4.8, deployments: 1847, compliance: ['SOC2'], icon: '🔮', price: 'Premium' },
+    { id: 3, name: 'SQL Query Assistant', category: 'Data Analysis', description: 'Natural language to SQL conversion', rating: 4.7, deployments: 3201, compliance: ['SOC2'], icon: '💾', price: 'Standard' },
+    { id: 4, name: 'Document Processor', category: 'Document Processing', description: 'Extract and analyze any document type', rating: 4.8, deployments: 1247, compliance: ['SOC2', 'HIPAA'], icon: '📄', price: 'Standard' },
+    { id: 5, name: 'PDF Parser', category: 'Document Processing', description: 'Extract text, tables, images from PDFs', rating: 4.9, deployments: 2341, compliance: ['SOC2'], icon: '📑', price: 'Standard' },
+    { id: 6, name: 'Email Automation', category: 'Communication', description: 'Automated email campaigns', rating: 4.7, deployments: 987, compliance: ['SOC2', 'GDPR'], icon: '📧', price: 'Standard' },
+    { id: 7, name: 'Chatbot Builder', category: 'Communication', description: 'Create conversational AI chatbots', rating: 4.8, deployments: 1567, compliance: ['SOC2'], icon: '💬', price: 'Premium' },
+    { id: 8, name: 'Compliance Guardian', category: 'Compliance', description: 'Real-time policy enforcement', rating: 5.0, deployments: 3421, compliance: ['SOC2', 'HIPAA', 'GDPR'], icon: '🛡️', price: 'Premium' },
+    { id: 9, name: 'Research Assistant', category: 'Research', description: 'Web research and report generation', rating: 4.6, deployments: 756, compliance: ['SOC2'], icon: '🔍', price: 'Premium' },
+    { id: 10, name: 'Contract Analyzer', category: 'Document Processing', description: 'Legal document analysis', rating: 4.9, deployments: 1823, compliance: ['SOC2'], icon: '⚖️', price: 'Premium' }
+  ];
+  
+  const cats = ['Data Analysis', 'Document Processing', 'Communication', 'Research', 'Compliance', 'Integration', 'Marketing', 'Customer Service'];
+  const icons = ['📊', '📄', '📧', '🔍', '🛡️', '🔌', '📣', '💁'];
+  
+  for (let i = 11; i <= 105; i++) {
+    const idx = i % cats.length;
+    base.push({
+      id: i,
+      name: `${cats[idx]} Agent ${i}`,
+      category: cats[idx],
+      description: `Professional ${cats[idx].toLowerCase()} automation with AI`,
+      rating: 4.5 + Math.random() * 0.5,
+      deployments: Math.floor(Math.random() * 3000) + 500,
+      compliance: ['SOC2'],
+      icon: icons[idx],
+      price: i % 3 === 0 ? 'Premium' : 'Standard'
+    });
+  }
+  return base;
+}
