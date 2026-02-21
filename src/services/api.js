@@ -138,3 +138,12 @@ export const api = {
 };
 
 console.log('✅ CoreIdentity Live API Service loaded');
+
+// ── Agent execution — wired to AGO engine ────────────────────────────────
+api.executeAgent = async function(agentId, taskType = 'ANALYZE', inputs = {}) {
+  const res = await request(`/api/agents/${agentId}/execute`, {
+    method: 'POST',
+    body: JSON.stringify({ taskType, inputs })
+  });
+  return res.data;
+};

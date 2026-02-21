@@ -11,6 +11,7 @@ const authRouter = require('./routes/auth');
 const agentsRouter = require('./routes/agents');
 const deployedRouter = require('./routes/deployed');
 const workflowsRouter = require('./routes/workflows');
+const executeRouter = require('./routes/execute');
 const adminRouter = require('./routes/admin');
 const governanceRouter = require('./routes/governance');
 const logger = require('./utils/logger');
@@ -70,6 +71,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/agents',     authenticate, agentsRouter);
 app.use('/api/deployed',   authenticate, deployedRouter);
 app.use('/api/workflows',  authenticate, workflowsRouter);
+app.use('/api/agents', authenticate, executeRouter);
 app.use('/api/admin',     authenticate, adminRouter);
 app.use('/api/governance', authenticate, governanceRouter);
 
