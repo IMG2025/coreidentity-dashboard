@@ -1,7 +1,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { deployments } = require('../data/deployments');
-const { agents } = require('../data/agents');
+const { AGENTS: agents } = require('../data/agents');
 const router = express.Router();
 
 // GET /api/deployed
