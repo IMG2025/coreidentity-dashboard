@@ -4,18 +4,20 @@ const router = express.Router();
 router.get('/', (req, res) => {
   res.json({
     data: {
-      complianceScore: 94.2,
-      policiesEnforced: 47,
-      violations: 3,
-      activeAudits: 2,
-      frameworks: [
-        { name: "SOC 2 Type II", status: "compliant", score: 98 },
-        { name: "HIPAA",         status: "compliant", score: 96 },
-        { name: "GDPR",          status: "warning",   score: 87 },
-        { name: "CCPA",          status: "compliant", score: 95 },
-        { name: "NYC LL144",     status: "compliant", score: 91 }
+      scores: [
+        { label: 'Overall Compliance', score: 98, description: 'Across all frameworks' },
+        { label: 'Data Privacy',       score: 96, description: 'GDPR + CCPA' },
+        { label: 'Security Posture',   score: 94, description: 'SOC2 controls' },
+        { label: 'Risk Score',         score: 92, description: 'Enterprise risk' }
       ],
-      lastAudit: new Date().toISOString()
+      frameworks: [
+        { name: 'SOC2 Type II',  status: 'compliant', score: 98, description: 'Last audit: Jan 2026' },
+        { name: 'HIPAA',         status: 'compliant', score: 96, description: 'PHI controls active' },
+        { name: 'GDPR',          status: 'compliant', score: 94, description: 'EU data residency enforced' },
+        { name: 'CCPA',          status: 'warning',   score: 87, description: '2 controls need review' },
+        { name: 'ISO 27001',     status: 'compliant', score: 91, description: 'Certified through 2027' }
+      ],
+      alerts: []
     },
     timestamp: new Date().toISOString()
   });

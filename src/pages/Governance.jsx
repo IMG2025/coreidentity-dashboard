@@ -1,123 +1,109 @@
-import React, { useState } from 'react';
-import { Shield, CheckCircle, AlertTriangle, Eye, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Shield, CheckCircle, AlertTriangle, XCircle, TrendingUp } from 'lucide-react';
+import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+
+const SCORE_COLOR = score =>
+  score >= 90 ? 'text-green-600' : score >= 70 ? 'text-yellow-600' : 'text-red-600';
+
+const SCORE_BG = score =>
+  score >= 90 ? 'bg-green-100' : score >= 70 ? 'bg-yellow-100' : 'bg-red-100';
 
 export default function Governance() {
-  const [violations, setViolations] = useState([
-    { id: 1, agent: 'Data Processor', policy: 'Data Retention', severity: 'Medium', description: 'Data retained beyond policy', resolved: false },
-    { id: 2, agent: 'Email Bot', policy: 'PII Handling', severity: 'Low', description: 'PII detected in logs', resolved: false }
-  ]);
-  const [selected, setSelected] = useState(null);
+  const { user } = useAuth();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  function resolve(id) {
-    setViolations(violations.map(v => v.id === id ? { ...v, resolved: true } : v));
-    setSelected(null);
+  useEffect(() => { loadGovernance(); }, []);
+
+  async function loadGovernance() {
+    try {
+      const res = await api.getGovernance();
+      setData(res);
+    } catch (err) {
+      console.error('Failed to load governance data', err);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  const active = violations.filter(v => !v.resolved);
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+    </div>
+  );
+
+  if (!data) return (
+    <div className="flex items-center justify-center h-64">
+      <p className="text-gray-500">Failed to load governance data.</p>
+    </div>
+  );
 
   return (
-    <div className="space-y-4 lg:space-y-6">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl lg:text-3xl font-bold">Governance</h1>
-        <p className="text-sm text-gray-600">Monitor compliance</p>
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Governance</h1>
+        <p className="text-gray-600 mt-1">Compliance and risk management overview</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-600">Compliance Score</p>
-            <p className="text-5xl font-bold mt-2">98%</p>
-            <p className="text-sm text-green-600">Excellent</p>
-          </div>
-          <CheckCircle className="h-20 w-20 text-green-500" />
-        </div>
-      </div>
-
+      {/* Score Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-600">Policies</p>
-          <p className="text-2xl font-bold">47/47</p>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-600">Violations</p>
-          <p className="text-2xl font-bold text-yellow-600">{active.length}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-600">Audit Events</p>
-          <p className="text-2xl font-bold">12,847</p>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-600">Failed Checks</p>
-          <p className="text-2xl font-bold text-green-600">0</p>
-        </div>
+        {(data.scores || []).map(item => (
+          <div key={item.label} className={`${SCORE_BG(item.score)} rounded-xl p-4`}>
+            <p className="text-sm font-medium text-gray-600">{item.label}</p>
+            <p className={`text-3xl font-bold mt-1 ${SCORE_COLOR(item.score)}`}>{item.score}%</p>
+            <p className="text-xs text-gray-500 mt-1">{item.description}</p>
+          </div>
+        ))}
       </div>
 
-      {active.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-bold mb-4">Active Violations</h2>
+      {/* Compliance Frameworks */}
+      {user?.role === 'ADMIN' && (
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Compliance Frameworks</h2>
           <div className="space-y-3">
-            {active.map(v => (
-              <div key={v.id} className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-start space-x-3 flex-1">
-                  <AlertTriangle className="h-5 w-5 text-yellow-600 mt-1" />
+            {(data.frameworks || []).map(fw => (
+              <div key={fw.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  {fw.status === 'compliant'
+                    ? <CheckCircle className="h-5 w-5 text-green-500" />
+                    : fw.status === 'warning'
+                    ? <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                    : <XCircle className="h-5 w-5 text-red-500" />}
                   <div>
-                    <p className="font-medium">{v.agent}</p>
-                    <p className="text-sm text-gray-600">Policy: {v.policy}</p>
+                    <p className="font-medium text-gray-900 text-sm">{fw.name}</p>
+                    <p className="text-xs text-gray-500">{fw.description}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`px-3 py-1 rounded-full text-xs ${v.severity === 'High' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {v.severity}
-                  </span>
-                  <button onClick={() => setSelected(v)} className="p-2 hover:bg-white rounded">
-                    <Eye className="h-5 w-5" />
-                  </button>
-                </div>
+                <span className="text-sm font-semibold text-gray-700">{fw.score}%</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold mb-4">Compliance Standards</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {['SOC2', 'HIPAA', 'GDPR', 'ISO 27001'].map(s => (
-            <div key={s} className="flex items-center justify-between p-3 border rounded-lg">
-              <span className="font-medium">{s}</span>
-              <CheckCircle className="h-5 w-5 text-green-500" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {selected && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setSelected(null)}>
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between mb-4">
-              <h2 className="text-xl font-bold">Violation Details</h2>
-              <button onClick={() => setSelected(null)}><X className="h-6 w-6" /></button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Agent</p>
-                <p className="mt-1">{selected.agent}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Policy</p>
-                <p className="mt-1">{selected.policy}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Description</p>
-                <p className="mt-1">{selected.description}</p>
-              </div>
-              <button onClick={() => resolve(selected.id)} className="w-full bg-green-500 text-white py-3 rounded-lg">
-                Mark as Resolved
-              </button>
-            </div>
+      {/* Recent Alerts */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Alerts</h2>
+        {(data.alerts || []).length === 0 ? (
+          <div className="text-center py-8">
+            <CheckCircle className="h-10 w-10 text-green-400 mx-auto mb-2" />
+            <p className="text-gray-500 text-sm">No active alerts</p>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="space-y-3">
+            {(data.alerts || []).map((alert, i) => (
+              <div key={i} className={`p-3 rounded-lg border ${alert.severity === 'high' ? 'border-red-200 bg-red-50' : 'border-yellow-200 bg-yellow-50'}`}>
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className={`h-4 w-4 ${alert.severity === 'high' ? 'text-red-500' : 'text-yellow-500'}`} />
+                  <p className="text-sm font-medium text-gray-900">{alert.title}</p>
+                </div>
+                <p className="text-xs text-gray-500 mt-1 ml-6">{alert.description}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
