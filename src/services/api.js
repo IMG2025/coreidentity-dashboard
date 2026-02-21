@@ -141,7 +141,7 @@ console.log('✅ CoreIdentity Live API Service loaded');
 
 // ── Agent execution — wired to AGO engine ────────────────────────────────
 api.executeAgent = async function(agentId, taskType = 'ANALYZE', inputs = {}) {
-  const res = await request(`/api/agents/${agentId}/execute`, {
+  const res = await request(`/api/execute/${agentId}/execute`, {
     method: 'POST',
     body: JSON.stringify({ taskType, inputs })
   });

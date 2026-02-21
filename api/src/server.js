@@ -71,7 +71,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/agents',     authenticate, agentsRouter);
 app.use('/api/deployed',   authenticate, deployedRouter);
 app.use('/api/workflows',  authenticate, workflowsRouter);
-app.use('/api/agents', authenticate, executeRouter);
+app.use('/api/execute', authenticate, executeRouter);
 app.use('/api/admin',     authenticate, adminRouter);
 app.use('/api/governance', authenticate, governanceRouter);
 
