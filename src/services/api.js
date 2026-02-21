@@ -1,136 +1,140 @@
-// Mock API Service - Working Version
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// CoreIdentity Live API Service
+// Authenticated client — all requests include JWT token
 
-// In-memory storage
-let deployedAgents = [];
-let agentIdCounter = 1;
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.coreidentity.coreholdingcorp.com';
+const TOKEN_KEY = 'ci_token';
 
-// Generate 105 agents
-function generateAgents() {
-  const agents = [];
-  const categories = {
-    'Data Analysis': { icon: '📊', count: 20 },
-    'Document Processing': { icon: '📄', count: 20 },
-    'Communication': { icon: '📧', count: 15 },
-    'Research': { icon: '🔍', count: 10 },
-    'Compliance': { icon: '🛡️', count: 10 },
-    'Integration': { icon: '🔌', count: 10 },
-    'Marketing': { icon: '📣', count: 10 },
-    'Customer Service': { icon: '💁', count: 10 }
-  };
-
-  const premiumNames = {
-    'Data Analysis': ['Data Insights AI', 'Predictive Analytics', 'Business Intelligence', 'Data Mining Pro'],
-    'Document Processing': ['Document Processor', 'Smart OCR', 'PDF Analyzer', 'Doc Automation'],
-    'Communication': ['Email Automation', 'Chat Bot Pro', 'Meeting Assistant', 'Notification Hub'],
-    'Research': ['Research Assistant', 'Web Crawler', 'Insight Finder', 'Trend Analyzer'],
-    'Compliance': ['Compliance Guardian', 'Audit Assistant', 'Risk Monitor', 'Policy Enforcer'],
-    'Integration': ['API Connector', 'Data Sync', 'Workflow Bridge', 'System Integrator'],
-    'Marketing': ['Campaign Manager', 'SEO Optimizer', 'Content Creator', 'Ad Analyzer'],
-    'Customer Service': ['Support Bot', 'Ticket Manager', 'Feedback Analyzer', 'Help Desk AI']
-  };
-
-  const compliance = ['SOC2', 'HIPAA', 'GDPR', 'ISO 27001'];
-  
-  let id = 1;
-  for (const [category, config] of Object.entries(categories)) {
-    for (let i = 0; i < config.count; i++) {
-      const isPremium = i < 4;
-      const name = isPremium && premiumNames[category][i] 
-        ? premiumNames[category][i]
-        : `${category} Agent ${i + 1}`;
-      
-      agents.push({
-        id: id++,
-        name,
-        category,
-        description: `Professional ${category.toLowerCase()} automation`,
-        rating: 4.5 + Math.random() * 0.5,
-        deployments: Math.floor(Math.random() * 3000) + 500,
-        compliance: isPremium ? [compliance[0], compliance[1]] : [compliance[0]],
-        icon: config.icon,
-        price: isPremium ? 'Premium' : i < 10 ? 'Standard' : 'Basic',
-        features: ['Automated processing', 'Real-time updates', '24/7 operation']
-      });
-    }
-  }
-  
-  return agents;
+function getToken() {
+  return localStorage.getItem(TOKEN_KEY);
 }
 
-const allAgents = generateAgents();
+async function request(path, options = {}) {
+  const token = getToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...options.headers
+  };
+
+  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+
+  // Token expired — force logout
+  if (res.status === 401) {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem('ci_user');
+    window.location.reload();
+    return;
+  }
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+
+  return res.json();
+}
 
 export const api = {
+  // ── Agents ────────────────────────────────────────────────────────────
   async getAgents(category = 'all', search = '') {
-    await delay(300);
-    
-    let filtered = [...allAgents];
-    
-    if (category && category !== 'all') {
-      filtered = filtered.filter(a => 
-        a.category.toLowerCase() === category.toLowerCase()
-      );
-    }
-    
-    if (search) {
-      const s = search.toLowerCase();
-      filtered = filtered.filter(a =>
-        a.name.toLowerCase().includes(s) ||
-        a.description.toLowerCase().includes(s) ||
-        a.category.toLowerCase().includes(s)
-      );
-    }
-    
-    return filtered;
+    const params = new URLSearchParams();
+    if (category && category !== 'all') params.set('category', category);
+    if (search) params.set('search', search);
+    const query = params.toString() ? `?${params}` : '';
+    const res = await request(`/api/agents${query}`);
+    return res.data || [];
   },
 
   async getAgent(id) {
-    await delay(200);
-    return allAgents.find(a => a.id === parseInt(id));
+    const res = await request(`/api/agents/${id}`);
+    return res.data;
   },
 
+  // ── Deployments ───────────────────────────────────────────────────────
   async deployAgent(agentId) {
-    await delay(1000);
-    
-    const agent = allAgents.find(a => a.id === parseInt(agentId));
-    if (!agent) {
-      throw new Error('Agent not found');
-    }
-
-    const deployment = {
-      id: agentIdCounter++,
-      agentId: agent.id,
-      agentName: agent.name,
-      agentIcon: agent.icon,
-      status: 'deploying',
-      deployedAt: new Date().toISOString()
-    };
-
-    deployedAgents.push(deployment);
-
-    // Simulate deployment process
-    setTimeout(() => {
-      deployment.status = 'running';
-    }, 3000);
-
-    return deployment;
+    const res = await request('/api/deployed', {
+      method: 'POST',
+      body: JSON.stringify({ agentId })
+    });
+    return res.data;
   },
 
   async getDeployedAgents() {
-    await delay(200);
-    return [...deployedAgents];
+    const res = await request('/api/deployed');
+    return res.data || [];
   },
 
   async stopAgent(deploymentId) {
-    await delay(500);
-    
-    const deployment = deployedAgents.find(d => d.id === parseInt(deploymentId));
-    if (deployment) {
-      deployment.status = 'stopped';
-    }
-    
-    return deployment;
+    const res = await request(`/api/deployed/${deploymentId}/stop`, {
+      method: 'POST'
+    });
+    return res.data;
+  },
+
+  // ── Workflows ─────────────────────────────────────────────────────────
+  async getWorkflows() {
+    const res = await request('/api/workflows');
+    return res.data || [];
+  },
+
+  async createWorkflow(data) {
+    const res = await request('/api/workflows', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    return res.data;
+  },
+
+  // ── Governance ────────────────────────────────────────────────────────
+  async getGovernance() {
+    const res = await request('/api/governance');
+    return res.data || {};
+  },
+
+  // ── Auth ──────────────────────────────────────────────────────────────
+  async login(email, password) {
+    const res = await request('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password })
+    });
+    return res.data;
+  },
+
+  async register(data) {
+    const res = await request('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    return res.data;
+  },
+
+  async getMe() {
+    const res = await request('/api/auth/me');
+    return res.data;
+  },
+
+  // ── Admin: User management ────────────────────────────────────────────
+  async getUsers() {
+    const res = await request('/api/admin/users');
+    return res.data || [];
+  },
+
+  async updateUserRole(userId, role) {
+    const res = await request(`/api/admin/users/${userId}/role`, {
+      method: 'PUT',
+      body: JSON.stringify({ role })
+    });
+    return res.data;
+  },
+
+  async createCustomer(data) {
+    // ADMIN only — creates a CUSTOMER account
+    const res = await request('/api/admin/users', {
+      method: 'POST',
+      body: JSON.stringify({ ...data, role: 'CUSTOMER' })
+    });
+    return res.data;
   }
 };
 
-console.log('✅ API Service loaded - Mock mode with 105 agents');
+console.log('✅ CoreIdentity Live API Service loaded');

@@ -11,6 +11,7 @@ const authRouter = require('./routes/auth');
 const agentsRouter = require('./routes/agents');
 const deployedRouter = require('./routes/deployed');
 const workflowsRouter = require('./routes/workflows');
+const adminRouter = require('./routes/admin');
 const governanceRouter = require('./routes/governance');
 const logger = require('./utils/logger');
 
@@ -62,12 +63,14 @@ app.get('/health', (req, res) => {
 });
 
 // ── Public routes ────────────────────────────────────────────────────────
+// Public auth — register disabled, use /api/admin/users for customer creation
 app.use('/api/auth', authRouter);
 
 // ── Protected routes (JWT required) ─────────────────────────────────────
 app.use('/api/agents',     authenticate, agentsRouter);
 app.use('/api/deployed',   authenticate, deployedRouter);
 app.use('/api/workflows',  authenticate, workflowsRouter);
+app.use('/api/admin',     authenticate, adminRouter);
 app.use('/api/governance', authenticate, governanceRouter);
 
 // ── 404 ──────────────────────────────────────────────────────────────────
