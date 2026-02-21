@@ -1,11 +1,13 @@
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
-const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 
 const requestLogger = require('./middleware/requestLogger');
 const errorHandler = require('./middleware/errorHandler');
+const { authenticate } = require('./middleware/auth');
+
+const authRouter = require('./routes/auth');
 const agentsRouter = require('./routes/agents');
 const deployedRouter = require('./routes/deployed');
 const workflowsRouter = require('./routes/workflows');
@@ -13,8 +15,8 @@ const governanceRouter = require('./routes/governance');
 const logger = require('./utils/logger');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://coreidentity.coreholdingcorp.com').split(',');
+const PORT = process.env.PORT || 8080;
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://coreidentity.coreholdingcorp.com,https://coreidentity-dashboard.pages.dev').split(',');
 
 // ── Security ────────────────────────────────────────────────────────────
 app.use(helmet());
@@ -28,8 +30,14 @@ app.use(cors({
 }));
 
 // ── Rate limiting ────────────────────────────────────────────────────────
+app.use('/api/auth', rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20, // Strict limit on auth endpoints
+  message: { error: 'Too many requests', code: 'RATE_LIMITED' }
+}));
+
 app.use('/api', rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 500,
   standardHeaders: true,
   legacyHeaders: false,
@@ -41,7 +49,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
-// ── Health check ────────────────────────────────────────────────────────
+// ── Health check (public) ────────────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.json({
     service: 'CoreIdentity API',
@@ -53,21 +61,22 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ── Routes ───────────────────────────────────────────────────────────────
-app.use('/api/agents',     agentsRouter);
-app.use('/api/deployed',   deployedRouter);
-app.use('/api/workflows',  workflowsRouter);
-app.use('/api/governance', governanceRouter);
+// ── Public routes ────────────────────────────────────────────────────────
+app.use('/api/auth', authRouter);
 
-// ── 404 handler ──────────────────────────────────────────────────────────
+// ── Protected routes (JWT required) ─────────────────────────────────────
+app.use('/api/agents',     authenticate, agentsRouter);
+app.use('/api/deployed',   authenticate, deployedRouter);
+app.use('/api/workflows',  authenticate, workflowsRouter);
+app.use('/api/governance', authenticate, governanceRouter);
+
+// ── 404 ──────────────────────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found', code: 'NOT_FOUND', path: req.path });
 });
 
-// ── Error handler ────────────────────────────────────────────────────────
 app.use(errorHandler);
 
-// ── Start ────────────────────────────────────────────────────────────────
 app.listen(PORT, '0.0.0.0', () => {
   logger.info('server_started', { port: PORT, env: process.env.NODE_ENV || 'development' });
 });
