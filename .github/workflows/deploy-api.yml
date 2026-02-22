@@ -14,7 +14,7 @@ env:
   AWS_REGION: us-east-2
   ECR_REPOSITORY: coreidentity-api
   ECS_CLUSTER: coreidentity-dev
-  ECS_SERVICE: coreidentity-api-service
+  ECS_SERVICE: sentinel
   CONTAINER_NAME: coreidentity-api
 
 jobs:
