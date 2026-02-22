@@ -14,7 +14,64 @@ async function request(path, options = {}) {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers
-  };
+  
+// ── Sentinel OS API methods ────────────────────────────────────────────────
+async getSentinelStatus() {
+  return request('/api/sentinel/status').then(r => r.data);
+},
+
+async getSecurityEvents(limit) {
+  return request('/api/sentinel/security-events?limit=' + (limit || 50)).then(r => r.data);
+},
+
+async getKillSwitches() {
+  return request('/api/sentinel/kill-switches').then(r => r.data);
+},
+
+async activateKillSwitch(agentId, reason) {
+  return request('/api/sentinel/kill-switches', {
+    method: 'POST',
+    body: JSON.stringify({ agentId, reason })
+  }).then(r => r.data);
+},
+
+async deactivateKillSwitch(agentId) {
+  return request('/api/sentinel/kill-switches/' + agentId, {
+    method: 'DELETE'
+  }).then(r => r.data);
+},
+
+async getApprovals(status) {
+  const qs = status ? '?status=' + status : '';
+  return request('/api/sentinel/approvals' + qs).then(r => r.data);
+},
+
+async submitApproval(agentId, taskType, justification) {
+  return request('/api/sentinel/approvals', {
+    method: 'POST',
+    body: JSON.stringify({ agentId, taskType, justification })
+  }).then(r => r.data);
+},
+
+async approveRequest(approvalId) {
+  return request('/api/sentinel/approvals/' + approvalId + '/approve', {
+    method: 'PUT'
+  }).then(r => r.data);
+},
+
+async getRiskTiers() {
+  return request('/api/sentinel/risk-tiers').then(r => r.data);
+},
+
+async deployAgent(agentId) {
+  return request('/api/deployed', {
+    method: 'POST',
+    body: JSON.stringify({ agentId })
+  }).then(r => r.data);
+},
+
+};
+
 
   const res = await fetch(`${API_URL}${path}`, { ...options, headers });
 
@@ -35,17 +92,7 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  // ── Sentinel OS ─────────────────────────────────────────────────────
-  getSentinelStatus:    () => axios.get('/api/sentinel/status').then(r => r.data.data),
-  getSecurityEvents:    (limit = 50) => axios.get('/api/sentinel/security-events?limit=' + limit).then(r => r.data.data),
-  getKillSwitches:      () => axios.get('/api/sentinel/kill-switches').then(r => r.data.data),
-  activateKillSwitch:   (agentId, reason) => axios.post('/api/sentinel/kill-switches', { agentId, reason }).then(r => r.data.data),
-  deactivateKillSwitch: (agentId) => axios.delete('/api/sentinel/kill-switches/' + agentId).then(r => r.data.data),
-  getApprovals:         (status) => axios.get('/api/sentinel/approvals' + (status ? '?status=' + status : '')).then(r => r.data.data),
-  submitApproval:       (agentId, taskType, justification) => axios.post('/api/sentinel/approvals', { agentId, taskType, justification }).then(r => r.data.data),
-  approveRequest:       (approvalId) => axios.put('/api/sentinel/approvals/' + approvalId + '/approve').then(r => r.data.data),
-  getRiskTiers:         () => axios.get('/api/sentinel/risk-tiers').then(r => r.data.data),
-
+  // ── Sentinel OS ─────────────────────────────────────────────────────  de
   // ── Agents ────────────────────────────────────────────────────────────
   async getAgents(category = 'all', search = '') {
     const params = new URLSearchParams();
