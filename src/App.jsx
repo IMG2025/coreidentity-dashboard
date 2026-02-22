@@ -4,6 +4,7 @@ import { Home, Package, GitBranch, Shield, BarChart3, Menu, Bell, Settings, X, L
 import { createContext, useContext } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 import Dashboard from './pages/Dashboard';
 import AgentCatalog from './pages/AgentCatalog';
 import Workflows from './pages/Workflows';
@@ -190,7 +191,7 @@ function AppShell() {
   if (!isAuthenticated) {
     return (
       <Routes>
-        <Route path="*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="*" element={<ErrorBoundary name="Dashboard"><ProtectedRoute><Dashboard /></ProtectedRoute></ErrorBoundary>} />
       </Routes>
     );
   }
@@ -206,15 +207,15 @@ function AppShell() {
         }} />
         <main className="flex-1 overflow-y-auto p-4">
           <Routes>
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/agents" element={<ProtectedRoute><AgentCatalog /></ProtectedRoute>} />
-            <Route path="/workflows" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
-            <Route path="/sentinel" element={<SentinelOS />} />
-              <Route path="/smartnation" element={<SmartNationAI />} />
-              <Route path="/founders" element={<FoundersDashboard />} />
-              <Route path="/governance" element={<ProtectedRoute><Governance /></ProtectedRoute>} />
-            <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            <Route path="/" element={<ErrorBoundary name="Dashboard"><ProtectedRoute><Dashboard /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/agents" element={<ErrorBoundary name="AgentCatalog"><ProtectedRoute><AgentCatalog /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/workflows" element={<ErrorBoundary name="Workflows"><ProtectedRoute><Workflows /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/sentinel" element={<ErrorBoundary name="SentinelOS"><SentinelOS /></ErrorBoundary>} />
+              <Route path="/smartnation" element={<ErrorBoundary name="SmartNationAI"><SmartNationAI /></ErrorBoundary>} />
+              <Route path="/founders" element={<ErrorBoundary name="FoundersDashboard"><FoundersDashboard /></ErrorBoundary>} />
+              <Route path="/governance" element={<ErrorBoundary name="Governance"><ProtectedRoute><Governance /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/analytics" element={<ErrorBoundary name="Analytics"><ProtectedRoute><Analytics /></ProtectedRoute></ErrorBoundary>} />
+            <Route path="/settings" element={<ErrorBoundary name="SettingsPage"><ProtectedRoute><SettingsPage /></ProtectedRoute></ErrorBoundary>} />
           </Routes>
         </main>
       </div>
