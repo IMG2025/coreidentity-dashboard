@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Home, Package, GitBranch, Shield, BarChart3, Menu, Bell, Settings, X, LogOut, Award } from 'lucide-react';
+import { Home, Package, GitBranch, Shield, BarChart3, Menu, Bell, Settings, X, LogOut, Award, Database } from 'lucide-react';
 import { createContext, useContext } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
