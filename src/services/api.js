@@ -109,7 +109,17 @@ export const api = {
   },
 
   // ── Sentinel OS ───────────────────────────────────────────────────────────
-  async getSmartNationSummary() {
+  async getNexusStatus() {
+      const data = await request('/api/execute/nexus/status');
+      return data.data || data;
+    },
+  
+    async getNexusExecutions(limit) {
+      const data = await request('/api/execute/nexus/executions?limit=' + (limit || 20));
+      return data.data || data;
+    },
+  
+    async getSmartNationSummary() {
       const data = await request('/api/smartnation/summary');
       return data.data || data;
     },

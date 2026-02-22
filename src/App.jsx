@@ -14,6 +14,7 @@ import SettingsPage from './pages/SettingsPage';
 
 import SentinelOS from './pages/Sentinel';
 import SmartNationAI from './pages/SmartNation';
+import NexusOS from './pages/NexusOS';
 import FoundersDashboard from './pages/FoundersDashboard';
 const NotificationContext = createContext();
 export const useNotifications = () => useContext(NotificationContext);
@@ -46,6 +47,7 @@ const NAV = [
   { name: 'Governance', href: '/governance', icon: Shield },
   { name: 'Sentinel OS', href: '/sentinel', icon: Shield },
   { name: 'SmartNation AI', href: '/smartnation', icon: Database },
+  { name: 'Nexus OS', href: '/nexus', icon: Cpu },
   { name: 'Founders', href: '/founders', icon: Award },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings },
@@ -212,6 +214,7 @@ function AppShell() {
             <Route path="/workflows" element={<ErrorBoundary name="Workflows"><ProtectedRoute><Workflows /></ProtectedRoute></ErrorBoundary>} />
             <Route path="/sentinel" element={<ErrorBoundary name="SentinelOS"><SentinelOS /></ErrorBoundary>} />
               <Route path="/smartnation" element={<ErrorBoundary name="SmartNationAI"><SmartNationAI /></ErrorBoundary>} />
+              <Route path="/nexus" element={<ErrorBoundary name="NexusOS"><NexusOS /></ErrorBoundary>} />
               <Route path="/founders" element={<ErrorBoundary name="FoundersDashboard"><FoundersDashboard /></ErrorBoundary>} />
               <Route path="/governance" element={<ErrorBoundary name="Governance"><ProtectedRoute><Governance /></ProtectedRoute></ErrorBoundary>} />
             <Route path="/analytics" element={<ErrorBoundary name="Analytics"><ProtectedRoute><Analytics /></ProtectedRoute></ErrorBoundary>} />

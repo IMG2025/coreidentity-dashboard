@@ -11,6 +11,7 @@ const authRouter = require('./routes/auth');
 const agentsRouter = require('./routes/agents');
 const deployedRouter = require('./routes/deployed');
 const workflowsRouter = require('./routes/workflows');
+const NexusOS = require('./nexus');
 const smartnationRouter = require('./routes/smartnation');
 const sentinelRouter = require('./routes/sentinel');
 const executeRouter = require('./routes/execute');
