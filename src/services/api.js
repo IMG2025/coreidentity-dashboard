@@ -109,7 +109,20 @@ export const api = {
   },
 
   // ── Sentinel OS ───────────────────────────────────────────────────────────
-  async getNexusStatus() {
+  async getCISOSummary() {
+      const [sentinel, smartnation, events] = await Promise.allSettled([
+        request('/api/sentinel/status'),
+        request('/api/smartnation/summary'),
+        request('/api/sentinel/security-events?limit=10')
+      ]);
+      return {
+        sentinel:    sentinel.status    === 'fulfilled' ? (sentinel.value.data    || sentinel.value)    : null,
+        smartnation: smartnation.status === 'fulfilled' ? (smartnation.value.data || smartnation.value) : null,
+        events:      events.status      === 'fulfilled' ? (events.value.data      || [])               : []
+      };
+    },
+  
+    async getNexusStatus() {
       const data = await request('/api/execute/nexus/status');
       return data.data || data;
     },

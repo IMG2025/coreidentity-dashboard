@@ -103,7 +103,7 @@ export default function FoundersDashboard() {
   const stack = [
     { name: 'Sentinel OS',    status: 'LIVE',        desc: 'Governance and Security OS'   },
     { name: 'SmartNation AI', status: 'LIVE',        desc: '108 agents in registry'       },
-    { name: 'Nexus OS',       status: 'BUILDING',    desc: 'Execution OS'                 },
+    { name: 'Nexus OS', status: 'LIVE', desc: 'Execution OS · Circuit breakers armed' },
     { name: 'AGO Modules',    status: 'LIVE',        desc: '9 domains active'             },
     { name: 'CoreIdentity',   status: 'LIVE',        desc: 'Platform operator'            },
     { name: 'CIAG',           status: 'OPERATIONAL', desc: 'Advisory operator'            },

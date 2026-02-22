@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Home, Package, GitBranch, Shield, BarChart3, Menu, Bell, Settings, X, LogOut, Award, Database, Cpu } from 'lucide-react';
+import { Home, Package, GitBranch, Shield, BarChart3, Menu, Bell, Settings, X, LogOut, Award, Database, Cpu, ShieldCheck } from 'lucide-react';
 import { createContext, useContext } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -15,6 +15,7 @@ import SettingsPage from './pages/SettingsPage';
 import SentinelOS from './pages/Sentinel';
 import SmartNationAI from './pages/SmartNation';
 import NexusOS from './pages/NexusOS';
+import CISODashboard from './pages/CISODashboard';
 import FoundersDashboard from './pages/FoundersDashboard';
 const NotificationContext = createContext();
 export const useNotifications = () => useContext(NotificationContext);
@@ -48,6 +49,7 @@ const NAV = [
   { name: 'Sentinel OS', href: '/sentinel', icon: Shield },
   { name: 'SmartNation AI', href: '/smartnation', icon: Database },
   { name: 'Nexus OS', href: '/nexus', icon: Cpu },
+  { name: 'CISO', href: '/ciso', icon: ShieldCheck },
   { name: 'Founders', href: '/founders', icon: Award },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings },
@@ -215,6 +217,7 @@ function AppShell() {
             <Route path="/sentinel" element={<ErrorBoundary name="SentinelOS"><SentinelOS /></ErrorBoundary>} />
               <Route path="/smartnation" element={<ErrorBoundary name="SmartNationAI"><SmartNationAI /></ErrorBoundary>} />
               <Route path="/nexus" element={<ErrorBoundary name="NexusOS"><NexusOS /></ErrorBoundary>} />
+              <Route path="/ciso" element={<ErrorBoundary name="CISODashboard"><CISODashboard /></ErrorBoundary>} />
               <Route path="/founders" element={<ErrorBoundary name="FoundersDashboard"><FoundersDashboard /></ErrorBoundary>} />
               <Route path="/governance" element={<ErrorBoundary name="Governance"><ProtectedRoute><Governance /></ProtectedRoute></ErrorBoundary>} />
             <Route path="/analytics" element={<ErrorBoundary name="Analytics"><ProtectedRoute><Analytics /></ProtectedRoute></ErrorBoundary>} />
