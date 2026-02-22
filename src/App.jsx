@@ -19,6 +19,8 @@ export const useNotifications = () => useContext(NotificationContext);
 function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const addNotification = (message, type = 'success') => {
+    // Push to bell list handled by AppShell via event
+    try { window.dispatchEvent(new CustomEvent('ci-notif', { detail: { message, type } })); } catch(e) {}
     const id = Date.now();
     setNotifications(prev => [...prev, { id, message, type }]);
     setTimeout(() => setNotifications(prev => prev.filter(n => n.id !== id)), 5000);
@@ -113,7 +115,42 @@ function Navbar({ onMenuClick }) {
       </div>
       <div className="flex items-center space-x-3">
         <button className="p-2 hover:bg-gray-100 rounded-full relative">
-          <Bell className="h-5 w-5 text-gray-600" />
+          <div className="relative">
+                <button
+                  onClick={function() { setNotifOpen(function(p) { return !p; }); }}
+                  className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <Bell className="h-5 w-5 text-gray-600" />
+                  {notifList.length > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center leading-none">
+                      {notifList.length}
+                    </span>
+                  )}
+                </button>
+                {notifOpen && (
+                  <div className="absolute right-0 top-12 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 z-50">
+                    <div className="p-4 border-b border-gray-100 flex justify-between items-center">
+                      <span className="font-semibold text-gray-800 text-sm">Notifications</span>
+                      <button
+                        onClick={function() { setNotifList([]); setNotifOpen(false); }}
+                        className="text-xs text-gray-400 hover:text-gray-600">
+                        Clear all
+                      </button>
+                    </div>
+                    {notifList.length === 0
+                      ? <div className="p-6 text-center text-sm text-gray-400">No notifications</div>
+                      : notifList.map(function(n, i) {
+                          return (
+                            <div key={i} className="px-4 py-3 border-b border-gray-50 last:border-0">
+                              <div className="text-sm text-gray-700">{n.message}</div>
+                              <div className="text-xs text-gray-400 mt-0.5">{n.time}</div>
+                            </div>
+                          );
+                        })
+                    }
+                  </div>
+                )}
+              </div>
           <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
         </button>
         {user && (
@@ -139,6 +176,16 @@ function AppShell() {
   const { isAuthenticated } = useAuth();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+    React.useEffect(function() {
+      function handler(e) {
+        setNotifList(function(prev) {
+          const entry = { message: e.detail.message, type: e.detail.type, time: new Date().toLocaleTimeString() };
+          return [entry, ...prev].slice(0, 10);
+        });
+      }
+      window.addEventListener("ci-notif", handler);
+      return function() { window.removeEventListener("ci-notif", handler); };
+    }, []);
   const [notifList, setNotifList] = useState([]);
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
 
