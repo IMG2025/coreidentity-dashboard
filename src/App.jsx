@@ -42,6 +42,8 @@ const NAV = [
   { name: 'Agents', href: '/agents', icon: Package },
   { name: 'Workflows', href: '/workflows', icon: GitBranch },
   { name: 'Governance', href: '/governance', icon: Shield },
+  { name: 'Sentinel OS', href: '/sentinel', icon: Shield },
+  { name: 'Founders', href: '/founders', icon: Award },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
