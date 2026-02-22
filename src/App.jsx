@@ -11,6 +11,8 @@ import Governance from './pages/Governance';
 import Analytics from './pages/Analytics';
 import SettingsPage from './pages/SettingsPage';
 
+import SentinelOS from './pages/Sentinel';
+import FoundersDashboard from './pages/FoundersDashboard';
 const NotificationContext = createContext();
 export const useNotifications = () => useContext(NotificationContext);
 
@@ -158,7 +160,9 @@ function AppShell() {
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/agents" element={<ProtectedRoute><AgentCatalog /></ProtectedRoute>} />
             <Route path="/workflows" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
-            <Route path="/governance" element={<ProtectedRoute><Governance /></ProtectedRoute>} />
+            <Route path="/sentinel" element={<SentinelOS />} />
+              <Route path="/founders" element={<FoundersDashboard />} />
+              <Route path="/governance" element={<ProtectedRoute><Governance /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           </Routes>
