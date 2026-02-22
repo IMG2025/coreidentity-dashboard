@@ -109,6 +109,11 @@ export const api = {
   },
 
   // ── Sentinel OS ───────────────────────────────────────────────────────────
+  async getVerticals() {
+    const data = await request('/api/verticals');
+    return data.data || data;
+  },
+
   async getCISOSummary() {
       const [sentinel, smartnation, events] = await Promise.allSettled([
         request('/api/sentinel/status'),

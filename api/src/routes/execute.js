@@ -5,38 +5,12 @@ const Sentinel  = require('../sentinel');
 const NexusOS   = require('../nexus');
 const agentRegistry = require('../smartnation/agentRegistry');
 
-// AGO domain executor — dispatches to appropriate domain handler
 async function agoExecutor(agentId, taskType, inputs) {
   const agent = await agentRegistry.getAgent(agentId);
   const name  = agent ? agent.name : 'Agent ' + agentId;
-  const category = agent ? agent.category : 'General';
-
-  // Simulate domain-specific execution
-  // Session 4 wires real domain handlers per category
-  const domainResults = {
-    'Data Analysis':       { insights: ['Trend detected', 'Anomaly flagged'], confidence: 0.94 },
-    'Research':            { findings: ['3 sources analyzed', 'Key patterns identified'], relevance: 0.89 },
-    'Compliance':          { controls: ['SOC2 validated', 'GDPR check passed'], score: 98 },
-    'Communication':       { sent: true, channel: 'email', deliveryRate: 0.99 },
-    'Document Processing': { pages: 12, extracted: 847, confidence: 0.96 },
-    'Marketing':           { reach: 12400, engagement: 0.034, conversions: 47 },
-    'Integration':         { synced: true, records: 1204, errors: 0 },
-    'Customer Service':    { resolved: true, sentiment: 'positive', csat: 4.8 },
-    'Legal':               { reviewed: true, risks: 0, recommendations: 2 }
-  };
-
-  const domainResult = domainResults[category] || { completed: true };
-
-  return {
-    agentId:    String(agentId),
-    agentName:  name,
-    category,
-    taskType,
-    status:     'success',
-    result:     domainResult,
-    timestamp:  new Date().toISOString(),
-    executedBy: 'Nexus OS'
-  };
+  const category   = agent ? agent.category : 'General';
+  const verticalId = (inputs && inputs.verticalId) || (agent && agent.verticalId) || 'hospitality';
+  return agoRouter.route(String(agentId), name, category, taskType, inputs || {}, verticalId);
 }
 
 // POST /api/execute/:agentId/execute
