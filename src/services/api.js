@@ -12,196 +12,159 @@ async function request(path, options = {}) {
   const token = getToken();
   const headers = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(token ? { Authorization: 'Bearer ' + token } : {}),
     ...options.headers
-  
-// ── Sentinel OS API methods ────────────────────────────────────────────────
-async getSentinelStatus() {
-  return request('/api/sentinel/status').then(r => r.data);
-},
+  };
 
-async getSecurityEvents(limit) {
-  return request('/api/sentinel/security-events?limit=' + (limit || 50)).then(r => r.data);
-},
-
-async getKillSwitches() {
-  return request('/api/sentinel/kill-switches').then(r => r.data);
-},
-
-async activateKillSwitch(agentId, reason) {
-  return request('/api/sentinel/kill-switches', {
-    method: 'POST',
-    body: JSON.stringify({ agentId, reason })
-  }).then(r => r.data);
-},
-
-async deactivateKillSwitch(agentId) {
-  return request('/api/sentinel/kill-switches/' + agentId, {
-    method: 'DELETE'
-  }).then(r => r.data);
-},
-
-async getApprovals(status) {
-  const qs = status ? '?status=' + status : '';
-  return request('/api/sentinel/approvals' + qs).then(r => r.data);
-},
-
-async submitApproval(agentId, taskType, justification) {
-  return request('/api/sentinel/approvals', {
-    method: 'POST',
-    body: JSON.stringify({ agentId, taskType, justification })
-  }).then(r => r.data);
-},
-
-async approveRequest(approvalId) {
-  return request('/api/sentinel/approvals/' + approvalId + '/approve', {
-    method: 'PUT'
-  }).then(r => r.data);
-},
-
-async getRiskTiers() {
-  return request('/api/sentinel/risk-tiers').then(r => r.data);
-},
-
-async deployAgent(agentId) {
-  return request('/api/deployed', {
-    method: 'POST',
-    body: JSON.stringify({ agentId })
-  }).then(r => r.data);
-},
-
-};
-
-
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
-
-  // Token expired — force logout
-  if (res.status === 401) {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem('ci_user');
-    window.location.reload();
-    return;
-  }
-
+  const res = await fetch(API_URL + path, { ...options, headers });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(err.error || `HTTP ${res.status}`);
+    const err = await res.json().catch(function() { return {}; });
+    throw new Error(err.error || err.message || 'Request failed: ' + res.status);
   }
-
   return res.json();
 }
 
 export const api = {
-  // ── Sentinel OS ─────────────────────────────────────────────────────  de
-  // ── Agents ────────────────────────────────────────────────────────────
-  async getAgents(category = 'all', search = '') {
-    const params = new URLSearchParams();
-    if (category && category !== 'all') params.set('category', category);
-    if (search) params.set('search', search);
-    const query = params.toString() ? `?${params}` : '';
-    const res = await request(`/api/agents${query}`);
-    return res.data || [];
-  },
 
-  async getAgent(id) {
-    const res = await request(`/api/agents/${id}`);
-    return res.data;
-  },
-
-  // ── Deployments ───────────────────────────────────────────────────────
-  async deployAgent(agentId) {
-    const res = await request('/api/deployed', {
-      method: 'POST',
-      body: JSON.stringify({ agentId })
-    });
-    return res.data;
-  },
-
-  async getDeployedAgents() {
-    const res = await request('/api/deployed');
-    return res.data || [];
-  },
-
-  async stopAgent(deploymentId) {
-    const res = await request(`/api/deployed/${deploymentId}/stop`, {
-      method: 'POST'
-    });
-    return res.data;
-  },
-
-  // ── Workflows ─────────────────────────────────────────────────────────
-  async getWorkflows() {
-    const res = await request('/api/workflows');
-    return res.data || [];
-  },
-
-  async createWorkflow(data) {
-    const res = await request('/api/workflows', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
-    return res.data;
-  },
-
-  // ── Governance ────────────────────────────────────────────────────────
-  async getGovernance() {
-    const res = await request('/api/governance');
-    return res.data || {};
-  },
-
-  // ── Auth ──────────────────────────────────────────────────────────────
+  // ── Auth ──────────────────────────────────────────────────────────────────
   async login(email, password) {
-    const res = await request('/api/auth/login', {
+    const data = await request('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password })
     });
-    return res.data;
+    if (data.token) localStorage.setItem(TOKEN_KEY, data.token);
+    return data;
   },
 
-  async register(data) {
-    const res = await request('/api/auth/register', {
+  logout() {
+    localStorage.removeItem(TOKEN_KEY);
+  },
+
+  async getProfile() {
+    return request('/api/auth/profile');
+  },
+
+  // ── Agents ────────────────────────────────────────────────────────────────
+  async getAgents(category, search) {
+    const params = new URLSearchParams();
+    if (category && category !== 'all') params.append('category', category);
+    if (search) params.append('search', search);
+    const qs = params.toString();
+    const data = await request('/api/agents' + (qs ? '?' + qs : ''));
+    return data.data || data;
+  },
+
+  async getAgent(id) {
+    const data = await request('/api/agents/' + id);
+    return data.data || data;
+  },
+
+  async deployAgent(agentId) {
+    const data = await request('/api/deployed', {
       method: 'POST',
-      body: JSON.stringify(data)
+      body: JSON.stringify({ agentId })
     });
-    return res.data;
+    return data.data || data;
   },
 
-  async getMe() {
-    const res = await request('/api/auth/me');
-    return res.data;
-  },
-
-  // ── Admin: User management ────────────────────────────────────────────
-  async getUsers() {
-    const res = await request('/api/admin/users');
-    return res.data || [];
-  },
-
-  async updateUserRole(userId, role) {
-    const res = await request(`/api/admin/users/${userId}/role`, {
-      method: 'PUT',
-      body: JSON.stringify({ role })
-    });
-    return res.data;
-  },
-
-  async createCustomer(data) {
-    // ADMIN only — creates a CUSTOMER account
-    const res = await request('/api/admin/users', {
+  // ── Executions ────────────────────────────────────────────────────────────
+  async executeAgent(agentId, taskType, inputs) {
+    const data = await request('/api/execute/' + agentId + '/execute', {
       method: 'POST',
-      body: JSON.stringify({ ...data, role: 'CUSTOMER' })
+      body: JSON.stringify({ taskType: taskType || 'ANALYZE', inputs: inputs || {} })
     });
-    return res.data;
+    return data.data || data;
+  },
+
+  // ── Workflows ─────────────────────────────────────────────────────────────
+  async getWorkflows() {
+    const data = await request('/api/workflows');
+    return data.data || data;
+  },
+
+  async createWorkflow(workflow) {
+    const data = await request('/api/workflows', {
+      method: 'POST',
+      body: JSON.stringify(workflow)
+    });
+    return data.data || data;
+  },
+
+  // ── Governance ────────────────────────────────────────────────────────────
+  async getGovernance() {
+    const data = await request('/api/governance');
+    return data.data || data;
+  },
+
+  // ── Analytics ─────────────────────────────────────────────────────────────
+  async getAnalytics() {
+    const data = await request('/api/analytics');
+    return data.data || data;
+  },
+
+  // ── Deployed Agents ───────────────────────────────────────────────────────
+  async getDeployedAgents() {
+    const data = await request('/api/deployed');
+    return data.data || data;
+  },
+
+  // ── Sentinel OS ───────────────────────────────────────────────────────────
+  async getSentinelStatus() {
+    const data = await request('/api/sentinel/status');
+    return data.data || data;
+  },
+
+  async getSecurityEvents(limit) {
+    const data = await request('/api/sentinel/security-events?limit=' + (limit || 50));
+    return data.data || data;
+  },
+
+  async getKillSwitches() {
+    const data = await request('/api/sentinel/kill-switches');
+    return data.data || data;
+  },
+
+  async activateKillSwitch(agentId, reason) {
+    const data = await request('/api/sentinel/kill-switches', {
+      method: 'POST',
+      body: JSON.stringify({ agentId, reason })
+    });
+    return data.data || data;
+  },
+
+  async deactivateKillSwitch(agentId) {
+    const data = await request('/api/sentinel/kill-switches/' + agentId, {
+      method: 'DELETE'
+    });
+    return data.data || data;
+  },
+
+  async getApprovals(status) {
+    const qs = status ? '?status=' + status : '';
+    const data = await request('/api/sentinel/approvals' + qs);
+    return data.data || data;
+  },
+
+  async submitApproval(agentId, taskType, justification) {
+    const data = await request('/api/sentinel/approvals', {
+      method: 'POST',
+      body: JSON.stringify({ agentId, taskType, justification })
+    });
+    return data.data || data;
+  },
+
+  async approveRequest(approvalId) {
+    const data = await request('/api/sentinel/approvals/' + approvalId + '/approve', {
+      method: 'PUT'
+    });
+    return data.data || data;
+  },
+
+  async getRiskTiers() {
+    const data = await request('/api/sentinel/risk-tiers');
+    return data.data || data;
   }
+
 };
 
-console.log('✅ CoreIdentity Live API Service loaded');
-
-// ── Agent execution — wired to AGO engine ────────────────────────────────
-api.executeAgent = async function(agentId, taskType = 'ANALYZE', inputs = {}) {
-  const res = await request(`/api/execute/${agentId}/execute`, {
-    method: 'POST',
-    body: JSON.stringify({ taskType, inputs })
-  });
-  return res.data;
-};
+export default api;
