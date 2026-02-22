@@ -138,6 +138,8 @@ function Navbar({ onMenuClick }) {
 function AppShell() {
   const { isAuthenticated } = useAuth();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifList, setNotifList] = useState([]);
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
 
   if (!isAuthenticated) {

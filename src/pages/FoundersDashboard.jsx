@@ -75,11 +75,14 @@ export default function FoundersDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(function() {
-    api.getSentinelStatus()
-      .then(function(s) { setSentinelStatus(s); })
-      .catch(function() { addNotification('Failed to load metrics', 'error'); })
-      .finally(function() { setLoading(false); });
-  }, []);
+      api.getSentinelStatus()
+        .then(function(s) { setSentinelStatus(s); })
+        .catch(function() {
+          // Non-fatal — dashboard renders with fallback values
+          console.warn('Sentinel status unavailable — using defaults');
+        })
+        .finally(function() { setLoading(false); });
+    }, []);
 
   const govHealth = sentinelStatus ? sentinelStatus.governance_health : 100;
   const execs24h  = sentinelStatus && sentinelStatus.audit_summary ? sentinelStatus.audit_summary.executions_24h : 0;
