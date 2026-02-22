@@ -12,6 +12,7 @@ import Analytics from './pages/Analytics';
 import SettingsPage from './pages/SettingsPage';
 
 import SentinelOS from './pages/Sentinel';
+import SmartNationAI from './pages/SmartNation';
 import FoundersDashboard from './pages/FoundersDashboard';
 const NotificationContext = createContext();
 export const useNotifications = () => useContext(NotificationContext);
@@ -43,6 +44,7 @@ const NAV = [
   { name: 'Workflows', href: '/workflows', icon: GitBranch },
   { name: 'Governance', href: '/governance', icon: Shield },
   { name: 'Sentinel OS', href: '/sentinel', icon: Shield },
+  { name: 'SmartNation AI', href: '/smartnation', icon: Database },
   { name: 'Founders', href: '/founders', icon: Award },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings },
@@ -208,6 +210,7 @@ function AppShell() {
             <Route path="/agents" element={<ProtectedRoute><AgentCatalog /></ProtectedRoute>} />
             <Route path="/workflows" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
             <Route path="/sentinel" element={<SentinelOS />} />
+              <Route path="/smartnation" element={<SmartNationAI />} />
               <Route path="/founders" element={<FoundersDashboard />} />
               <Route path="/governance" element={<ProtectedRoute><Governance /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />

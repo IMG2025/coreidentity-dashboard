@@ -109,7 +109,12 @@ export const api = {
   },
 
   // ── Sentinel OS ───────────────────────────────────────────────────────────
-  async getSentinelStatus() {
+  async getSmartNationSummary() {
+      const data = await request('/api/smartnation/summary');
+      return data.data || data;
+    },
+  
+    async getSentinelStatus() {
     const data = await request('/api/sentinel/status');
     return data.data || data;
   },
