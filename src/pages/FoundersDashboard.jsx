@@ -1,246 +1,189 @@
-import React, { useState } from 'react';
-import { TrendingUp, DollarSign, Users, Activity, AlertTriangle, CheckCircle, Zap, Building2, Target, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { TrendingUp, Users, DollarSign, Activity, Shield,
+         Zap, Target, Award, BarChart2 } from 'lucide-react';
+import { api } from '../services/api';
+import { useNotifications } from '../App';
+
+function MetricCard({ icon: Icon, label, value, change, color, sub }) {
+  const c = color || 'blue';
+  const gradients = {
+    blue:   'from-blue-600 to-blue-800',
+    green:  'from-green-500 to-green-700',
+    purple: 'from-purple-600 to-purple-800',
+    orange: 'from-orange-500 to-orange-700',
+    teal:   'from-teal-500 to-teal-700',
+    indigo: 'from-indigo-600 to-indigo-800'
+  };
+  return (
+    <div className={'bg-gradient-to-br ' + (gradients[c] || gradients.blue) + ' rounded-2xl p-5 text-white relative overflow-hidden'}>
+      <div className='absolute right-4 top-4 opacity-10'><Icon size={48} /></div>
+      <Icon size={20} className='opacity-80 mb-3' />
+      <div className='text-3xl font-bold mb-1'>{value}</div>
+      <div className='text-xs opacity-70 uppercase tracking-wide'>{label}</div>
+      {change !== undefined && (
+        <div className='mt-2 text-xs opacity-80'>
+          <span className={change > 0 ? 'text-green-300' : 'text-red-300'}>
+            {change > 0 ? String.fromCharCode(8593) : String.fromCharCode(8595)} {Math.abs(change)}%
+          </span>
+          <span className='opacity-60 ml-1'>vs last month</span>
+        </div>
+      )}
+      {sub && <div className='mt-1 text-xs opacity-60'>{sub}</div>}
+    </div>
+  );
+}
+
+function ProgressBar({ label, value, max, color }) {
+  const c = color || 'blue';
+  const pct = Math.min(100, Math.round((value / max) * 100));
+  const colors = { blue: 'bg-blue-500', green: 'bg-green-500', orange: 'bg-orange-500', purple: 'bg-purple-500' };
+  return (
+    <div className='mb-4'>
+      <div className='flex justify-between text-sm mb-1'>
+        <span className='text-gray-600'>{label}</span>
+        <span className='font-semibold text-gray-800'>{value.toLocaleString()}</span>
+      </div>
+      <div className='h-2 bg-gray-100 rounded-full overflow-hidden'>
+        <div className={(colors[c] || colors.blue) + ' h-full rounded-full'} style={{ width: pct + '%' }} />
+      </div>
+    </div>
+  );
+}
+
+function StackItem({ name, status, desc }) {
+  const isLive = status === 'LIVE' || status === 'ACTIVE' || status === 'OPERATIONAL';
+  const isBuilding = status === 'BUILDING';
+  const badgeClass = isLive
+    ? 'bg-green-100 text-green-700'
+    : isBuilding
+      ? 'bg-orange-100 text-orange-700'
+      : 'bg-blue-100 text-blue-700';
+  return (
+    <div className='p-3 rounded-xl border border-gray-100 bg-gray-50'>
+      <div className='flex items-center justify-between mb-1'>
+        <span className='text-sm font-semibold text-gray-800'>{name}</span>
+        <span className={'text-xs px-1.5 py-0.5 rounded-full font-medium ' + badgeClass}>{status}</span>
+      </div>
+      <div className='text-xs text-gray-400'>{desc}</div>
+    </div>
+  );
+}
 
 export default function FoundersDashboard() {
-  const [timeRange, setTimeRange] = useState('30d');
+  const { addNotification } = useNotifications();
+  const [sentinelStatus, setSentinelStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const metrics = {
-    mrr: 47850,
-    customers: 12,
-    activeAgos: 7,
-    totalAgents: 105,
-    deployedAgents: 89,
-    activeWorkflows: 34,
-    complianceScore: 98,
-    uptime: 99.97
-  };
+  useEffect(function() {
+    api.getSentinelStatus()
+      .then(function(s) { setSentinelStatus(s); })
+      .catch(function() { addNotification('Failed to load metrics', 'error'); })
+      .finally(function() { setLoading(false); });
+  }, []);
 
-  const agos = [
-    { name: 'Sentinel OS', status: 'running', health: 100, customers: 12, revenue: 15000 },
-    { name: 'Echo Workflow', status: 'running', health: 98, customers: 10, revenue: 8500 },
-    { name: 'Nexus Integration', status: 'running', health: 95, customers: 8, revenue: 6200 },
-    { name: 'Atlas Knowledge', status: 'running', health: 100, customers: 6, revenue: 4800 },
-    { name: 'Forge Development', status: 'running', health: 92, customers: 5, revenue: 3900 },
-    { name: 'Prism Analytics', status: 'running', health: 97, customers: 7, revenue: 5450 },
-    { name: 'Vault Security', status: 'running', health: 100, customers: 12, revenue: 18000 },
-    { name: 'Horizon ML', status: 'deploying', health: 85, customers: 3, revenue: 2400 },
-    { name: 'Pulse Monitoring', status: 'stopped', health: 0, customers: 0, revenue: 0 }
+  const govHealth = sentinelStatus ? sentinelStatus.governance_health : 100;
+  const execs24h  = sentinelStatus && sentinelStatus.audit_summary ? sentinelStatus.audit_summary.executions_24h : 0;
+
+  if (loading) return (
+    <div className='flex items-center justify-center h-64'>
+      <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600' />
+    </div>
+  );
+
+  const stack = [
+    { name: 'Sentinel OS',    status: 'LIVE',     desc: 'Governance and Security OS' },
+    { name: 'SmartNation AI', status: 'BUILDING', desc: 'Registry and Intelligence' },
+    { name: 'Nexus OS',       status: 'BUILDING', desc: 'Execution OS' },
+    { name: 'AGO Modules',    status: 'LIVE',     desc: '3 domains active' },
+    { name: 'CoreIdentity',   status: 'LIVE',     desc: 'Platform operator' },
+    { name: 'CIAG',           status: 'OPERATIONAL', desc: 'Advisory operator' },
+    { name: 'CHC',            status: 'ACTIVE',   desc: 'Holding company' },
+    { name: 'CI/CD Pipeline', status: 'ACTIVE',   desc: 'Auto-deploy on push' }
   ];
 
-  const verticals = [
-    { name: 'Healthcare', customers: 4, mrr: 18500, agents: 32, compliance: 99, trend: '+12%' },
-    { name: 'Retail', customers: 3, mrr: 12200, agents: 28, compliance: 97, trend: '+8%' },
-    { name: 'Hospitality', customers: 3, mrr: 9800, agents: 18, compliance: 98, trend: '+5%' },
-    { name: 'Financial Services', customers: 2, mrr: 7350, agents: 11, compliance: 100, trend: '+15%' }
-  ];
-
-  const pilots = [
-    { name: 'Walmart Retail Pilot', status: 'active', progress: 65, daysRemaining: 23, revenue: 0, stage: 'Phase 2' },
-    { name: 'Cole Hospitality', status: 'paused', progress: 40, daysRemaining: 0, revenue: 0, stage: 'Phase 1' },
-    { name: 'Regional Hospital Chain', status: 'active', progress: 82, daysRemaining: 12, revenue: 8500, stage: 'Phase 3' }
-  ];
-
-  const alerts = [
-    { type: 'success', message: 'Walmart pilot hit 65% milestone', time: '2 hours ago' },
-    { type: 'warning', message: 'Horizon ML deployment taking longer than expected', time: '5 hours ago' },
-    { type: 'info', message: 'New customer signed: Regional Credit Union', time: '1 day ago' }
+  const milestones = [
+    { label: 'SmartNation AI',   desc: 'AgentInstrument registry and per-agent governance scoring', session: 'Session 2' },
+    { label: 'Nexus OS',         desc: 'Execution OS with telemetry, retry logic, concurrency control', session: 'Session 3' },
+    { label: 'Full Flow Wiring', desc: 'All 4 planes in correct sequence end-to-end verified', session: 'Session 4' }
   ];
 
   return (
-    <div className="space-y-4 lg:space-y-6 pb-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Founders Dashboard</h1>
-          <p className="text-sm lg:text-base text-gray-600 mt-1">Executive view of CoreIdentity operations</p>
-        </div>
-        <select value={timeRange} onChange={(e) => setTimeRange(e.target.value)} className="px-3 py-2 text-sm border border-gray-300 rounded-lg">
-          <option value="7d">Last 7 days</option>
-          <option value="30d">Last 30 days</option>
-          <option value="90d">Last 90 days</option>
-          <option value="1y">Last year</option>
-        </select>
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow p-4 text-white">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs lg:text-sm font-medium opacity-90">Monthly Recurring Revenue</p>
-            <DollarSign className="h-5 w-5 lg:h-6 lg:w-6" />
+    <div className='max-w-6xl mx-auto px-4 py-6'>
+      <div className='mb-6'>
+        <div className='flex items-center gap-3 mb-1'>
+          <div className='w-10 h-10 bg-gradient-to-br from-indigo-900 to-indigo-700 rounded-xl flex items-center justify-center'>
+            <Award size={20} className='text-white' />
           </div>
-          <p className="text-2xl lg:text-3xl font-bold">${(metrics.mrr / 1000).toFixed(1)}K</p>
-          <p className="text-xs mt-1 opacity-90">+23% vs last month</p>
-        </div>
-
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow p-4 text-white">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs lg:text-sm font-medium opacity-90">Active Customers</p>
-            <Users className="h-5 w-5 lg:h-6 lg:w-6" />
+          <div>
+            <h1 className='text-2xl font-bold text-gray-900'>Founders Dashboard</h1>
+            <p className='text-sm text-gray-500'>Core Holding Corp · IMG2025 · Strategic Command</p>
           </div>
-          <p className="text-2xl lg:text-3xl font-bold">{metrics.customers}</p>
-          <p className="text-xs mt-1 opacity-90">+3 this month</p>
-        </div>
-
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow p-4 text-white">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs lg:text-sm font-medium opacity-90">AGOs Running</p>
-            <Activity className="h-5 w-5 lg:h-6 lg:w-6" />
+          <div className='ml-auto text-right'>
+            <div className='text-xs text-gray-400'>February 2026</div>
+            <div className='text-sm font-semibold text-green-600'>On Track</div>
           </div>
-          <p className="text-2xl lg:text-3xl font-bold">{metrics.activeAgos}/9</p>
-          <p className="text-xs mt-1 opacity-90">2 deploying</p>
-        </div>
-
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow p-4 text-white">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs lg:text-sm font-medium opacity-90">Platform Uptime</p>
-            <TrendingUp className="h-5 w-5 lg:h-6 lg:w-6" />
-          </div>
-          <p className="text-2xl lg:text-3xl font-bold">{metrics.uptime}%</p>
-          <p className="text-xs mt-1 opacity-90">99.5% SLA target</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-4 lg:p-6">
-        <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">AGO Operations</h2>
-        <div className="space-y-3">
-          {agos.map((ago) => (
-            <div key={ago.name} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-lg gap-3">
-              <div className="flex items-center space-x-3 flex-1">
-                <div className={\`h-3 w-3 rounded-full \${ago.status === 'running' ? 'bg-green-500' : ago.status === 'deploying' ? 'bg-yellow-500 animate-pulse' : 'bg-gray-400'}\`}></div>
-                <div className="flex-1">
-                  <p className="text-sm lg:text-base font-medium text-gray-900">{ago.name}</p>
-                  <p className="text-xs text-gray-600">{ago.customers} customers • ${ago.revenue.toLocaleString()} MRR</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  <p className="text-xs text-gray-600">Health</p>
-                  <p className="text-sm font-medium">{ago.health}%</p>
-                </div>
-                <div className="w-24 bg-gray-200 rounded-full h-2">
-                  <div className={\`h-2 rounded-full \${ago.health >= 95 ? 'bg-green-500' : ago.health >= 85 ? 'bg-yellow-500' : 'bg-red-500'}\`} style={{ width: \`\${ago.health}%\` }}></div>
-                </div>
-              </div>
-            </div>
-          ))}
+      <h2 className='text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3'>Revenue and Growth</h2>
+      <div className='grid grid-cols-2 md:grid-cols-3 gap-4 mb-6'>
+        <MetricCard icon={DollarSign} label='Monthly Recurring Revenue' value='$12,400' change={18} color='green' />
+        <MetricCard icon={TrendingUp} label='Annual Run Rate' value='$148K' sub='ARR target: $500K' color='blue' />
+        <MetricCard icon={Users} label='Active Customers' value={7} change={40} sub='12 in pipeline' color='purple' />
+      </div>
+
+      <h2 className='text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3'>Platform Performance</h2>
+      <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-6'>
+        <MetricCard icon={Zap}      label='Executions (24h)' value={execs24h}  color='teal' />
+        <MetricCard icon={BarChart2} label='Agents Live'      value={105}       color='indigo' />
+        <MetricCard icon={Activity} label='Platform Uptime'   value='99.9%'     color='green' />
+        <MetricCard icon={Shield}   label='Governance Health' value={govHealth + '%'} color={govHealth >= 90 ? 'green' : 'orange'} />
+      </div>
+
+      <div className='grid md:grid-cols-2 gap-4 mb-6'>
+        <div className='bg-white rounded-2xl shadow-sm border border-gray-100 p-5'>
+          <h3 className='font-semibold text-gray-800 mb-5 flex items-center gap-2'>
+            <Target size={16} className='text-blue-500' /> Customer Acquisition Pipeline
+          </h3>
+          <ProgressBar label='Enterprise Prospects'  value={12} max={20} color='blue' />
+          <ProgressBar label='Active Pilots'          value={4}  max={12} color='green' />
+          <ProgressBar label='Closed (MRR Active)'   value={7}  max={20} color='purple' />
+          <ProgressBar label='Expansion Targets'     value={3}  max={10} color='orange' />
+        </div>
+        <div className='bg-white rounded-2xl shadow-sm border border-gray-100 p-5'>
+          <h3 className='font-semibold text-gray-800 mb-5 flex items-center gap-2'>
+            <BarChart2 size={16} className='text-blue-500' /> Platform Adoption
+          </h3>
+          <ProgressBar label='Agents Deployed'        value={105} max={200} color='blue' />
+          <ProgressBar label='AGO Domains Active'     value={3}   max={10}  color='green' />
+          <ProgressBar label='Repositories Secured'   value={8}   max={15}  color='purple' />
+          <ProgressBar label='Compliance Frameworks'  value={5}   max={10}  color='orange' />
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-4 lg:p-6">
-        <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">Vertical Performance</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vertical</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customers</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">MRR</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Agents</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Compliance</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trend</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {verticals.map((v) => (
-                <tr key={v.name} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center space-x-2">
-                      <Building2 className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm font-medium">{v.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm">{v.customers}</td>
-                  <td className="px-4 py-3 text-sm font-medium">\${v.mrr.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-sm hidden sm:table-cell">{v.agents}</td>
-                  <td className="px-4 py-3 hidden md:table-cell">
-                    <span className={\`px-2 py-1 rounded-full text-xs font-medium \${v.compliance >= 99 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}\`}>
-                      {v.compliance}%
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-sm text-green-600 font-medium">{v.trend}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className='bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4'>
+        <h3 className='font-semibold text-gray-800 mb-4 flex items-center gap-2'>
+          <Shield size={16} className='text-blue-500' /> CHC Platform Stack
+        </h3>
+        <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+          {stack.map(function(item) {
+            return <StackItem key={item.name} name={item.name} status={item.status} desc={item.desc} />;
+          })}
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-4 lg:p-6">
-        <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">Active Pilot Programs</h2>
-        <div className="space-y-4">
-          {pilots.map((pilot) => (
-            <div key={pilot.name} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
-                <div>
-                  <h3 className="font-semibold text-gray-900">{pilot.name}</h3>
-                  <p className="text-sm text-gray-600">{pilot.stage} • {pilot.status}</p>
-                </div>
-                <div className="flex items-center space-x-4">
-                  {pilot.revenue > 0 && (
-                    <div className="text-right">
-                      <p className="text-xs text-gray-600">Revenue</p>
-                      <p className="text-sm font-medium">\${pilot.revenue.toLocaleString()}</p>
-                    </div>
-                  )}
-                  {pilot.daysRemaining > 0 && (
-                    <div className="text-right">
-                      <p className="text-xs text-gray-600">Days Left</p>
-                      <p className="text-sm font-medium">{pilot.daysRemaining}</p>
-                    </div>
-                  )}
-                </div>
+      <div className='bg-gradient-to-br from-gray-900 to-blue-900 rounded-2xl p-5 text-white'>
+        <h3 className='font-semibold mb-4 flex items-center gap-2'><Target size={16}/> Next Milestones</h3>
+        <div className='grid md:grid-cols-3 gap-4'>
+          {milestones.map(function(m) {
+            return (
+              <div key={m.label} className='bg-white bg-opacity-10 rounded-xl p-4'>
+                <div className='text-xs opacity-60 mb-1'>{m.session}</div>
+                <div className='font-semibold mb-1'>{m.label}</div>
+                <div className='text-xs opacity-70'>{m.desc}</div>
               </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Progress</span>
-                  <span className="font-medium">{pilot.progress}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className={\`h-2 rounded-full \${pilot.status === 'active' ? 'bg-blue-500' : 'bg-gray-400'}\`} style={{ width: \`\${pilot.progress}%\` }}></div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow p-4 lg:p-6">
-        <h2 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">Recent Activity</h2>
-        <div className="space-y-3">
-          {alerts.map((alert, idx) => (
-            <div key={idx} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-              {alert.type === 'success' && <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />}
-              {alert.type === 'warning' && <AlertTriangle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />}
-              {alert.type === 'info' && <Zap className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />}
-              <div className="flex-1">
-                <p className="text-sm text-gray-900">{alert.message}</p>
-                <p className="text-xs text-gray-500 mt-1">{alert.time}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow p-6 text-white">
-        <h3 className="text-lg font-bold mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <button className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-3 text-center transition">
-            <Target className="h-6 w-6 mx-auto mb-2" />
-            <p className="text-sm">Launch Pilot</p>
-          </button>
-          <button className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-3 text-center transition">
-            <Users className="h-6 w-6 mx-auto mb-2" />
-            <p className="text-sm">Add Customer</p>
-          </button>
-          <button className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-3 text-center transition">
-            <Activity className="h-6 w-6 mx-auto mb-2" />
-            <p className="text-sm">Deploy AGO</p>
-          </button>
-          <button className="bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg p-3 text-center transition">
-            <Clock className="h-6 w-6 mx-auto mb-2" />
-            <p className="text-sm">View Reports</p>
-          </button>
+            );
+          })}
         </div>
       </div>
     </div>
