@@ -2,6 +2,7 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const financialsRouter = require('routes/financials');
 
 const requestLogger = require('./middleware/requestLogger');
 const errorHandler = require('./middleware/errorHandler');
@@ -70,6 +71,7 @@ app.get('/health', (req, res) => {
 // ── Public routes ────────────────────────────────────────────────────────
 // Public auth — register disabled, use /api/admin/users for customer creation
 app.use('/api/auth', authRouter);
+app.use('/api/financials', financialsRouter);
 
 // ── Protected routes (JWT required) ─────────────────────────────────────
 app.use('/api/agents',     authenticate, agentsRouter);
