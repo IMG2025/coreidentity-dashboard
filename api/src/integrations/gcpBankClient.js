@@ -69,3 +69,5 @@ const gcpBankClient = {
 };
 
 module.exports = gcpBankClient;
+
+module.exports.config = CONFIG;

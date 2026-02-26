@@ -21,6 +21,7 @@ const adminRouter = require('./routes/admin');
 const governanceRouter = require('./routes/governance');
 const logger = require('./utils/logger');
 const liveDataRouter = require('./routes/liveData');
+const agentExecuteRouter = require('./routes/agentExecute');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -92,6 +93,7 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 app.use('/api/live-data', liveDataRouter);
+app.use('/api/agents/execute', agentExecuteRouter);
 
 app.listen(PORT, '0.0.0.0', () => {
   logger.info('server_started', { port: PORT, env: process.env.NODE_ENV || 'development' });
