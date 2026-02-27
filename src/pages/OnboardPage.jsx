@@ -35,7 +35,7 @@ export default function OnboardPage() {
   const sel  = {...inp,cursor:'pointer'};
 
   return (
-    <div style={{background:C.bg,minHeight:'100vh',color:C.white,fontFamily:F.body}}>
+    <div style={{background:C.bg,minHeight:'100vh',overflowX:'hidden',maxWidth:'100vw',color:C.white,fontFamily:F.body}}>
       <div style={{maxWidth:740,margin:'0 auto',padding:'60px 40px'}}>
         <div style={{color:C.gold,fontSize:11,letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:12}}>Free AI Governance Assessment</div>
         <h1 style={{fontFamily:F.display,fontSize:48,color:C.white,margin:'0 0 40px',letterSpacing:'0.04em'}}>KNOW YOUR AI RISK IN 90 SECONDS.</h1>
@@ -108,7 +108,7 @@ export default function OnboardPage() {
           <div>
             <div style={{color:C.green,fontSize:11,letterSpacing:'0.15em',textTransform:'uppercase',marginBottom:10}}>Assessment Complete — {form.company||'Your Company'}</div>
             <h2 style={{fontFamily:F.display,fontSize:44,color:C.white,margin:'0 0 28px',letterSpacing:'0.04em'}}>YOUR GOVERNANCE REPORT</h2>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:24}}>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:16,marginBottom:24}}>
               {[
                 {label:'Estimated Exposure',   value:'$'+(result.exposure/1e6).toFixed(1)+'M', sub:result.ungoverned+' ungoverned agents', color:C.red  },
                 {label:'Current Gov Score',    value:form.currentScore+'%',  sub:'Significant gaps identified',      color:C.orange},

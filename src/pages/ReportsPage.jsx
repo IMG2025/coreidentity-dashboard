@@ -42,7 +42,7 @@ export default function ReportsPage() {
   );
 
   return (
-    <div style={{background:C.bg,minHeight:'100vh',color:C.white,fontFamily:F.body}}>
+    <div style={{background:C.bg,minHeight:'100vh',overflowX:'hidden',maxWidth:'100vw',color:C.white,fontFamily:F.body}}>
       <div style={{maxWidth:960,margin:'0 auto',padding:'60px 40px'}}>
         <div style={{color:C.gold,fontSize:11,letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:12}}>Executive Governance Reports</div>
         <h1 style={{fontFamily:F.display,fontSize:52,color:C.white,margin:'0 0 36px',letterSpacing:'0.04em'}}>CLIENT GOVERNANCE REPORTS</h1>

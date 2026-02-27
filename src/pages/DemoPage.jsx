@@ -23,7 +23,7 @@ function Crisis() {
     <div>
       <h2 style={{fontFamily:F.display,fontSize:52,color:C.white,margin:'0 0 16px',letterSpacing:'0.04em'}}>THE AI GOVERNANCE CRISIS</h2>
       <p style={{color:C.slate,fontSize:16,lineHeight:1.8,marginBottom:36,fontWeight:300}}>Enterprises are deploying AI agents at unprecedented velocity — clinical decisions, credit approvals, fraud detections, privilege reviews — inside systems with <strong style={{color:C.red}}>zero governance</strong>.</p>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:36}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:16,marginBottom:36}}>
         {[
           {stat:'78%',    label:'of enterprises have AI agents with no audit trail',   color:C.red   },
           {stat:'$4.5M',  label:'avg cost of a single HIPAA AI violation in 2025',     color:C.orange},
@@ -77,7 +77,7 @@ function Risk() {
           <input type="range" min={1} max={100} value={agents} onChange={e=>setAgents(Number(e.target.value))} style={{width:240,accentColor:C.gold,marginTop:6}}/>
         </div>
       </div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:24}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:16,marginBottom:24}}>
         {[
           {label:'Est. Exposure',      value:'$'+(exp/1e6).toFixed(1)+'M', color:C.red  },
           {label:'Annual Risk',        value:'$'+((exp*1.4)/1e6).toFixed(1)+'M', color:C.orange},
@@ -154,7 +154,7 @@ function LiveFire() {
     <div>
       <h2 style={{fontFamily:F.display,fontSize:52,color:C.white,margin:'0 0 16px',letterSpacing:'0.04em'}}>FIRE A LIVE GOVERNED AGENT</h2>
       <p style={{color:C.slate,fontSize:16,fontWeight:300,marginBottom:32}}>Select a real client agent. Dispatch it through CoreIdentity. Watch the governance envelope return in under 500ms.</p>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:24}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:8,marginBottom:24}}>
         {DEMO_AGENTS.map((ag,i) => (
           <div key={i} onClick={()=>{setSel(i);setRes(null);}} style={{background:sel===i?C.gold+'22':C.surface,border:'1px solid '+(sel===i?C.gold:C.border),borderRadius:8,padding:'14px 16px',cursor:'pointer',transition:'all 0.2s'}}>
             <div style={{fontSize:18,marginBottom:4}}>{ag.icon}</div>
@@ -225,7 +225,7 @@ export default function DemoPage() {
   const CONTENT = {1:Crisis, 2:Risk, 3:Platform, 4:LiveFire, 5:GetStarted};
   const S = CONTENT[step];
   return (
-    <div style={{background:C.bg,minHeight:'100vh',color:C.white,fontFamily:F.body}}>
+    <div style={{background:C.bg,minHeight:'100vh',overflowX:'hidden',maxWidth:'100vw',color:C.white,fontFamily:F.body}}>
       <div style={{maxWidth:900,margin:'0 auto',padding:'60px 40px'}}>
         <div style={{color:C.gold,fontSize:11,letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:36}}>CoreIdentity Interactive Demo · Step {step} of {STEPS.length}</div>
         <div style={{display:'flex',gap:8,marginBottom:52}}>

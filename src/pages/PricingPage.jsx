@@ -121,7 +121,7 @@ export default function PricingPage() {
                 </div>
               </div>
               <div style={{ marginBottom:24 }}>
-                <span style={{ fontFamily:F.mono, fontSize: m ? 32 : 36,
+                <span style={{ fontFamily:F.mono, letterSpacing:'0', fontSize: m ? 32 : 36,
                   color: tier.popular ? C.gold : C.white, fontWeight:700 }}>
                   ${Math.round(tier.price * disc / 1000 * 10) / 10}K
                 </span>
