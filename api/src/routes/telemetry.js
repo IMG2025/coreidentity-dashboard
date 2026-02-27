@@ -50,3 +50,47 @@ router.get('/syncs', (req, res) => {
 });
 
 module.exports = router;
+
+// POST /api/telemetry/seed — pre-populate demo execution data
+// Called once on first dashboard load if store is empty
+router.post('/seed', (req, res) => {
+  const { store } = require('../store/telemetry');
+  if (store.executions.length > 0) {
+    return res.json({ success: true, message: 'Already seeded', count: store.executions.length });
+  }
+
+  const { addExecution } = require('../store/telemetry');
+
+  const demoExecutions = [
+    { clientId:'bank',   agentId:'b-01', agentName:'Fraud Detection Agent',       task:'fraud-detection',         governanceScore:98, latencyMs:42,  complianceStatus:'PASSED', result:{ decision:'APPROVED', fraudScore:8 } },
+    { clientId:'bank',   agentId:'b-07', agentName:'Transaction Monitoring',       task:'transaction-monitoring',  governanceScore:97, latencyMs:18,  complianceStatus:'PASSED', result:{ status:'PROCESSED', alerts:0 } },
+    { clientId:'health', agentId:'h-08', agentName:'Pharmacy Interaction Checker', task:'drug-interaction',        governanceScore:96, latencyMs:88,  complianceStatus:'PASSED', result:{ interactions:[], safeToDispense:true } },
+    { clientId:'health', agentId:'h-02', agentName:'Clinical Decision Support',    task:'clinical-recommendation', governanceScore:95, latencyMs:183, complianceStatus:'PASSED', result:{ recommendation:'ORDER_LABS', requiresPhysicianReview:true } },
+    { clientId:'retail', agentId:'r-03', agentName:'Fraud Detection Agent',        task:'transaction-fraud',       governanceScore:94, latencyMs:31,  complianceStatus:'PASSED', result:{ decision:'APPROVED', fraudScore:4 } },
+    { clientId:'legal',  agentId:'l-06', agentName:'Conflict Check Agent',         task:'conflict-check',          governanceScore:93, latencyMs:204, complianceStatus:'PASSED', result:{ conflictsFound:0, clearanceGranted:true } },
+    { clientId:'bank',   agentId:'b-03', agentName:'Credit Scoring Agent',         task:'credit-scoring',          governanceScore:97, latencyMs:156, complianceStatus:'PASSED', result:{ creditScore:741, decision:'APPROVED' } },
+    { clientId:'health', agentId:'h-10', agentName:'Sepsis Early Warning System',  task:'sepsis-alert',            governanceScore:96, latencyMs:61,  complianceStatus:'PASSED', result:{ riskScore:7, alert:false } },
+    { clientId:'retail', agentId:'r-12', agentName:'PCI Compliance Monitor',       task:'pci-monitoring',          governanceScore:92, latencyMs:94,  complianceStatus:'PASSED', result:{ status:'COMPLIANT', violations:0 } },
+    { clientId:'legal',  agentId:'l-03', agentName:'eDiscovery Document Classifier',task:'document-classification',governanceScore:94, latencyMs:148, complianceStatus:'PASSED', result:{ privileged:true, classification:'ATTORNEY_CLIENT_PRIVILEGED' } },
+    { clientId:'bank',   agentId:'b-16', agentName:'Wire Transfer Agent',          task:'wire-processing',         governanceScore:98, latencyMs:312, complianceStatus:'PASSED', result:{ status:'APPROVED', sanctions_check:'CLEAR' } },
+    { clientId:'health', agentId:'h-04', agentName:'Insurance Eligibility Checker',task:'eligibility-verification',governanceScore:95, latencyMs:281, complianceStatus:'PASSED', result:{ eligible:true, priorAuthRequired:false } },
+    { clientId:'retail', agentId:'r-07', agentName:'Loyalty Scoring Agent',        task:'loyalty-scoring',         governanceScore:91, latencyMs:44,  complianceStatus:'PASSED', result:{ score:847, tier:'GOLD' } },
+    { clientId:'legal',  agentId:'l-01', agentName:'Contract Review Agent',        task:'contract-analysis',       governanceScore:93, latencyMs:418, complianceStatus:'PASSED', result:{ riskScore:18, flaggedClauses:2 } },
+    { clientId:'bank',   agentId:'b-02', agentName:'AML Monitoring Agent',         task:'aml-monitoring',          governanceScore:99, latencyMs:134, complianceStatus:'PASSED', result:{ status:'CLEAR', riskScore:3 } }
+  ];
+
+  const base = Date.now() - (demoExecutions.length * 45000);
+  demoExecutions.forEach((e, i) => {
+    addExecution({
+      ...e,
+      executionId:     'exec-demo-' + String(i).padStart(3, '0'),
+      governed:        true,
+      auditTrail:      true,
+      policyChecks:    ['rate_limit','client_registered','request_schema','output_validation'],
+      source:          'DEMO_SEED',
+      executedAt:      new Date(base + (i * 45000)).toISOString()
+    });
+  });
+
+  res.json({ success: true, message: 'Demo data seeded', count: demoExecutions.length });
+});
