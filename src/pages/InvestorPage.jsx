@@ -228,7 +228,7 @@ export default function InvestorPage() {
 
   return (
     <div style={{background:C.bg,minHeight:'100vh',color:C.white,fontFamily:F.body}}>
-      <div style={{maxWidth:1100,margin:'0 auto',padding:'60px 40px'}}>
+      <div style={{maxWidth:1100,margin:'0 auto',padding:'20px 16px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:40}}>
           <div>
             <div style={{color:C.gold,fontSize:11,letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:8}}>Confidential · Investor Data Room</div>
