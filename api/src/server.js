@@ -23,6 +23,10 @@ const logger = require('./utils/logger');
 const liveDataRouter = require('./routes/liveData');
 const agentExecuteRouter = require('./routes/agentExecute');
 const telemetryRouter = require('./routes/telemetry');
+const onboardRouter = require('./routes/onboard');
+const pricingRouter = require('./routes/pricing');
+const reportsRouter = require('./routes/reports');
+const marketRouter = require('./routes/market');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -96,6 +100,10 @@ app.use(errorHandler);
 app.use('/api/live-data', liveDataRouter);
 app.use('/api/agents/execute', agentExecuteRouter);
 app.use('/api/telemetry', telemetryRouter);
+app.use('/api/onboard', onboardRouter);
+app.use('/api/pricing', pricingRouter);
+app.use('/api/reports', reportsRouter);
+app.use('/api/market', marketRouter);
 
 app.listen(PORT, '0.0.0.0', () => {
   logger.info('server_started', { port: PORT, env: process.env.NODE_ENV || 'development' });
