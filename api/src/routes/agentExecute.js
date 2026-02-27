@@ -3,6 +3,7 @@
 // Governed dispatch: policy check → route to GCP → wrap result → audit
 
 const express = require('express');
+const { pushToGCP, queueForBatch } = require('../services/telemetryPusher');
 const router  = express.Router();
 
 const gcpBankClient       = require('../integrations/gcpBankClient');
@@ -121,6 +122,7 @@ router.post('/', async (req, res) => {
 
     EXECUTION_LOG.push(governed);
     if (EXECUTION_LOG.length > 1000) EXECUTION_LOG.shift();
+    pushToGCP(governed).catch(() => {});
 
     res.json({ success: true, data: governed });
 
