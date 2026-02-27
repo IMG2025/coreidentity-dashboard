@@ -27,6 +27,7 @@ const onboardRouter = require('./routes/onboard');
 const pricingRouter = require('./routes/pricing');
 const reportsRouter = require('./routes/reports');
 const marketRouter = require('./routes/market');
+const commercialRouter = require('./routes/commercial');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -104,6 +105,7 @@ app.use('/api/onboard', onboardRouter);
 app.use('/api/pricing', pricingRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/market', marketRouter);
+app.use('/api/commercial', commercialRouter);
 
 app.listen(PORT, '0.0.0.0', () => {
   logger.info('server_started', { port: PORT, env: process.env.NODE_ENV || 'development' });
