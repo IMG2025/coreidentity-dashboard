@@ -59,7 +59,7 @@ export default function DocsPage() {
   const filtered = endpoints.filter(e => e.group === group);
 
   return (
-    <div style={{background:C.bg,minHeight:'100vh',overflowX:'hidden',maxWidth:'100vw',color:C.white,fontFamily:F.body}}>
+    <div style={{background:C.bg,minHeight:'100vh',overflowX:'hidden',maxWidth:'100vw',overflowX:'hidden',maxWidth:'100vw',color:C.white,fontFamily:F.body}}>
       <div style={{maxWidth:1100,margin:'0 auto',padding:'60px 40px'}}>
         <div style={{color:C.gold,fontSize:11,letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:12}}>API Documentation</div>
         <h1 style={{fontFamily:F.display,fontSize:52,color:C.white,margin:'0 0 12px',letterSpacing:'0.04em'}}>COREIDENTITY API</h1>
