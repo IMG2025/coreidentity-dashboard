@@ -4,6 +4,8 @@ import { Search, Play, BarChart2, AlertTriangle, Star,
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../App';
+/* patch-32 */
+const agentId = (a) => a.agentId || a.id || String(a.agentId || a.id || '');
 
 const CATEGORIES = ['all','Data Analysis','Document Processing','Communication',
   'Research','Compliance','Integration','Marketing','Customer Service'];
@@ -86,10 +88,10 @@ export default function AgentCatalog() {
   }
 
   async function handleExecute(agent, taskType) {
-    const key = agent.id + '-' + taskType;
+    const key = agentId(agent) + '-' + taskType;
     setExecuting(function(p) { return Object.assign({}, p, { [key]: true }); });
     try {
-      const res = await api.executeAgent(agent.id, taskType, {});
+      const res = await api.executeAgent(agentId(agent), taskType, {});
       setResult(res);
       addNotification(agent.name + ' ' + taskType + ' complete', 'success');
     } catch(err) {
@@ -105,15 +107,15 @@ export default function AgentCatalog() {
   }
 
   async function handleDeploy(agent) {
-    setDeploying(function(p) { return Object.assign({}, p, { [agent.id]: true }); });
+    setDeploying(function(p) { return Object.assign({}, p, { [agentId(agent)]: true }); });
     try {
-      await api.deployAgent(agent.id);
+      await api.deployAgent(agentId(agent));
       addNotification(agent.name + ' deployed successfully', 'success');
     } catch(err) {
       const msg = err.response && err.response.data ? err.response.data.error : err.message;
       addNotification(msg || 'Deployment failed', 'error');
     } finally {
-      setDeploying(function(p) { return Object.assign({}, p, { [agent.id]: false }); });
+      setDeploying(function(p) { return Object.assign({}, p, { [agentId(agent)]: false }); });
     }
   }
 
@@ -166,7 +168,7 @@ export default function AgentCatalog() {
           {agents.map(function(agent) {
             const tier = TIER_MAP[agent.category] || 'TIER_2';
             return (
-              <div key={agent.id} className='bg-white rounded-2xl shadow-sm border border-gray-100 p-5'>
+              <div key={agentId(agent)} className='bg-white rounded-2xl shadow-sm border border-gray-100 p-5'>
                 <div className='flex items-start gap-4'>
                   <div className='text-3xl'>{agent.icon}</div>
                   <div className='flex-1 min-w-0'>
@@ -196,9 +198,9 @@ export default function AgentCatalog() {
                   {isAdmin && (
                     <button
                       onClick={function() { handleDeploy(agent); }}
-                      disabled={!!deploying[agent.id]}
+                      disabled={!!deploying[agentId(agent)]}
                       className='flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50'>
-                      {deploying[agent.id]
+                      {deploying[agentId(agent)]
                         ? <div className='w-3 h-3 border border-white border-t-transparent rounded-full animate-spin' />
                         : <Rocket size={14} />}
                       Deploy
@@ -206,7 +208,7 @@ export default function AgentCatalog() {
                   )}
                   {taskButtons.map(function(btn) {
                     const taskType = btn[0], label = btn[1], Icon = btn[2], cls = btn[3];
-                    const key = agent.id + '-' + taskType;
+                    const key = agentId(agent) + '-' + taskType;
                     return (
                       <button key={taskType}
                         onClick={function() { handleExecute(agent, taskType); }}

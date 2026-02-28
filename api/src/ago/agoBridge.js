@@ -1,3 +1,4 @@
+/* patch-32-bridge */
 /**
  * AGO Bridge Service
  * CoreIdentity → ago-1-core integration layer
@@ -71,7 +72,7 @@ async function executeAgent(agent, user, taskType = 'ANALYZE', inputs = {}) {
     requested_by:    user.userId,
     authority_token: 'internal',
     scope:           ROLE_SCOPE_MAP[user.role] || [],
-    inputs: { agentId: agent.id, agentName: agent.name, agentCategory: agent.category, ...inputs },
+    inputs: { agentId: agent.agentId || agent.id, agentName: agent.name, agentCategory: agent.category, ...inputs },
     created_at: new Date().toISOString()
   };
 
@@ -92,7 +93,7 @@ async function executeAgent(agent, user, taskType = 'ANALYZE', inputs = {}) {
     task_id:      task.task_id,
     domain_id,
     task_type:    taskType,
-    agent_id:     agent.id,
+    agent_id:     agent.agentId || agent.id,
     agent_name:   agent.name,
     status:       result.status,
     output:       result.output,
