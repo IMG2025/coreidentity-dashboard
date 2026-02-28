@@ -31,7 +31,7 @@ const commercialRouter = require('./routes/commercial');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://coreidentity.coreholdingcorp.com,https://coreidentity-dashboard.pages.dev').split(',');
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://portal.coreholdingcorp.com,https://coreidentity.coreholdingcorp.com,https://coreidentity-dashboard.pages.dev').split(',');
 
 // ── Security ────────────────────────────────────────────────────────────
 app.use(helmet());

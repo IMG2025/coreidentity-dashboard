@@ -23,11 +23,11 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 shadow-lg">
-            <Shield className="h-8 w-8 text-white" />
+          <div className="flex items-center justify-center w-16 h-16 mb-4">
+            <img src="/chc-logo.png" alt="Core Holding Corp" className="w-full h-full object-contain" style={{mixBlendMode:'normal'}} />
           </div>
-          <h1 className="text-3xl font-bold text-white">CoreIdentity</h1>
-          <p className="text-blue-300 mt-1 text-sm">Core Holding Corp — AI Governance Platform</p>
+          <h1 className="text-3xl font-bold text-white">CoreIdentity Governance Portal</h1>
+          <p className="text-blue-300 mt-1 text-sm">Core Holding Corp — Governance Portal</p>
         </div>
 
         {/* Card */}

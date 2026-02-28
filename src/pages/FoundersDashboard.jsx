@@ -95,8 +95,8 @@ function Card({label, value, sub, accent, trend: t}) {
   const tc = t === undefined ? C.slate : t >= 0 ? C.green : C.red;
   return (
     <div style={{background:C.surface, border:'1px solid '+C.border, borderRadius:8, padding:'20px 24px', flex:1, minWidth:160}}>
-      <div style={{color:C.slate, fontSize:11, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:8}}>{label}</div>
-      <div style={{color:accent||C.gold, fontSize:28, fontWeight:700, fontFamily:'monospace'}}>{value}</div>
+      <div style={{color:C.slate, fontSize:11, letterSpacing: '0', textTransform:'uppercase', marginBottom:8}}>{label}</div>
+      <div style={{color:accent||C.gold, fontSize:28, letterSpacing: '0', fontVariantNumeric: 'tabular-nums', fontWeight:700, fontFamily:'monospace'}}>{value}</div>
       {sub && <div style={{color:tc, fontSize:12, marginTop:6}}>{t !== undefined && (t >= 0 ? '▲ ' : '▼ ')}{sub}</div>}
     </div>
   );
@@ -104,7 +104,7 @@ function Card({label, value, sub, accent, trend: t}) {
 function SecHdr({title, live, action}) {
   return (
     <div style={{borderBottom:'1px solid '+C.border, paddingBottom:10, marginBottom:16, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-      <span style={{color:C.slate, fontSize:11, letterSpacing:'0.12em', textTransform:'uppercase'}}>{title}</span>
+      <span style={{color:C.slate, fontSize:11, letterSpacing: '0', textTransform:'uppercase'}}>{title}</span>
       <div style={{display:'flex', gap:8, alignItems:'center'}}>
         {action}
         {live && <span style={{background:C.green+'22', color:C.green, border:'1px solid '+C.green+'44', borderRadius:4, fontSize:9, padding:'2px 8px', fontWeight:600}}>● LIVE</span>}
@@ -144,7 +144,7 @@ function ConsolidatedView({vm, d}) {
       {vm==='actuals' && (
         <><SecHdr title="Subsidiary P&L — Current Month" live={!!d}/>
         <table style={{width:'100%', borderCollapse:'collapse', fontSize:13}}>
-          <thead><tr style={{borderBottom:'1px solid '+C.border}}>{['Entity','Type','Revenue','Costs','Net Profit','Margin','Agents'].map(h=><th key={h} style={{textAlign:'left',padding:'8px 12px',color:C.slate,fontSize:11,textTransform:'uppercase',letterSpacing:'0.08em'}}>{h}</th>)}</tr></thead>
+          <thead><tr style={{borderBottom:'1px solid '+C.border}}>{['Entity','Type','Revenue','Costs','Net Profit','Margin','Agents'].map(h=><th key={h} style={{textAlign:'left',padding:'8px 12px',color:C.slate,fontSize:11,textTransform:'uppercase',letterSpacing: '0'}}>{h}</th>)}</tr></thead>
           <tbody>
             <tr style={{borderBottom:'1px solid '+C.border}}><td style={{padding:'12px',color:C.white,fontWeight:600}}>CoreIdentity</td><td style={{padding:'12px',color:C.slate}}>SaaS Platform</td><td style={{padding:'12px',color:C.gold,fontFamily:'monospace'}}>{fmtK(last(ciRev))}</td><td style={{padding:'12px',color:C.red,fontFamily:'monospace'}}>{fmtK(last(ciCost))}</td><td style={{padding:'12px',color:C.green,fontFamily:'monospace'}}>{fmtK(last(ciRev)-last(ciCost))}</td><td style={{padding:'12px',color:C.teal}}>{Math.round((last(ciRev)-last(ciCost))/last(ciRev)*100)}%</td><td style={{padding:'12px',color:C.white}}>{d?.coreIdentity?.agents?.length||15}</td></tr>
             <tr style={{borderBottom:'1px solid '+C.border}}><td style={{padding:'12px',color:C.white,fontWeight:600}}>CIAG</td><td style={{padding:'12px',color:C.slate}}>Advisory Group</td><td style={{padding:'12px',color:C.gold,fontFamily:'monospace'}}>{fmtK(last(cgRev))}</td><td style={{padding:'12px',color:C.red,fontFamily:'monospace'}}>{fmtK(last(cgCost))}</td><td style={{padding:'12px',color:C.green,fontFamily:'monospace'}}>{fmtK(last(cgRev)-last(cgCost))}</td><td style={{padding:'12px',color:C.teal}}>{Math.round((last(cgRev)-last(cgCost))/last(cgRev)*100)}%</td><td style={{padding:'12px',color:C.white}}>{d?.ciag?.agents?.length||8}</td></tr>
@@ -175,7 +175,7 @@ function CoreIdentityView({vm, d}) {
       <div style={{marginTop:24}}>
         <SecHdr title={'Platform Agents ('+(agents.length||15)+' · 100% governed)'} live={!!ci}/>
         <table style={{width:'100%', borderCollapse:'collapse', fontSize:12}}>
-          <thead><tr style={{borderBottom:'1px solid '+C.border}}>{['Agent','Category','Executions','Uptime','Governed'].map(h=><th key={h} style={{textAlign:'left',padding:'8px 10px',color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing:'0.08em'}}>{h}</th>)}</tr></thead>
+          <thead><tr style={{borderBottom:'1px solid '+C.border}}>{['Agent','Category','Executions','Uptime','Governed'].map(h=><th key={h} style={{textAlign:'left',padding:'8px 10px',color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0'}}>{h}</th>)}</tr></thead>
           <tbody>{(agents.length?agents:[{name:'Loading…',category:'—',executions:0,uptime:0,governed:true}]).map((a,i)=>(
             <tr key={i} style={{borderBottom:'1px solid '+C.border+'66'}}>
               <td style={{padding:'10px',color:C.white}}>{a.name}</td><td style={{padding:'10px',color:C.slate}}>{a.category}</td>
@@ -251,7 +251,7 @@ function ClientPortfolioView({d}) {
 
   if (!clients.length) return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:200,color:C.slate}}>
-      <div style={{textAlign:'center'}}><div style={{fontSize:24,marginBottom:8}}>⏳</div><div>Loading live client data…</div></div>
+      <div style={{textAlign:'center'}}><div style={{fontSize:24, letterSpacing: '0', fontVariantNumeric: 'tabular-nums',marginBottom:8}}>⏳</div><div>Loading live client data…</div></div>
     </div>
   );
 
@@ -279,8 +279,8 @@ function ClientPortfolioView({d}) {
                 <Pill label={c.complianceAfter?'Governed':'Ungoverned'} color={c.complianceAfter?C.green:C.red}/>
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}}>
-                <div><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:4}}>Compliance</div><div style={{color:score<70?C.red:score<80?C.orange:C.green,fontFamily:'monospace',fontSize:18,fontWeight:700}}>{score}%</div></div>
-                <div><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:4}}>Agents</div><div style={{color:C.white,fontFamily:'monospace',fontSize:18,fontWeight:700}}>{c.agentsTotal||0}</div></div>
+                <div><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0',marginBottom:4}}>Compliance</div><div style={{color:score<70?C.red:score<80?C.orange:C.green,fontFamily:'monospace',fontSize:18,fontWeight:700}}>{score}%</div></div>
+                <div><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0',marginBottom:4}}>Agents</div><div style={{color:C.white,fontFamily:'monospace',fontSize:18,fontWeight:700}}>{c.agentsTotal||0}</div></div>
               </div>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><div style={{color:C.red,fontSize:12,fontFamily:'monospace'}}>{c.penaltyExposure}</div><div style={{color:C.slate,fontSize:10}}>exposure</div></div>
             </div>
@@ -291,23 +291,23 @@ function ClientPortfolioView({d}) {
       {b && (
         <div style={{background:C.surface, border:'1px solid '+color+'44', borderRadius:8, padding:24, marginBottom:24}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20}}>
-            <div><div style={{color:C.slate,fontSize:11,textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:4}}>{b.vertical}</div><div style={{color:C.white,fontSize:18,fontWeight:600}}>{b.name}</div>{b.liveDataSource && <div style={{color:C.slate,fontSize:10,marginTop:4}}>● Live · {b.liveDataSource}</div>}</div>
+            <div><div style={{color:C.slate,fontSize:11,textTransform:'uppercase',letterSpacing: '0',marginBottom:4}}>{b.vertical}</div><div style={{color:C.white,fontSize:18,fontWeight:600}}>{b.name}</div>{b.liveDataSource && <div style={{color:C.slate,fontSize:10,marginTop:4}}>● Live · {b.liveDataSource}</div>}</div>
             <Pill label={b.complianceAfter?'CoreIdentity Governed':'Ungoverned — At Risk'} color={b.complianceAfter?C.green:C.red}/>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:20}}>
-            <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:6}}>Compliance</div><div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}><span style={{color:C.red,fontFamily:'monospace',fontSize:18,fontWeight:700}}>{b.complianceBefore}%</span><span style={{color:C.slate}}>→</span><span style={{color:C.green,fontFamily:'monospace',fontSize:18,fontWeight:700}}>{afterScore}%</span></div><PBar value={afterScore} color={C.green}/></div>
-            <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:6}}>AI Agents</div><div style={{color:C.white,fontFamily:'monospace',fontSize:22,fontWeight:700}}>{b.agentsTotal||0}</div><div style={{color:b.agentsUngoverned>0?C.red:C.green,fontSize:11}}>{b.agentsUngoverned>0?(b.agentsUngoverned+' ungoverned'):'All governed'}</div></div>
-            <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:6}}>Exposure</div><div style={{color:C.red,fontFamily:'monospace',fontSize:18,fontWeight:700}}>{b.penaltyExposure}</div>{(b.criticalFindings||0)>0 && <div style={{color:C.orange,fontSize:11}}>⚠ {b.criticalFindings} critical</div>}</div>
-            <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:6}}>Mitigated</div><div style={{color:C.green,fontFamily:'monospace',fontSize:18,fontWeight:700}}>{b.penaltyMitigated||'—'}</div>{b.penaltyMitigated && <Pill label="Resolved" color={C.green}/>}</div>
+            <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0',marginBottom:6}}>Compliance</div><div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}><span style={{color:C.red,fontFamily:'monospace',fontSize:18,fontWeight:700}}>{b.complianceBefore}%</span><span style={{color:C.slate}}>→</span><span style={{color:C.green,fontFamily:'monospace',fontSize:18,fontWeight:700}}>{afterScore}%</span></div><PBar value={afterScore} color={C.green}/></div>
+            <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0',marginBottom:6}}>AI Agents</div><div style={{color:C.white,fontFamily:'monospace',fontSize:22,fontWeight:700}}>{b.agentsTotal||0}</div><div style={{color:b.agentsUngoverned>0?C.red:C.green,fontSize:11}}>{b.agentsUngoverned>0?(b.agentsUngoverned+' ungoverned'):'All governed'}</div></div>
+            <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0',marginBottom:6}}>Exposure</div><div style={{color:C.red,fontFamily:'monospace',fontSize:18,fontWeight:700}}>{b.penaltyExposure}</div>{(b.criticalFindings||0)>0 && <div style={{color:C.orange,fontSize:11}}>⚠ {b.criticalFindings} critical</div>}</div>
+            <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0',marginBottom:6}}>Mitigated</div><div style={{color:C.green,fontFamily:'monospace',fontSize:18,fontWeight:700}}>{b.penaltyMitigated||'—'}</div>{b.penaltyMitigated && <Pill label="Resolved" color={C.green}/>}</div>
           </div>
-          {(b.frameworks||[]).length>0 && <div style={{marginBottom:16}}><div style={{color:C.slate,fontSize:11,textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:8}}>Frameworks</div><div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{b.frameworks.map(f=><Pill key={f} label={f} color={color}/>)}</div></div>}
-          {(b.agentsData||[]).length>0 && <div><div style={{color:C.slate,fontSize:11,textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:8}}>Agent Inventory ({b.agentsData.length})</div><div style={{maxHeight:200,overflowY:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}><thead><tr style={{borderBottom:'1px solid '+C.border}}>{['Agent','Category','Risk','Governed'].map(h=><th key={h} style={{textAlign:'left',padding:'6px 10px',color:C.slate,fontSize:9,textTransform:'uppercase',letterSpacing:'0.08em'}}>{h}</th>)}</tr></thead><tbody>{b.agentsData.slice(0,12).map((a,i)=><tr key={i} style={{borderBottom:'1px solid '+C.border+'44'}}><td style={{padding:'8px 10px',color:C.white}}>{a.name}</td><td style={{padding:'8px 10px',color:C.slate}}>{a.category}</td><td style={{padding:'8px 10px'}}><Pill label={a.risk||'MEDIUM'} color={a.risk==='CRITICAL'?C.red:a.risk==='HIGH'?C.orange:C.slate}/></td><td style={{padding:'8px 10px'}}><Pill label={a.governed?'Yes':'No'} color={a.governed?C.teal:C.red}/></td></tr>)}</tbody></table></div></div>}
+          {(b.frameworks||[]).length>0 && <div style={{marginBottom:16}}><div style={{color:C.slate,fontSize:11,textTransform:'uppercase',letterSpacing: '0',marginBottom:8}}>Frameworks</div><div style={{display:'flex',gap:8,flexWrap:'wrap'}}>{b.frameworks.map(f=><Pill key={f} label={f} color={color}/>)}</div></div>}
+          {(b.agentsData||[]).length>0 && <div><div style={{color:C.slate,fontSize:11,textTransform:'uppercase',letterSpacing: '0',marginBottom:8}}>Agent Inventory ({b.agentsData.length})</div><div style={{maxHeight:200,overflowY:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}><thead><tr style={{borderBottom:'1px solid '+C.border}}>{['Agent','Category','Risk','Governed'].map(h=><th key={h} style={{textAlign:'left',padding:'6px 10px',color:C.slate,fontSize:9,textTransform:'uppercase',letterSpacing: '0'}}>{h}</th>)}</tr></thead><tbody>{b.agentsData.slice(0,12).map((a,i)=><tr key={i} style={{borderBottom:'1px solid '+C.border+'44'}}><td style={{padding:'8px 10px',color:C.white}}>{a.name}</td><td style={{padding:'8px 10px',color:C.slate}}>{a.category}</td><td style={{padding:'8px 10px'}}><Pill label={a.risk||'MEDIUM'} color={a.risk==='CRITICAL'?C.red:a.risk==='HIGH'?C.orange:C.slate}/></td><td style={{padding:'8px 10px'}}><Pill label={a.governed?'Yes':'No'} color={a.governed?C.teal:C.red}/></td></tr>)}</tbody></table></div></div>}
         </div>
       )}
 
       <div style={{background:C.surface,border:'1px solid '+C.goldDim,borderRadius:8,padding:20,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div><div style={{color:C.gold,fontSize:12,letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:6}}>Total Regulatory Penalty Exposure Mitigated</div><div style={{color:C.white,fontSize:13}}>HIPAA · CCPA · GLBA · PCI-DSS · ABA · FFIEC · Colorado AI Act · Texas RAIGA</div><div style={{color:C.slate,fontSize:11,marginTop:4}}>4 verticals · 5 GCP services · Auto-refresh 60s</div></div>
-        <div style={{color:C.gold,fontFamily:'monospace',fontSize:40,fontWeight:700,whiteSpace:'nowrap'}}>$16.85M</div>
+        <div><div style={{color:C.gold,fontSize:12,letterSpacing: '0',textTransform:'uppercase',marginBottom:6}}>Total Regulatory Penalty Exposure Mitigated</div><div style={{color:C.white,fontSize:13}}>HIPAA · CCPA · GLBA · PCI-DSS · ABA · FFIEC · Colorado AI Act · Texas RAIGA</div><div style={{color:C.slate,fontSize:11,marginTop:4}}>4 verticals · 5 GCP services · Auto-refresh 60s</div></div>
+        <div style={{color:C.gold,fontFamily:'monospace',fontSize:40, letterSpacing: '0', fontVariantNumeric: 'tabular-nums',fontWeight:700,whiteSpace:'nowrap'}}>$16.85M</div>
       </div>
     </div>
   );
@@ -418,12 +418,12 @@ function AuditTrailView() {
 
       {/* Demo dispatch panel */}
       <div style={{background:C.surface2, border:'1px solid '+C.gold+'44', borderRadius:8, padding:20, marginBottom:24}}>
-        <div style={{color:C.gold, fontSize:11, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:14}}>
+        <div style={{color:C.gold, fontSize:11, letterSpacing: '0', textTransform:'uppercase', marginBottom:14}}>
           ⚡ Live Agent Dispatch — Fire a governed execution
         </div>
         <div style={{display:'flex', gap:12, alignItems:'flex-end', flexWrap:'wrap'}}>
           <div>
-            <div style={{color:C.slate, fontSize:10, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:6}}>Client</div>
+            <div style={{color:C.slate, fontSize:10, textTransform:'uppercase', letterSpacing: '0', marginBottom:6}}>Client</div>
             <select
               value={demoClient}
               onChange={e => { setDemoClient(e.target.value); setDemoAgent(DEMO_AGENTS[e.target.value][0].id); }}
@@ -436,7 +436,7 @@ function AuditTrailView() {
             </select>
           </div>
           <div>
-            <div style={{color:C.slate, fontSize:10, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:6}}>Agent</div>
+            <div style={{color:C.slate, fontSize:10, textTransform:'uppercase', letterSpacing: '0', marginBottom:6}}>Agent</div>
             <select
               value={demoAgent}
               onChange={e => setDemoAgent(e.target.value)}
@@ -450,7 +450,7 @@ function AuditTrailView() {
           <button
             onClick={fireAgent}
             disabled={firing}
-            style={{background:firing?C.border:C.gold+'22', border:'1px solid '+C.gold, color:firing?C.slate:C.gold, borderRadius:6, padding:'8px 24px', fontSize:13, fontWeight:600, cursor:firing?'wait':'pointer', letterSpacing:'0.05em', transition:'all 0.2s'}}
+            style={{background:firing?C.border:C.gold+'22', border:'1px solid '+C.gold, color:firing?C.slate:C.gold, borderRadius:6, padding:'8px 24px', fontSize:13, fontWeight:600, cursor:firing?'wait':'pointer', letterSpacing: '0', transition:'all 0.2s'}}
           >
             {firing ? '⏳ Dispatching…' : '▶ FIRE AGENT'}
           </button>
@@ -474,7 +474,7 @@ function AuditTrailView() {
           <div style={{display:'flex', gap:6}}>
             {['all','bank','health','retail','legal'].map(f => (
               <button key={f} onClick={() => setFilter(f)}
-                style={{background:filter===f?C.border:'none', border:'1px solid '+C.border, color:filter===f?C.white:C.slate, borderRadius:4, padding:'3px 10px', fontSize:10, cursor:'pointer', textTransform:'uppercase', letterSpacing:'0.06em'}}>
+                style={{background:filter===f?C.border:'none', border:'1px solid '+C.border, color:filter===f?C.white:C.slate, borderRadius:4, padding:'3px 10px', fontSize:10, cursor:'pointer', textTransform:'uppercase', letterSpacing: '0'}}>
                 {f==='all'?'All':(CLIENT_ICONS[f]||'')+ ' '+f}
               </button>
             ))}
@@ -488,7 +488,7 @@ function AuditTrailView() {
 
       {!loading && filtered.length === 0 && (
         <div style={{textAlign:'center', padding:40, color:C.slate}}>
-          <div style={{fontSize:24, marginBottom:8}}>📋</div>
+          <div style={{fontSize:24, letterSpacing: '0', fontVariantNumeric: 'tabular-nums', marginBottom:8}}>📋</div>
           <div>No executions yet — fire an agent above</div>
         </div>
       )}
@@ -499,7 +499,7 @@ function AuditTrailView() {
             <thead>
               <tr style={{background:C.surface, borderBottom:'1px solid '+C.border}}>
                 {['Time','Client','Agent','Task','Gov Score','Latency','Status'].map(h => (
-                  <th key={h} style={{textAlign:'left', padding:'10px 14px', color:C.slate, fontSize:10, textTransform:'uppercase', letterSpacing:'0.08em', fontWeight:500}}>{h}</th>
+                  <th key={h} style={{textAlign:'left', padding:'10px 14px', color:C.slate, fontSize:10, textTransform:'uppercase', letterSpacing: '0', fontWeight:500}}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -607,16 +607,16 @@ export default function FoundersDashboard() {
       {/* Header */}
       <div style={{borderBottom:'1px solid '+C.border, padding:'18px 32px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
         <div>
-          <div style={{fontSize:10, color:C.slate, letterSpacing:'0.15em', textTransform:'uppercase', marginBottom:4}}>Core Holding Corp</div>
+          <div style={{fontSize:10, color:C.slate, letterSpacing: '0', textTransform:'uppercase', marginBottom:4}}>Core Holding Corp</div>
           <div style={{fontSize:20, fontWeight:600}}>Founders Dashboard</div>
         </div>
         <div style={{display:'flex', gap:24, alignItems:'center'}}>
-          <div style={{textAlign:'right'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing:'0.08em'}}>CHC Revenue</div><div style={{color:C.gold,fontFamily:'monospace',fontSize:22,fontWeight:700}}>{fmtK(last(chcRev))}</div></div>
-          <div style={{textAlign:'right'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing:'0.08em'}}>Net Profit</div><div style={{color:C.green,fontFamily:'monospace',fontSize:22,fontWeight:700}}>{fmtK(last(chcProf))}</div></div>
-          <div style={{textAlign:'right'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing:'0.08em'}}>Mitigated</div><div style={{color:C.teal,fontFamily:'monospace',fontSize:22,fontWeight:700}}>$16.85M</div></div>
+          <div style={{textAlign:'right'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0'}}>CHC Revenue</div><div style={{color:C.gold,fontFamily:'monospace',fontSize:22,fontWeight:700}}>{fmtK(last(chcRev))}</div></div>
+          <div style={{textAlign:'right'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0'}}>Net Profit</div><div style={{color:C.green,fontFamily:'monospace',fontSize:22,fontWeight:700}}>{fmtK(last(chcProf))}</div></div>
+          <div style={{textAlign:'right'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0'}}>Mitigated</div><div style={{color:C.teal,fontFamily:'monospace',fontSize:22,fontWeight:700}}>$16.85M</div></div>
           <div style={{display:'flex', flexDirection:'column', gap:4, alignItems:'flex-end'}}>
             <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'6px 14px',color:C.slate,fontSize:12}}>{now}</div>
-            <button onClick={fetchData} style={{background:'none',border:'1px solid '+C.border,borderRadius:4,color:C.slate,fontSize:10,padding:'3px 10px',cursor:'pointer',letterSpacing:'0.08em'}}>↻ REFRESH</button>
+            <button onClick={fetchData} style={{background:'none',border:'1px solid '+C.border,borderRadius:4,color:C.slate,fontSize:10,padding:'3px 10px',cursor:'pointer',letterSpacing: '0'}}>↻ REFRESH</button>
           </div>
         </div>
       </div>
