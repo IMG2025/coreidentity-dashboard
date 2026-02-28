@@ -1,2 +1,2 @@
 
-module.exports.config = CONFIG;
+module.exports.config = config;
