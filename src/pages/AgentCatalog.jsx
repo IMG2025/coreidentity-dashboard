@@ -96,8 +96,10 @@ export default function AgentCatalog() {
       addNotification(agent.name + ' ' + taskType + ' complete', 'success');
     } catch(err) {
       const msg = err.response && err.response.data ? err.response.data.error : err.message;
-      if (msg && msg.includes('approval')) {
-        addNotification('Approval required for ' + agent.name + ' — submit via Sentinel OS', 'warning');
+      const isSentinel = err.response?.data?.code === 'SENTINEL_BLOCKED' || (msg && msg.includes('Sentinel'));
+      const isApproval = msg && msg.includes('approval');
+      if (isSentinel || isApproval) {
+        addNotification('⚖ Sentinel blocked: ' + (err.response?.data?.reason || msg || 'Policy violation') + ' — submit approval in Sentinel OS', 'warning');
       } else {
         addNotification(msg || 'Execution failed', 'error');
       }

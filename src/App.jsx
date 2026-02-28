@@ -25,7 +25,8 @@ import ReportsPage       from './pages/ReportsPage.jsx';
 import DocsPage          from './pages/DocsPage.jsx';
 
 // ── Notifications context ─────────────────────────────────────
-const NotificationContext = createContext({ notifications: [], addNotification: () => {} });
+/* patch-33 */
+const NotificationContext = createContext({ notifications: [], addNotification: () => {}, removeNotification: () => {} });
 export const useNotifications = () => useContext(NotificationContext);
 
 // ── Route maps ────────────────────────────────────────────────
@@ -69,6 +70,61 @@ function getRoute() {
 }
 
 // ── Root app ──────────────────────────────────────────────────
+// ── Real notification system ─────────────────────────────────────────────────
+const TOAST_COLORS = {
+  success: { bg: '#166534', border: '#22c55e', icon: '✓' },
+  error:   { bg: '#7f1d1d', border: '#ef4444', icon: '✕' },
+  warning: { bg: '#78350f', border: '#f59e0b', icon: '⚠' },
+  info:    { bg: '#1e3a5f', border: '#3b82f6', icon: 'ℹ' },
+};
+
+function NotificationContextWrapper({ children }) {
+  const [notifications, setNotifications] = React.useState([]);
+
+  function addNotification(message, type = 'info') {
+    const id = Date.now() + Math.random();
+    setNotifications(prev => [...prev.slice(-4), { id, message, type }]);
+    setTimeout(() => removeNotification(id), type === 'error' ? 6000 : 4000);
+  }
+
+  function removeNotification(id) {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }
+
+  return (
+    <NotificationContext.Provider value={{ notifications, addNotification, removeNotification }}>
+      {children}
+      {/* Toast container */}
+      <div style={{
+        position: 'fixed', bottom: 20, right: 16, zIndex: 9999,
+        display: 'flex', flexDirection: 'column', gap: 8,
+        maxWidth: 'calc(100vw - 32px)', width: 340,
+        pointerEvents: 'none'
+      }}>
+        {notifications.map(n => {
+          const s = TOAST_COLORS[n.type] || TOAST_COLORS.info;
+          return (
+            <div key={n.id} style={{
+              background: s.bg, border: '1px solid ' + s.border,
+              borderRadius: 8, padding: '10px 14px',
+              display: 'flex', alignItems: 'flex-start', gap: 8,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+              pointerEvents: 'auto', cursor: 'pointer',
+              color: '#fff', fontSize: 13, lineHeight: 1.4,
+              animation: 'slideIn 0.2s ease'
+            }} onClick={() => removeNotification(n.id)}>
+              <span style={{ fontSize: 14, fontWeight: 700, flexShrink: 0, color: s.border }}>{s.icon}</span>
+              <span>{n.message}</span>
+            </div>
+          );
+        })}
+      </div>
+      <style>{'`@keyframes slideIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }`'}</style>
+    </NotificationContext.Provider>
+  );
+}
+
+
 export default function App() {
   const { user, loading, logout } = useAuth();
   const [route, setRoute] = useState(getRoute);
@@ -100,7 +156,7 @@ export default function App() {
   const Page = PORTAL_PAGES[route] || FoundersDashboard;
 
   return (
-    <NotificationContext.Provider value={{ notifications: [], addNotification: () => {} }}>
+    <NotificationContextWrapper>
       <div style={{ minHeight:'100vh', background:'#070c18', fontFamily:"'DM Sans','Segoe UI',sans-serif" }}>
         <PortalNav
           route={route}
@@ -110,6 +166,6 @@ export default function App() {
         />
         <Page />
       </div>
-    </NotificationContext.Provider>
+    </NotificationContextWrapper>
   );
 }
