@@ -97,7 +97,7 @@ app.use('/api/governance', authenticate, governanceRouter);
 // ── Late-registered routes ───────────────────────────────────────────────────
 app.use('/api/live-data',      liveDataRouter);
 app.use('/api/agents/execute', agentExecuteRouter);
-app.use('/api/telemetry',      telemetryRouter);
+app.use('/api/telemetry', authenticate, telemetryRouter);
 app.use('/api/onboard',        onboardRouter);
 app.use('/api/pricing',        pricingRouter);
 app.use('/api/reports',        reportsRouter);
