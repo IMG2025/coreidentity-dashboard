@@ -20,6 +20,7 @@ const executeRouter = require('./routes/execute');
 const adminRouter = require('./routes/admin');
 const governanceRouter = require('./routes/governance');
 const logger = require('./utils/logger');
+const analyticsRouter = require('./routes/analytics');
 const liveDataRouter = require('./routes/liveData');
 const agentExecuteRouter = require('./routes/agentExecute');
 const telemetryRouter = require('./routes/telemetry');
@@ -95,6 +96,7 @@ app.use('/api/governance', authenticate, governanceRouter);
 
 
 // ── Late-registered routes ───────────────────────────────────────────────────
+app.use('/api/analytics', authenticate, analyticsRouter);
 app.use('/api/live-data',      liveDataRouter);
 app.use('/api/agents/execute', agentExecuteRouter);
 app.use('/api/telemetry', authenticate, telemetryRouter);
