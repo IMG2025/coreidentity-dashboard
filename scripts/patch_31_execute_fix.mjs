@@ -1,4 +1,37 @@
-/* patch-31 */
+#!/usr/bin/env node
+/**
+ * Patch 31 — Fix execute.js call signatures
+ *
+ * BUG 1: policyEngine.enforcePolicy(agent, user, taskType) — 3 args
+ *        execute.js calls Sentinel.enforcePolicy({ flat object }) — 1 arg
+ *        → user = undefined → crash on user.userId
+ *
+ * BUG 2: agoExecutor calls agoRouter.route() but agoRouter is never required
+ *        → ReferenceError: agoRouter is not defined
+ *
+ * FIX: Rewrite execute.js to:
+ *   1. Look up agent from registry before calling Sentinel
+ *   2. Call enforcePolicy(agent, req.user, taskType) correctly
+ *   3. Replace agoRouter.route() with direct agoBridge.executeAgent()
+ *
+ * Idempotent · Zero hand edits · Ends with npm run build
+ */
+
+import fs from 'node:fs';
+import path from 'node:path';
+import { execSync } from 'node:child_process';
+
+const REPO = path.join(process.env.HOME, 'coreidentity-dashboard');
+const run  = (cmd) => { console.log(`  $ ${cmd.slice(0,100)}`); execSync(cmd, { cwd: REPO, stdio: 'inherit' }); };
+const wf   = (rel, c) => { fs.writeFileSync(path.join(REPO, rel), c, 'utf8'); console.log(`  ✓ wrote ${rel}`); };
+const GUARD = '/* patch-31 */';
+
+const src = fs.readFileSync(path.join(REPO, 'api/src/routes/execute.js'), 'utf8');
+
+if (src.includes(GUARD)) {
+  console.log('  ✓ already patched');
+} else {
+  wf('api/src/routes/execute.js', `${GUARD}
 const express       = require('express');
 const router        = express.Router();
 const { authenticate } = require('../middleware/auth');
@@ -95,3 +128,40 @@ router.get('/nexus/executions', authenticate, async function(req, res) {
 });
 
 module.exports = router;
+`);
+}
+
+// Syntax check
+const { execSync: ex } = await import('node:child_process');
+run('node --check api/src/routes/execute.js');
+
+// Verify agoBridge exports executeAgent
+const bridge = fs.readFileSync(path.join(REPO, 'api/src/ago/agoBridge.js'), 'utf8');
+if (!bridge.includes('executeAgent')) {
+  console.warn('  ⚠ agoBridge.js does not export executeAgent — check exports');
+} else {
+  console.log('  ✓ agoBridge.executeAgent confirmed');
+}
+
+run('npm run build');
+
+run('git add -A');
+const dirty = execSync('git status --porcelain', { cwd: REPO }).toString().trim();
+if (dirty) {
+  run('git commit -m "fix: patch 31 — execute.js correct enforcePolicy signature + agoBridge wiring"');
+  run('git push origin main');
+  console.log('  ✓ Pushed — GitHub Actions building');
+} else {
+  console.log('  ✓ Nothing to commit');
+}
+
+console.log(`
+After GitHub Actions (~60s), promote ECS:
+  LATEST=$(aws ecr describe-images --repository-name coreidentity-api --region us-east-2 \\
+    --query 'sort_by(imageDetails,&imagePushedAt)[-1].imageTags[0]' --output text)
+  aws ecs describe-task-definition --task-definition coreidentity-dev-sentinel \\
+    --region us-east-2 --query 'taskDefinition' --output json \\
+  | python3 -c "import sys,json; td=json.load(sys.stdin); td['containerDefinitions'][0]['image']='636058550262.dkr.ecr.us-east-2.amazonaws.com/coreidentity-api:'\$LATEST; [td.pop(k,None) for k in ['taskDefinitionArn','revision','status','requiresAttributes','compatibilities','registeredAt','registeredBy']]; print(json.dumps(td))" > ~/new-taskdef.json
+  NEW=$(aws ecs register-task-definition --region us-east-2 --cli-input-json file://\$HOME/new-taskdef.json --query 'taskDefinition.taskDefinitionArn' --output text)
+  aws ecs update-service --cluster coreidentity-dev --service sentinel --task-definition "\$NEW" --region us-east-2 --query 'service.taskDefinition' --output text
+`);
