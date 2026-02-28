@@ -2,10 +2,11 @@
 // Script 36 — aggregates deployment + execution + agent + governance stats
 const express  = require('express');
 const router   = express.Router();
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, ScanCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDB } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocument } = require('@aws-sdk/lib-dynamodb');
+const { ScanCommand } = require('@aws-sdk/lib-dynamodb');
 
-const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-2' }));
+const ddb = DynamoDBDocument.from(new DynamoDB({ region: process.env.AWS_REGION || 'us-east-2' }));
 
 async function safeScan(TableName, FilterExpression, ExpressionAttributeValues) {
   try {
