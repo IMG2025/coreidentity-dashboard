@@ -68,34 +68,39 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Fetch current task definition
-          TASK_DEF=$(aws ecs describe-task-definition \
+          NEW_IMAGE="$ECR_REGISTRY/coreidentity-api:$IMAGE_TAG"
+          echo "Deploying image: $NEW_IMAGE"
+
+          # Fetch current task definition and write to file
+          aws ecs describe-task-definition \
             --task-definition coreidentity-dev-sentinel \
             --region $AWS_REGION \
             --query 'taskDefinition' \
-            --output json)
+            --output json > /tmp/current-taskdef.json
 
-          # Swap image to new SHA, strip read-only fields
-          NEW_TASK_DEF=$(echo $TASK_DEF | python3 -c "
-          import sys, json
-          td = json.load(sys.stdin)
-          td['containerDefinitions'][0]['image'] = '$ECR_REGISTRY/coreidentity-api:$IMAGE_TAG'
-          for k in ['taskDefinitionArn','revision','status','requiresAttributes',
-                    'compatibilities','registeredAt','registeredBy']:
-            td.pop(k, None)
-          print(json.dumps(td))
-          ")
+          # Swap image using python, write to new file
+          python3 << PYEOF
+import json
+with open('/tmp/current-taskdef.json') as f:
+    td = json.load(f)
+td['containerDefinitions'][0]['image'] = '$NEW_IMAGE'
+for k in ['taskDefinitionArn','revision','status','requiresAttributes',
+          'compatibilities','registeredAt','registeredBy']:
+    td.pop(k, None)
+with open('/tmp/new-taskdef.json', 'w') as f:
+    json.dump(td, f)
+print("Task def written with image:", td['containerDefinitions'][0]['image'])
+PYEOF
 
-          # Register new revision
-          NEW_ARN=$(echo $NEW_TASK_DEF | aws ecs register-task-definition \
+          # Register new task definition revision
+          NEW_ARN=$(aws ecs register-task-definition \
             --region $AWS_REGION \
-            --cli-input-json file:///dev/stdin \
+            --cli-input-json file:///tmp/new-taskdef.json \
             --query 'taskDefinition.taskDefinitionArn' \
             --output text)
+          echo "Registered: $NEW_ARN"
 
-          echo "New task definition: $NEW_ARN"
-
-          # Update service to use new revision
+          # Update ECS service to use new revision
           aws ecs update-service \
             --cluster $ECS_CLUSTER \
             --service $ECS_SERVICE \
