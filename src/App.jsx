@@ -47,8 +47,16 @@ const PUBLIC_ROUTES = new Set(['/', '/#/demo', '/#/onboard', '/#/investor', '/#/
 // Routes that render without the portal sidebar
 const BARE_ROUTES = new Set(['/', '/#/demo', '/#/onboard', '/#/investor', '/#/pricing', '/#/reports', '/#/docs']);
 
+function isPortalDomain() {
+  return window.location.hostname === 'portal.coreholdingcorp.com';
+}
+
 function getRoute() {
   const hash = window.location.hash || '';
+  if ((!hash || hash === '#') && isPortalDomain()) {
+    window.location.replace('/#/dashboard');
+    return '/#/dashboard';
+  }
   if (!hash || hash === '#') return '/';
   return '/#' + hash.slice(1);
 }
