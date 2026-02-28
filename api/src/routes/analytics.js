@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
   const [deployments, executions, agents, workflows] = await Promise.all([
     safeScan('coreidentity-deployments'),
     safeScan('coreidentity-executions'),
-    safeScan('coreidentity-agents'),
+    safeScan('smartnation-agents'),
     safeScan('coreidentity-workflows'),
   ]);
 
