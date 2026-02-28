@@ -63,13 +63,46 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Force ECS redeployment
+      - name: Register new ECS task definition and deploy # script-34-auto-promote
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
+          # Fetch current task definition
+          TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition coreidentity-dev-sentinel \
+            --region $AWS_REGION \
+            --query 'taskDefinition' \
+            --output json)
+
+          # Swap image to new SHA, strip read-only fields
+          NEW_TASK_DEF=$(echo $TASK_DEF | python3 -c "
+          import sys, json
+          td = json.load(sys.stdin)
+          td['containerDefinitions'][0]['image'] = '$ECR_REGISTRY/coreidentity-api:$IMAGE_TAG'
+          for k in ['taskDefinitionArn','revision','status','requiresAttributes',
+                    'compatibilities','registeredAt','registeredBy']:
+            td.pop(k, None)
+          print(json.dumps(td))
+          ")
+
+          # Register new revision
+          NEW_ARN=$(echo $NEW_TASK_DEF | aws ecs register-task-definition \
+            --region $AWS_REGION \
+            --cli-input-json file:///dev/stdin \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          echo "New task definition: $NEW_ARN"
+
+          # Update service to use new revision
           aws ecs update-service \
             --cluster $ECS_CLUSTER \
             --service $ECS_SERVICE \
-            --force-new-deployment \
-            --region $AWS_REGION || echo "ECS service update skipped - may not exist yet"
+            --task-definition "$NEW_ARN" \
+            --region $AWS_REGION \
+            --query 'service.taskDefinition' \
+            --output text
 
       - name: Deployment summary
         run: |
