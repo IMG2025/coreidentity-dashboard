@@ -23,8 +23,9 @@ export default function Workflows() {
 
   async function loadWorkflows() {
     try {
-      const data = await api.getWorkflows();
-      setWorkflows(data);
+      /* script-37-wf */
+      const res = await api.getWorkflows();
+      setWorkflows(Array.isArray(res) ? res : (res.data || []));
     } catch (err) {
       addNotification('Failed to load workflows', 'error');
     } finally {
