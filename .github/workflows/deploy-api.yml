@@ -69,7 +69,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           NEW_IMAGE="$ECR_REGISTRY/coreidentity-api:$IMAGE_TAG"
-          echo "Deploying image: $NEW_IMAGE"
+          echo "Deploying: $NEW_IMAGE"
 
           aws ecs describe-task-definition \
             --task-definition coreidentity-dev-sentinel \
@@ -77,16 +77,7 @@ jobs:
             --query taskDefinition \
             --output json > /tmp/current-taskdef.json
 
-          python3 -c "
-import json, sys
-with open('/tmp/current-taskdef.json') as f:
-    td = json.load(f)
-td['containerDefinitions'][0]['image'] = sys.argv[1]
-[td.pop(k, None) for k in ['taskDefinitionArn','revision','status','requiresAttributes','compatibilities','registeredAt','registeredBy']]
-with open('/tmp/new-taskdef.json', 'w') as f:
-    json.dump(td, f)
-print('Image set to:', sys.argv[1])
-" "$NEW_IMAGE"
+          python3 scripts/swap-ecs-image.py "$NEW_IMAGE"
 
           NEW_ARN=$(aws ecs register-task-definition \
             --region $AWS_REGION \
@@ -105,6 +96,5 @@ print('Image set to:', sys.argv[1])
 
       - name: Deployment summary
         run: |
-          echo "CoreIdentity API deployed"
-          echo "Image: ${{ steps.build-image.outputs.image }}"
-          echo "Commit: ${{ github.sha }}"
+          echo "Deployed: ${{ steps.build-image.outputs.image }}"
+          echo "Commit:   ${{ github.sha }}"
