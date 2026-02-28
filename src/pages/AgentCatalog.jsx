@@ -96,10 +96,23 @@ export default function AgentCatalog() {
       addNotification(agent.name + ' ' + taskType + ' complete', 'success');
     } catch(err) {
       const msg = err.response && err.response.data ? err.response.data.error : err.message;
+      /* script-35-ac */
       const isSentinel = err.response?.data?.code === 'SENTINEL_BLOCKED' || (msg && msg.includes('Sentinel'));
       const isApproval = msg && msg.includes('approval');
       if (isSentinel || isApproval) {
-        addNotification('⚖ Sentinel blocked: ' + (err.response?.data?.reason || msg || 'Policy violation') + ' — submit approval in Sentinel OS', 'warning');
+        // Auto-submit approval request then navigate
+        try {
+          await api.post('/api/sentinel/approvals', {
+            agentId: agentId(agent),
+            taskType,
+            justification: 'Requested from Agent Catalog by ' + (user?.email || 'user')
+          });
+          addNotification('Approval request submitted for ' + agent.name + ' — redirecting to Sentinel OS', 'warning');
+        } catch(approvalErr) {
+          addNotification('Sentinel blocked — redirecting to approval queue', 'warning');
+        }
+        sessionStorage.setItem('sentinelTab', 'approvals');
+        setTimeout(function() { window.location.hash = '/sentinel'; }, 1200);
       } else {
         addNotification(msg || 'Execution failed', 'error');
       }

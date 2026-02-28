@@ -50,7 +50,14 @@ export default function SentinelOS() {
   const [killInput, setKillInput] = useState({ agentId: '', reason: '' });
   const [errors, setErrors]       = useState([]);
 
-  useEffect(function() { loadAll(); }, []);
+  useEffect(function() { /* script-35-sentinel */
+    loadAll();
+    const savedTab = sessionStorage.getItem('sentinelTab');
+    if (savedTab) {
+      setActiveTab(savedTab);
+      sessionStorage.removeItem('sentinelTab');
+    }
+  }, []);
 
   async function safeCall(fn, fallback) {
     try { return await fn(); } catch(e) { return fallback; }

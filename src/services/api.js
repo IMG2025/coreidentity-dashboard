@@ -25,6 +25,17 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  async post(url, body) {
+    const token = localStorage.getItem('token');
+    const API = import.meta.env.VITE_API_URL || 'https://api.coreidentity.coreholdingcorp.com';
+    const res = await fetch(API + url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw Object.assign(new Error(e.error || 'Request failed'), { response: { data: e } }); }
+    return res.json();
+  },
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   async login(email, password) {
