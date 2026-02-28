@@ -21,7 +21,7 @@ router.post('/:agentId/execute', authenticate, async function(req, res) {
   try {
     // 1. Sentinel policy enforcement
     const policyResult = await Sentinel.enforcePolicy({
-      agentId, taskType, userId: req.user.id,
+      agentId, taskType, userId: req.user.userId,
       userRole: req.user.role, inputs, justification
     });
 

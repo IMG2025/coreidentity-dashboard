@@ -4,6 +4,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line } from 'recharts';
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.coreidentity.coreholdingcorp.com';
+
 // ── Design tokens ─────────────────────────────────────────────
 const C = {
   bg:'#0a0e1a', surface:'#111827', surface2:'#1a2235', border:'#1f2937',
@@ -332,8 +334,8 @@ function AuditTrailView() {
   const fetchAudit = useCallback(async () => {
     try {
       const [execRes, statsRes] = await Promise.all([
-        fetch('/api/telemetry/executions?limit=100'),
-        fetch('/api/telemetry/stats')
+        fetch(API_URL + '/api/telemetry/executions?limit=100'),
+        fetch(API_URL + '/api/telemetry/stats')
       ]);
       const execJson  = await execRes.json();
       const statsJson = await statsRes.json();
@@ -348,7 +350,7 @@ function AuditTrailView() {
 
   // Seed demo data on mount if store empty
   useEffect(() => {
-    fetch('/api/telemetry/seed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+    fetch(API_URL + '/api/telemetry/seed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
       .then(() => fetchAudit())
       .catch(() => fetchAudit());
     const t = setInterval(fetchAudit, 10000);
@@ -362,7 +364,7 @@ function AuditTrailView() {
     try {
       const agents = DEMO_AGENTS[demoClient];
       const agent  = agents.find(a => a.id === demoAgent) || agents[0];
-      const res    = await fetch('/api/agents/execute', {
+      const res    = await fetch(API_URL + '/api/agents/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientId: demoClient, agentId: agent.id, task: agent.task, payload: { demo: true, firedFrom: 'FoundersDashboard' } })
@@ -563,7 +565,7 @@ export default function FoundersDashboard() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res  = await fetch('/api/live-data');
+      const res  = await fetch(API_URL + '/api/live-data');
       const json = await res.json();
       if (json.data) {
         setLiveData(json.data);
