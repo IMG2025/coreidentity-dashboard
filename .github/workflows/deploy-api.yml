@@ -63,7 +63,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Register new ECS task definition and deploy # script-34-auto-promote
+      - name: Register new ECS task definition and deploy
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
@@ -71,42 +71,36 @@ jobs:
           NEW_IMAGE="$ECR_REGISTRY/coreidentity-api:$IMAGE_TAG"
           echo "Deploying image: $NEW_IMAGE"
 
-          # Fetch current task definition and write to file
           aws ecs describe-task-definition \
             --task-definition coreidentity-dev-sentinel \
             --region $AWS_REGION \
-            --query 'taskDefinition' \
+            --query taskDefinition \
             --output json > /tmp/current-taskdef.json
 
-          # Swap image using python, write to new file
-          python3 << PYEOF
-import json
+          python3 -c "
+import json, sys
 with open('/tmp/current-taskdef.json') as f:
     td = json.load(f)
-td['containerDefinitions'][0]['image'] = '$NEW_IMAGE'
-for k in ['taskDefinitionArn','revision','status','requiresAttributes',
-          'compatibilities','registeredAt','registeredBy']:
-    td.pop(k, None)
+td['containerDefinitions'][0]['image'] = sys.argv[1]
+[td.pop(k, None) for k in ['taskDefinitionArn','revision','status','requiresAttributes','compatibilities','registeredAt','registeredBy']]
 with open('/tmp/new-taskdef.json', 'w') as f:
     json.dump(td, f)
-print("Task def written with image:", td['containerDefinitions'][0]['image'])
-PYEOF
+print('Image set to:', sys.argv[1])
+" "$NEW_IMAGE"
 
-          # Register new task definition revision
           NEW_ARN=$(aws ecs register-task-definition \
             --region $AWS_REGION \
             --cli-input-json file:///tmp/new-taskdef.json \
-            --query 'taskDefinition.taskDefinitionArn' \
+            --query taskDefinition.taskDefinitionArn \
             --output text)
           echo "Registered: $NEW_ARN"
 
-          # Update ECS service to use new revision
           aws ecs update-service \
             --cluster $ECS_CLUSTER \
             --service $ECS_SERVICE \
             --task-definition "$NEW_ARN" \
             --region $AWS_REGION \
-            --query 'service.taskDefinition' \
+            --query service.taskDefinition \
             --output text
 
       - name: Deployment summary
