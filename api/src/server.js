@@ -92,20 +92,25 @@ app.use('/api/execute', authenticate, executeRouter);
 app.use('/api/admin',     authenticate, adminRouter);
 app.use('/api/governance', authenticate, governanceRouter);
 
-// ── 404 ──────────────────────────────────────────────────────────────────
+
+
+// ── Late-registered routes ───────────────────────────────────────────────────
+app.use('/api/live-data',      liveDataRouter);
+app.use('/api/agents/execute', agentExecuteRouter);
+app.use('/api/telemetry',      telemetryRouter);
+app.use('/api/onboard',        onboardRouter);
+app.use('/api/pricing',        pricingRouter);
+app.use('/api/reports',        reportsRouter);
+app.use('/api/market',         marketRouter);
+app.use('/api/commercial',     commercialRouter);
+
+// ── 404 catch-all (MUST be after all routes) ─────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found', code: 'NOT_FOUND', path: req.path });
 });
 
 app.use(errorHandler);
-app.use('/api/live-data', liveDataRouter);
-app.use('/api/agents/execute', agentExecuteRouter);
-app.use('/api/telemetry', telemetryRouter);
-app.use('/api/onboard', onboardRouter);
-app.use('/api/pricing', pricingRouter);
-app.use('/api/reports', reportsRouter);
-app.use('/api/market', marketRouter);
-app.use('/api/commercial', commercialRouter);
+/* script-28-applied */
 
 app.listen(PORT, '0.0.0.0', () => {
   logger.info('server_started', { port: PORT, env: process.env.NODE_ENV || 'development' });

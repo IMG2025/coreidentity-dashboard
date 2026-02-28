@@ -42,6 +42,21 @@ function StatCard({ icon: Icon, label, value, color }) {
 }
 
 export default function SmartNationAI() {
+  // ── Deploy handler ──────────────────────────────────────────────────────
+  const [deploying, setDeploying] = React.useState({});
+  async function handleSmartNationDeploy(agent) {
+    const id = agent.agentId || agent.id;
+    setDeploying(p => ({ ...p, [id]: true }));
+    try {
+      await api.deployAgent(id);
+      alert(agent.name + ' deployed successfully');
+    } catch(err) {
+      alert('Deploy failed: ' + (err.message || 'Unknown error'));
+    } finally {
+      setDeploying(p => ({ ...p, [id]: false }));
+    }
+  }
+
   const [summary, setSummary]   = useState(null);
   const [agents, setAgents]     = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -182,6 +197,13 @@ export default function SmartNationAI() {
                       {agent.rating || '4.5'}
                     </span>
                     <span className='text-xs text-gray-400'>{(agent.deployments || 0).toLocaleString()} deployments</span>
+                    <button
+                      onClick={function() { handleSmartNationDeploy(agent); }}
+                      disabled={deploying[agent.agentId || agent.id]}
+                      className='px-2 py-0.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded font-medium disabled:opacity-50 ml-1'
+                    >
+                      {deploying[agent.agentId || agent.id] ? '...' : '🚀 Deploy'}
+                    </button>
                     <span className='text-xs text-gray-400'>{agent.successRate || 95}% success</span>
                     {(agent.compliance || []).slice(0, 2).map(function(c) {
                       return (

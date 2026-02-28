@@ -47,6 +47,29 @@ const FRAMEWORK_DETAILS = {
   }
 };
 
+
+// Normalize scores from array [{label,score}] OR object {overall,dataPrivacy...}
+function normalizeScores(raw) {
+  if (!raw) return { overall: 98, dataPrivacy: 96, securityPosture: 94, riskScore: 92 };
+  if (Array.isArray(raw)) {
+    const map = {};
+    raw.forEach(function(s) {
+      const key = s.label || '';
+      if (key.includes('Overall'))  map.overall        = s.score;
+      if (key.includes('Privacy'))  map.dataPrivacy    = s.score;
+      if (key.includes('Security')) map.securityPosture = s.score;
+      if (key.includes('Risk'))     map.riskScore      = s.score;
+    });
+    return {
+      overall:        map.overall        ?? 98,
+      dataPrivacy:    map.dataPrivacy    ?? 96,
+      securityPosture:map.securityPosture ?? 94,
+      riskScore:      map.riskScore      ?? 92,
+    };
+  }
+  return raw; // already object format
+}
+
 function FrameworkCard({ fw, isAdmin }) {
   const [expanded, setExpanded] = useState(false);
   const details = FRAMEWORK_DETAILS[fw.name] || {};
@@ -143,7 +166,7 @@ export default function Governance() {
     </div>
   );
 
-  const scores = data ? data.scores : { overall: 98, dataPrivacy: 96, securityPosture: 94, riskScore: 92 };
+  const scores = normalizeScores(data ? data.scores : null);
   const frameworks = data ? data.frameworks : [];
   const alerts = data ? data.alerts : [];
 
