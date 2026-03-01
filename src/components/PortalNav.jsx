@@ -11,6 +11,9 @@ const NAV_SECTIONS = [
   ['/#/smartnation', '🌐',  'SmartNation AI'],
   ['/#/governance',  '📋',  'Governance'],
   ['/#/workflows',   '🔄',  'Workflows'],
+  ['/#/mcp-demo',    '🤖',  'MCP Demo'],
+  ['/#/live-demo',   '▶️',  'Live Demo'],
+  ['/#/ciag-intake', '📋',  'CIAG Intake'],
   ['/#/analytics',   '📊',  'Analytics'],
   ['/#/settings',    '⚙',   'Settings'],
 ];

@@ -40,6 +40,9 @@ const PORTAL_PAGES = {
   '/#/smartnation': SmartNation,
   '/#/governance':  Governance,
   '/#/workflows':   Workflows,
+  '/#/mcp-demo':    MCPDemo,
+  '/#/live-demo':   LiveDemo,
+  '/#/ciag-intake': CIAGIntake,
   '/#/analytics':   Analytics,
   '/#/settings':    SettingsPage,
 };
