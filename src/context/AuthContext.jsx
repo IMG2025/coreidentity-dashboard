@@ -15,12 +15,16 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     setLoading(true);
     try {
+      console.log('[AUTH] Calling:', API_URL + '/api/auth/login');
       const res  = await fetch(API_URL + '/api/auth/login', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ email, password }),
       });
-      const json = await res.json();
+      const text = await res.text();
+      console.log('[AUTH] Response body:', text);
+      let json;
+      try { json = JSON.parse(text); } catch(e) { return { success: false, error: 'API returned empty response. URL: ' + API_URL }; }
 
       if (!res.ok) {
         const msg = json?.error || json?.message || 'Login failed (' + res.status + ')';
