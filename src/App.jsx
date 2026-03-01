@@ -69,11 +69,6 @@ function isPortalDomain() {
 function getRoute() {
   const hash = window.location.hash || '';
   const route = (!hash || hash === '#') ? '/' : '/#' + hash.slice(1);
-  // On portal domain, redirect root to dashboard
-  if (route === '/' && isPortalDomain()) {
-    window.location.replace('/#/dashboard');
-    return '/#/dashboard';
-  }
   return route;
 }
 
