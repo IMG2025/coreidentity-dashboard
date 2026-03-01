@@ -16,8 +16,6 @@ export default function LoginPage() {
     const result = await login(email.trim(), password);
     if (!result.success) {
       setError(result.error || 'Invalid credentials. Please try again.');
-    } else {
-      setError('LOGIN OK - token received. If you see this, auth context is the issue.');
     }
   };
 
