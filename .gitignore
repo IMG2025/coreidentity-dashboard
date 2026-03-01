@@ -9,3 +9,4 @@ frontend.backup/
 *.p12
 .DS_Store
 infrastructure_audit_report_*.md
+dist
