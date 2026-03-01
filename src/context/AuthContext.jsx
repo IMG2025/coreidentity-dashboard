@@ -18,9 +18,8 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
 
-  // Auto-seed admin session if no token present
   useEffect(() => {
-    if (loadToken()) return;
+    if (localStorage.getItem(TOKEN_KEY)) return;
     fetch(API_URL + '/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -28,14 +27,14 @@ export function AuthProvider({ children }) {
     })
     .then(r => r.json())
     .then(data => {
-      if (data?.data?.token) {
+      if (data && data.data && data.data.token) {
         localStorage.setItem(TOKEN_KEY, data.data.token);
         localStorage.setItem(USER_KEY, JSON.stringify(data.data.user));
         setToken(data.data.token);
         setUser(data.data.user);
       }
     })
-    .catch(e => console.error('[AUTH] Auto-seed failed:', e.message));
+    .catch(e => console.error('[AUTH] seed failed:', e.message));
   }, []);
 
   const login = async (email, password) => {
