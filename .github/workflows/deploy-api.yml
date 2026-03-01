@@ -1,30 +1,16 @@
-name: Build & Deploy CoreIdentity API
+name: Build and Deploy API to ECS
 
 on:
   push:
     branches: [main]
     paths:
       - 'api/**'
-      - '.github/workflows/deploy-api.yml'
-      - 'src/**'
-      - 'dist/**'
-  workflow_dispatch:
-
-env:
-  AWS_REGION: us-east-2
-  ECR_REPOSITORY: coreidentity-api
-  ECS_CLUSTER: coreidentity-dev
-  ECS_SERVICE: sentinel
-  CONTAINER_NAME: coreidentity-api
 
 jobs:
-  build-and-deploy:
-    name: Build, Push, Deploy
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -33,68 +19,43 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Verify AWS identity
-        run: aws sts get-caller-identity
-
-      - name: Login to Amazon ECR
+      - name: Login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Create ECR repository if not exists
+      - name: Build and push image
         run: |
-          aws ecr describe-repositories --repository-names $ECR_REPOSITORY --region $AWS_REGION 2>/dev/null || \
-          aws ecr create-repository \
-            --repository-name $ECR_REPOSITORY \
-            --image-scanning-configuration scanOnPush=true \
-            --region $AWS_REGION
+          IMAGE=636058550262.dkr.ecr.us-east-2.amazonaws.com/coreidentity-api:latest
+          docker build -t $IMAGE ./api
+          docker push $IMAGE
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+        id: build
 
-      - name: Build, tag, and push Docker image
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+      - name: Get current task definition
         run: |
-          cd api
-          docker build \
-            --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-            --tag $ECR_REGISTRY/$ECR_REPOSITORY:latest \
-            .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-      - name: Register new ECS task definition and deploy
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          NEW_IMAGE="$ECR_REGISTRY/coreidentity-api:$IMAGE_TAG"
-          echo "Deploying: $NEW_IMAGE"
-
           aws ecs describe-task-definition \
             --task-definition coreidentity-dev-sentinel \
-            --region $AWS_REGION \
-            --query taskDefinition \
-            --output json > /tmp/current-taskdef.json
+            --query taskDefinition > /tmp/current-taskdef.json
 
-          python3 scripts/swap-ecs-image.py "$NEW_IMAGE"
-
-          NEW_ARN=$(aws ecs register-task-definition \
-            --region $AWS_REGION \
-            --cli-input-json file:///tmp/new-taskdef.json \
-            --query taskDefinition.taskDefinitionArn \
-            --output text)
-          echo "Registered: $NEW_ARN"
-
-          aws ecs update-service \
-            --cluster $ECS_CLUSTER \
-            --service $ECS_SERVICE \
-            --task-definition "$NEW_ARN" \
-            --region $AWS_REGION \
-            --query service.taskDefinition \
-            --output text
-
-      - name: Deployment summary
+      - name: Update task definition with new image
         run: |
-          echo "Deployed: ${{ steps.build-image.outputs.image }}"
-          echo "Commit:   ${{ github.sha }}"
+          python3 scripts/swap-ecs-image.py \
+            636058550262.dkr.ecr.us-east-2.amazonaws.com/coreidentity-api:latest
+
+      - name: Register new task definition
+        run: |
+          NEW_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file:///tmp/new-taskdef.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+          echo "task_arn=$NEW_ARN" >> $GITHUB_ENV
+
+      - name: Update ECS service
+        run: |
+          aws ecs update-service \
+            --cluster coreidentity-dev \
+            --service sentinel \
+            --task-definition $task_arn \
+            --force-new-deployment \
+            --region us-east-2
+          echo "[OK] ECS service updated"
