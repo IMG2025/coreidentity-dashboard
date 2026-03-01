@@ -8,7 +8,7 @@ const TOKEN_KEY = 'ci_token';
 const USER_KEY  = 'ci_user';
 
 function loadToken() { return localStorage.getItem(TOKEN_KEY) || null; }
-function loadUser()  {
+function loadUser() {
   try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch { return null; }
 }
 
@@ -19,19 +19,24 @@ export function AuthProvider({ children }) {
   const [error,   setError]   = useState(null);
 
   const login = async (email, password) => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
       const res  = await fetch(API_URL + '/api/auth/login', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ email, password })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Login failed');
-      localStorage.setItem(TOKEN_KEY, data.data.token);
-      localStorage.setItem(USER_KEY,  JSON.stringify(data.data.user));
-      setToken(data.data.token);
-      setUser(data.data.user);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || json.message || 'Login failed');
+      // Handle both {data:{token}} and {token} response shapes
+      const tok  = json.data?.token  || json.token;
+      const usr  = json.data?.user   || json.user;
+      if (!tok) throw new Error('No token in response');
+      localStorage.setItem(TOKEN_KEY, tok);
+      localStorage.setItem(USER_KEY,  JSON.stringify(usr));
+      setToken(tok);
+      setUser(usr);
       return { success: true };
     } catch (err) {
       setError(err.message);
