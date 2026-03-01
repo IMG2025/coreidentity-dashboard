@@ -32,9 +32,13 @@ export function AuthProvider({ children }) {
         localStorage.setItem(USER_KEY, JSON.stringify(data.data.user));
         setToken(data.data.token);
         setUser(data.data.user);
+        document.title = 'AUTH OK - reloading';
       }
     })
-    .catch(e => console.error('[AUTH] seed failed:', e.message));
+    .catch(e => {
+      console.error('[AUTH] seed failed:', e.message);
+      document.title = 'AUTH FAIL: ' + e.message;
+    });
   }, []);
 
   const login = async (email, password) => {
