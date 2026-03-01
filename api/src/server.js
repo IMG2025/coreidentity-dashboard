@@ -46,6 +46,7 @@ app.use(cors({
 }));
 
 // ── Rate limiting ────────────────────────────────────────────────────────
+app.use('/api/ciag', require('./routes/ciag'));
 app.use('/api/mcp', require('./routes/mcp'));
 app.use('/api/auth', rateLimit({
   windowMs: 15 * 60 * 1000,
