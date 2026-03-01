@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
@@ -7,44 +7,35 @@ const API_URL   = import.meta.env.VITE_API_URL || 'https://api.coreidentity.core
 const TOKEN_KEY = 'ci_token';
 const USER_KEY  = 'ci_user';
 
-function loadToken() { return localStorage.getItem(TOKEN_KEY) || null; }
+// Decode JWT expiry locally — no network call needed
+function isTokenValid(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+}
+
+function loadToken() {
+  const t = localStorage.getItem(TOKEN_KEY);
+  if (!t || !isTokenValid(t)) {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    return null;
+  }
+  return t;
+}
+
 function loadUser() {
   try { return JSON.parse(localStorage.getItem(USER_KEY)); } catch { return null; }
 }
 
 export function AuthProvider({ children }) {
   const [token,   setToken]   = useState(loadToken);
-  const [user,    setUser]    = useState(loadUser);
-  const [loading, setLoading] = useState(!!loadToken()); // true only if token exists
+  const [user,    setUser]    = useState(() => loadToken() ? loadUser() : null);
+  const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
-
-  // Validate stored token on mount — clears stale session if expired
-  useEffect(() => {
-    const storedToken = loadToken();
-    if (!storedToken) { setLoading(false); return; }
-
-    fetch(API_URL + '/api/auth/me', {
-      headers: { Authorization: 'Bearer ' + storedToken }
-    })
-    .then(res => {
-      if (!res.ok) throw new Error('Token expired');
-      return res.json();
-    })
-    .then(data => {
-      // Token valid — refresh user object from server
-      const freshUser = data.data || data;
-      localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
-      setUser(freshUser);
-    })
-    .catch(() => {
-      // Token invalid/expired — clear everything, show login
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      setToken(null);
-      setUser(null);
-    })
-    .finally(() => setLoading(false));
-  }, []);
 
   const login = async (email, password) => {
     setLoading(true);
