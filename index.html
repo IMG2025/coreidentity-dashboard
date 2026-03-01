@@ -7,6 +7,25 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+      <script>
+    window.onerror = function(msg, src, line, col, err) {
+      document.getElementById('root').innerHTML =
+        '<div style="padding:24px;background:#0f0f1a;min-height:100vh;color:#fff;font-family:monospace">' +
+        '<h2 style="color:#f87171">Runtime Error</h2>' +
+        '<pre style="color:#fca5a5;font-size:12px;white-space:pre-wrap;word-break:break-all">' +
+        msg + '\n\nSource: ' + src + '\nLine: ' + line + ':' + col +
+        (err ? '\n\n' + err.stack : '') +
+        '</pre></div>';
+    };
+    window.addEventListener('unhandledrejection', function(e) {
+      document.getElementById('root').innerHTML =
+        '<div style="padding:24px;background:#0f0f1a;min-height:100vh;color:#fff;font-family:monospace">' +
+        '<h2 style="color:#f87171">Unhandled Promise Rejection</h2>' +
+        '<pre style="color:#fca5a5;font-size:12px;white-space:pre-wrap;word-break:break-all">' +
+        (e.reason && e.reason.stack ? e.reason.stack : String(e.reason)) +
+        '</pre></div>';
+    });
+  </script>
+  <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
