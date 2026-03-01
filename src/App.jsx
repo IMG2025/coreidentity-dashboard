@@ -17,6 +17,7 @@ import Workflows         from './pages/Workflows.jsx';
 import MCPDemo     from './pages/MCPDemo.jsx';
 import LiveDemo     from './pages/LiveDemo.jsx';
 import CIAGIntake   from './pages/CIAGIntake.jsx';
+import ClientOnboarding from './pages/ClientOnboarding.jsx';
 import Analytics  from './pages/Analytics.jsx';
 import SettingsPage      from './pages/SettingsPage.jsx';
 import MarketingPage     from './pages/MarketingPage.jsx';
@@ -44,6 +45,7 @@ const PORTAL_PAGES = {
   '/#/mcp-demo':    MCPDemo,
   '/#/live-demo':   LiveDemo,
   '/#/ciag-intake': CIAGIntake,
+  '/#/client-onboarding': ClientOnboarding,
   '/#/analytics':   Analytics,
   '/#/settings':    SettingsPage,
 };

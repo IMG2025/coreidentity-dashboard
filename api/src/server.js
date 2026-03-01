@@ -46,6 +46,8 @@ app.use(cors({
 }));
 
 // ── Rate limiting ────────────────────────────────────────────────────────
+app.use('/api/billing', require('./routes/billing'));
+app.use('/api/clients', require('./routes/clients'));
 app.use('/api/ciag', require('./routes/ciag'));
 app.use('/api/mcp', require('./routes/mcp'));
 app.use('/api/auth', rateLimit({
