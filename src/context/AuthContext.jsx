@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState } from 'react';
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
 
-const API_URL   = import.meta.env.VITE_API_URL || 'https://api.coreidentity.coreholdingcorp.com';
+const API_URL   = 'https://api.coreidentity.coreholdingcorp.com';
 const TOKEN_KEY = 'ci_token';
 const USER_KEY  = 'ci_user';
 
@@ -15,7 +15,6 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     setLoading(true);
     try {
-      console.log('[AUTH] Calling:', API_URL + '/api/auth/login');
       const res  = await fetch(API_URL + '/api/auth/login', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -24,7 +23,7 @@ export function AuthProvider({ children }) {
       const text = await res.text();
       console.log('[AUTH] Response body:', text);
       let json;
-      try { json = JSON.parse(text); } catch(e) { return { success: false, error: 'API returned empty response. URL: ' + API_URL }; }
+      try { json = JSON.parse(text); } catch(e) { return { success: false, error: 'Invalid API response: ' + text.slice(0,100) }; }
 
       if (!res.ok) {
         const msg = json?.error || json?.message || 'Login failed (' + res.status + ')';
