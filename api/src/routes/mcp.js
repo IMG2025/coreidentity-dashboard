@@ -5,6 +5,16 @@ const https   = require('https');
 const MCP_URL = process.env.MCP_SERVER_URL || 'https://mcp.coreidentity.coreholdingcorp.com';
 const MCP_KEY = process.env.MCP_API_KEY    || '';
 
+// GET /api/mcp/config — returns MCP connection details to authenticated users
+// API key is gated behind JWT auth — never exposed in frontend bundle
+router.get('/config', (_req, res) => {
+  const url = process.env.MCP_SERVER_URL || 'https://chc-mcp-server-lvuq2yqbma-ue.a.run.app';
+  const key = process.env.MCP_API_KEY    || '';
+  if (!key) return res.status(503).json({ error: 'MCP not configured' });
+  return res.json({ url, key });
+});
+
+
 // POST /api/mcp/query
 // Proxies MCP tool calls server-side — API key never exposed to browser
 router.post('/query', async (req, res) => {
