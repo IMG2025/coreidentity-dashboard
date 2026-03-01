@@ -62,21 +62,10 @@ const PUBLIC_PAGES = {
 
 const PUBLIC_ROUTES = new Set(Object.keys(PUBLIC_PAGES));
 
-function isPortalDomain() {
-  return window.location.hostname === 'portal.coreholdingcorp.com';
-}
-
 function getRoute() {
   const hash = window.location.hash || '';
-  const route = (!hash || hash === '#') ? '/' : '/#' + hash.slice(1);
-  return route;
-}
-
-function redirectToPortal() {
-  if (window.location.hostname === 'portal.coreholdingcorp.com' &&
-      (!window.location.hash || window.location.hash === '#')) {
-    window.location.hash = '/dashboard';
-  }
+  if (!hash || hash === '#' || hash === '#/') return '/#/dashboard';
+  return '/#' + hash.slice(1);
 }
 
 // ── Root app ──────────────────────────────────────────────────
@@ -138,7 +127,6 @@ function NotificationContextWrapper({ children }) {
 
 export default function App() {
   const { user, loading, logout } = useAuth();
-  redirectToPortal();
   const [route, setRoute] = useState(getRoute);
 
   useEffect(() => {
