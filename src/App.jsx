@@ -109,6 +109,7 @@ function NotificationContextWrapper({ children }) {
         {notifications.map(n => {
           const s = TOAST_COLORS[n.type] || TOAST_COLORS.info;
           return (
+    <ErrorBoundary>
             <div key={n.id} style={{
               background: s.bg, border: '1px solid ' + s.border,
               borderRadius: 8, padding: '10px 14px',
@@ -129,6 +130,23 @@ function NotificationContextWrapper({ children }) {
   );
 }
 
+
+
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(e) { return { error: e.message }; }
+  render() {
+    if (this.state.error) return (
+      <div style={{ padding: 24, background: '#1a1a2e', minHeight: '100vh', color: '#fff' }}>
+        <h2 style={{ color: '#f87171' }}>Runtime Error</h2>
+        <pre style={{ color: '#fca5a5', fontSize: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+          {this.state.error}
+        </pre>
+      </div>
+    );
+    return this.props.children;
+  }
+}
 
 export default function App() {
   const { user, loading, logout } = useAuth();
