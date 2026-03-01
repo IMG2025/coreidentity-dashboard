@@ -26,7 +26,7 @@ async function request(path, options = {}) {
 
 export const api = {
   async post(url, body) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('ci_token');
     const API = import.meta.env.VITE_API_URL || 'https://api.coreidentity.coreholdingcorp.com';
     const res = await fetch(API + url, {
       method: 'POST',

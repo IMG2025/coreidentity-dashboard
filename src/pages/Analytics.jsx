@@ -51,7 +51,7 @@ export default function Analytics() {
   async function load() {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('ci_token');
       const res = await fetch(API_URL + '/api/analytics', {
         headers: { Authorization: 'Bearer ' + token }
       });
