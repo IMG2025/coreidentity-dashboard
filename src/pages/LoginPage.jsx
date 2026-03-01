@@ -6,6 +6,7 @@ export default function LoginPage() {
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [error,    setError]    = useState('');
+  const [debug,    setDebug]    = useState('');
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -17,6 +18,8 @@ export default function LoginPage() {
     }
 
     const result = await login(email.trim(), password);
+    setDebug(JSON.stringify(result));
+    console.log('LOGIN RESULT:', result);
 
     if (!result.success) {
       setError(result.error || 'Login failed — check credentials and try again.');
@@ -105,6 +108,16 @@ export default function LoginPage() {
             />
           </div>
 
+          {debug && (
+            <div style={{
+              background: '#1e3a5f', border: '1px solid #3b82f6',
+              borderRadius: 8, padding: '10px 14px',
+              color: '#93c5fd', fontSize: 12,
+              marginBottom: 12, wordBreak: 'break-all', lineHeight: 1.6
+            }}>
+              <strong>DEBUG:</strong> {debug}
+            </div>
+          )}
           <button
             type="submit"
             disabled={loading}
