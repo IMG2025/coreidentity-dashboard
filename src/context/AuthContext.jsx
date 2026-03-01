@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
@@ -15,8 +15,36 @@ function loadUser() {
 export function AuthProvider({ children }) {
   const [token,   setToken]   = useState(loadToken);
   const [user,    setUser]    = useState(loadUser);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!!loadToken()); // true only if token exists
   const [error,   setError]   = useState(null);
+
+  // Validate stored token on mount — clears stale session if expired
+  useEffect(() => {
+    const storedToken = loadToken();
+    if (!storedToken) { setLoading(false); return; }
+
+    fetch(API_URL + '/api/auth/me', {
+      headers: { Authorization: 'Bearer ' + storedToken }
+    })
+    .then(res => {
+      if (!res.ok) throw new Error('Token expired');
+      return res.json();
+    })
+    .then(data => {
+      // Token valid — refresh user object from server
+      const freshUser = data.data || data;
+      localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
+      setUser(freshUser);
+    })
+    .catch(() => {
+      // Token invalid/expired — clear everything, show login
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      setToken(null);
+      setUser(null);
+    })
+    .finally(() => setLoading(false));
+  }, []);
 
   const login = async (email, password) => {
     setLoading(true);
@@ -29,9 +57,8 @@ export function AuthProvider({ children }) {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || json.message || 'Login failed');
-      // Handle both {data:{token}} and {token} response shapes
-      const tok  = json.data?.token  || json.token;
-      const usr  = json.data?.user   || json.user;
+      const tok = json.data?.token || json.token;
+      const usr = json.data?.user  || json.user;
       if (!tok) throw new Error('No token in response');
       localStorage.setItem(TOKEN_KEY, tok);
       localStorage.setItem(USER_KEY,  JSON.stringify(usr));
