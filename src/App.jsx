@@ -126,7 +126,7 @@ function NotificationContextWrapper({ children }) {
 
 
 export default function App() {
-  const { user, loading, logout } = useAuth();
+  const { user, logout } = useAuth();
   const [route, setRoute] = useState(getRoute);
 
   useEffect(() => {
@@ -135,14 +135,6 @@ export default function App() {
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
-
-  if (loading) {
-    return (
-      <div style={{ minHeight:'100vh', background:'#070c18', display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <div style={{ color:'#d4af37', fontSize:14, fontFamily:'system-ui' }}>Loading…</div>
-      </div>
-    );
-  }
 
   // Public/marketing routes
   if (PUBLIC_ROUTES.has(route)) {
