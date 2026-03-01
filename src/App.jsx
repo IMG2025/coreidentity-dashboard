@@ -72,6 +72,13 @@ function getRoute() {
   return route;
 }
 
+function redirectToPortal() {
+  if (window.location.hostname === 'portal.coreholdingcorp.com' &&
+      (!window.location.hash || window.location.hash === '#')) {
+    window.location.hash = '/dashboard';
+  }
+}
+
 // ── Root app ──────────────────────────────────────────────────
 // ── Real notification system ─────────────────────────────────────────────────
 const TOAST_COLORS = {
@@ -131,6 +138,7 @@ function NotificationContextWrapper({ children }) {
 
 export default function App() {
   const { user, loading, logout } = useAuth();
+  redirectToPortal();
   const [route, setRoute] = useState(getRoute);
 
   useEffect(() => {
