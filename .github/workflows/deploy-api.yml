@@ -86,9 +86,7 @@ jobs:
             --output text)
           echo "Registered: $NEW_ARN"
 
-          aws
-
-      ecs update-service \
+          aws ecs update-service \
             --cluster $ECS_CLUSTER \
             --service $ECS_SERVICE \
             --task-definition "$NEW_ARN" \
