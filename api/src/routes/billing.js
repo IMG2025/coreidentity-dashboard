@@ -7,7 +7,7 @@ const { DynamoDBDocumentClient, PutCommand, UpdateCommand, GetCommand } = requir
 
 const router = express.Router();
 const db     = DynamoDBDocumentClient.from(new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-2' }));
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY || '');
+const stripe = process.env.STRIPE_SECRET_KEY ? Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 const CLIENTS_TABLE = 'client-accounts';
 const EVENTS_TABLE  = 'billing-events';
