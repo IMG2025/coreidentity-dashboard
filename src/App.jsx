@@ -150,8 +150,7 @@ export default function App() {
     return <div style={{ minHeight:'100vh', background:'#070c18', fontFamily:"'DM Sans','Segoe UI',sans-serif" }}><Page /></div>;
   }
 
-  // Portal routes — require auth
-  if (!user) return <LoginPage />;
+  // Auth disabled - direct portal access
 
   const Page = PORTAL_PAGES[route] || FoundersDashboard;
 
