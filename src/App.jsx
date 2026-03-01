@@ -150,7 +150,7 @@ export default function App() {
     return <div style={{ minHeight:'100vh', background:'#070c18', fontFamily:"'DM Sans','Segoe UI',sans-serif" }}><Page /></div>;
   }
 
-  // TODO: restore auth after login investigation
+  if (!user) return <LoginPage />;
 
   const Page = PORTAL_PAGES[route] || FoundersDashboard;
 

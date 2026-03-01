@@ -1,95 +1,68 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Shield, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const { login, loading } = useAuth();
-  const [email, setEmail]       = useState('');
+  const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
-  const [showPass, setShowPass] = useState(false);
-  const [error, setError]       = useState('');
+  const [error,    setError]    = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     if (!email || !password) { setError('Email and password are required.'); return; }
     const result = await login(email.trim(), password);
-    if (!result.success) {
-      setError(result.error || 'Invalid credentials. Please try again.');
-    }
+    if (!result.success) setError(result.error || 'Invalid credentials.');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center w-16 h-16 mb-4">
-            <img src="/chc-logo.png" alt="Core Holding Corp" className="w-full h-full object-contain" style={{mixBlendMode:'normal'}} />
-          </div>
-          <h1 className="text-3xl font-bold text-white">CoreIdentity Governance Portal</h1>
-          <p className="text-blue-300 mt-1 text-sm">Core Holding Corp — Governance Portal</p>
+    <div style={{ minHeight:'100vh', background:'#070c18', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'DM Sans','Segoe UI',sans-serif" }}>
+      <div style={{ width:'100%', maxWidth:420, padding:'0 24px' }}>
+        <div style={{ textAlign:'center', marginBottom:32 }}>
+          <img src="/chc-logo.png" alt="Core Holding Corp" style={{ width:64, height:64, objectFit:'contain', marginBottom:16 }} />
+          <h1 style={{ color:'#fff', fontSize:24, fontWeight:700, margin:'0 0 8px' }}>CoreIdentity Governance Portal</h1>
+          <p style={{ color:'#4a9eff', fontSize:13, margin:0 }}>Core Holding Corp — Governance Portal</p>
         </div>
-
-        {/* Card */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Sign in to your account</h2>
-
+        <div style={{ background:'#fff', borderRadius:16, padding:32, boxShadow:'0 24px 64px rgba(0,0,0,0.4)' }}>
+          <h2 style={{ fontSize:18, fontWeight:600, color:'#111', margin:'0 0 24px' }}>Sign in to your account</h2>
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
-              <p className="text-red-700 text-sm">{error}</p>
+            <div style={{ background:'#fef2f2', border:'1px solid #fecaca', borderRadius:8, padding:'10px 14px', marginBottom:16, color:'#dc2626', fontSize:13 }}>
+              {error}
             </div>
           )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom:16 }}>
+              <label style={{ display:'block', fontSize:13, fontWeight:500, color:'#374151', marginBottom:6 }}>Email address</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@coreholdingcorp.com"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 autoComplete="email"
+                style={{ width:'100%', padding:'10px 14px', border:'1px solid #d1d5db', borderRadius:8, fontSize:14, boxSizing:'border-box', outline:'none' }}
               />
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <div className="relative">
-                <input
-                  type={showPass ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
-                  autoComplete="current-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
+            <div style={{ marginBottom:24 }}>
+              <label style={{ display:'block', fontSize:13, fontWeight:500, color:'#374151', marginBottom:6 }}>Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="current-password"
+                style={{ width:'100%', padding:'10px 14px', border:'1px solid #d1d5db', borderRadius:8, fontSize:14, boxSizing:'border-box', outline:'none' }}
+              />
             </div>
-
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm"
+              style={{ width:'100%', padding:'11px', background: loading ? '#93c5fd' : '#2563eb', color:'#fff', border:'none', borderRadius:8, fontSize:14, fontWeight:600, cursor: loading ? 'not-allowed' : 'pointer' }}
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
         </div>
-
-        <p className="text-center text-gray-500 text-xs mt-6">
-          © 2026 Core Holding Corp. All rights reserved.
-        </p>
+        <p style={{ textAlign:'center', color:'#4b5563', fontSize:12, marginTop:24 }}>© 2026 Core Holding Corp. All rights reserved.</p>
       </div>
     </div>
   );
