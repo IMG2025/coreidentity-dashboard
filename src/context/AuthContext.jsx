@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
@@ -17,29 +17,6 @@ export function AuthProvider({ children }) {
   const [user,    setUser]    = useState(loadUser);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
-
-  useEffect(() => {
-    if (localStorage.getItem(TOKEN_KEY)) return;
-    fetch(API_URL + '/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'tmorgan@coreholdingcorp.com', password: 'CoreIdentity2026!' })
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data && data.data && data.data.token) {
-        localStorage.setItem(TOKEN_KEY, data.data.token);
-        localStorage.setItem(USER_KEY, JSON.stringify(data.data.user));
-        setToken(data.data.token);
-        setUser(data.data.user);
-        document.title = 'AUTH OK - reloading';
-      }
-    })
-    .catch(e => {
-      console.error('[AUTH] seed failed:', e.message);
-      document.title = 'AUTH FAIL: ' + e.message;
-    });
-  }, []);
 
   const login = async (email, password) => {
     setLoading(true); setError(null);
