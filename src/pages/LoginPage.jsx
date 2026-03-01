@@ -14,7 +14,11 @@ export default function LoginPage() {
     setError('');
     if (!email || !password) { setError('Email and password are required.'); return; }
     const result = await login(email.trim(), password);
-    if (!result.success) setError(result.error || 'Invalid credentials. Please try again.');
+    if (!result.success) {
+      setError(result.error || 'Invalid credentials. Please try again.');
+    } else {
+      setError('LOGIN OK - token received. If you see this, auth context is the issue.');
+    }
   };
 
   return (
