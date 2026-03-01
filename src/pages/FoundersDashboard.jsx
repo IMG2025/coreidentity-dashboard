@@ -253,7 +253,7 @@ function ClientPortfolioView({d}) {
 
   if (!clients.length) return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:200,color:C.slate}}>
-      <div style={{textAlign:'center'}}><div style={{fontSize:24, letterSpacing: '0', fontVariantNumeric: 'tabular-nums',marginBottom:8}}>⏳</div><div>Loading live client data…</div></div>
+      <div style={{textAlign:'center',padding:40}}><div style={{fontSize:24,marginBottom:8}}>📋</div><div style={{color:'#8892a4'}}>No client accounts yet.</div></div>
     </div>
   );
 
