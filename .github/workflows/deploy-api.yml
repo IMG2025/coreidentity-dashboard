@@ -86,39 +86,7 @@ jobs:
             --output text)
           echo "Registered: $NEW_ARN"
 
-          aws 
-      - name: Inject persistent env vars into task definition
-        run: |
-          TASK_DEF=$(aws ecs describe-task-definition \
-            --task-definition coreidentity-dev-sentinel \
-            --region us-east-2 \
-            --query 'taskDefinition' \
-            --output json)
-          
-          # Merge persistent env vars into existing task definition
-          echo $TASK_DEF | python3 -c "
-import sys, json
-td = json.load(sys.stdin)
-env = td['containerDefinitions'][0].get('environment', [])
-persistent = [
-  {'name': 'MCP_SERVER_URL',  'value': 'https://chc-mcp-server-lvuq2yqbma-ue.a.run.app'},
-  {'name': 'MCP_API_KEY',     'value': '${{ secrets.MCP_API_KEY }}'},
-  {'name': 'ALLOWED_ORIGINS', 'value': 'https://portal.coreholdingcorp.com,https://coreidentity.coreholdingcorp.com,https://coreidentity-dashboard.pages.dev'},
-  {'name': 'CIAG_NOTIFY_EMAIL', 'value': 'tmorgan@coreholdingcorp.com'},
-  {'name': 'CIAG_SENDER_EMAIL', 'value': 'tmorgan@coreholdingcorp.com'},
-  {'name': 'PORTAL_URL',      'value': 'https://portal.coreholdingcorp.com'},
-]
-keys = {e['name'] for e in persistent}
-env = [e for e in env if e['name'] not in keys] + persistent
-td['containerDefinitions'][0]['environment'] = env
-print(json.dumps(td))
-" > /tmp/merged-task-def.json
-          
-          aws ecs register-task-definition \
-            --cli-input-json file:///tmp/merged-task-def.json \
-            --region us-east-2 \
-            --query 'taskDefinition.taskDefinitionArn' \
-            --output text
+          aws
 
       ecs update-service \
             --cluster $ECS_CLUSTER \
