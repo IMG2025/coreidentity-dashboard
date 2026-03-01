@@ -17,7 +17,6 @@ import Workflows         from './pages/Workflows.jsx';
 import MCPDemo     from './pages/MCPDemo.jsx';
 import LiveDemo     from './pages/LiveDemo.jsx';
 import CIAGIntake   from './pages/CIAGIntake.jsx';
-import LiveDemo   from './pages/LiveDemo.jsx';
 import Analytics  from './pages/Analytics.jsx';
 import SettingsPage      from './pages/SettingsPage.jsx';
 import MarketingPage     from './pages/MarketingPage.jsx';
