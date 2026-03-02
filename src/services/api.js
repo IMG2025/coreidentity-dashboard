@@ -1,8 +1,8 @@
 // CoreIdentity Live API Service
-// Authenticated client — all requests include JWT token
+// Single source of truth for all authenticated API calls
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://api.coreidentity.coreholdingcorp.com';
-const TOKEN_KEY = 'ci_token';
+const API_URL   = 'https://api.coreidentity.coreholdingcorp.com';
+const TOKEN_KEY = 'ci_token'; // Must match AuthContext
 
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -13,202 +13,161 @@ async function request(path, options = {}) {
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: 'Bearer ' + token } : {}),
-    ...options.headers
+    ...(options.headers || {})
   };
 
   const res = await fetch(API_URL + path, { ...options, headers });
+
+  if (res.status === 401) {
+    // Token expired — clear storage and reload to login
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem('ci_user');
+    window.location.reload();
+    throw new Error('Session expired. Please log in again.');
+  }
+
   if (!res.ok) {
-    const err = await res.json().catch(function() { return {}; });
+    const err = await res.json().catch(() => ({}));
     throw new Error(err.error || err.message || 'Request failed: ' + res.status);
   }
+
   return res.json();
 }
 
 export const api = {
-  async post(url, body) {
-    const token = localStorage.getItem('ci_token');
-    const API = import.meta.env.VITE_API_URL || 'https://api.coreidentity.coreholdingcorp.com';
-    const res = await fetch(API + url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
-      body: JSON.stringify(body)
-    });
-    if (!res.ok) { const e = await res.json().catch(() => ({})); throw Object.assign(new Error(e.error || 'Request failed'), { response: { data: e } }); }
-    return res.json();
-  },
 
-  // ── Auth ──────────────────────────────────────────────────────────────────
-  async login(email, password) {
-    const data = await request('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password })
-    });
-    if (data.token) localStorage.setItem(TOKEN_KEY, data.token);
-    return data;
-  },
-
-  logout() {
-    localStorage.removeItem(TOKEN_KEY);
-  },
-
+  // ── Auth ─────────────────────────────────────────────────────────────
   async getProfile() {
     return request('/api/auth/profile');
   },
 
-  // ── Agents ────────────────────────────────────────────────────────────────
+  // ── Agents ───────────────────────────────────────────────────────────
   async getAgents(category, search) {
     const params = new URLSearchParams();
     if (category && category !== 'all') params.append('category', category);
     if (search) params.append('search', search);
     const qs = params.toString();
-    const data = await request('/api/agents' + (qs ? '?' + qs : ''));
-    return data.data || data;
+    return request('/api/agents' + (qs ? '?' + qs : ''));
   },
 
   async getAgent(id) {
-    const data = await request('/api/agents/' + id);
-    return data.data || data;
+    return request('/api/agents/' + id);
   },
 
-  async deployAgent(agentId) {
-    const data = await request('/api/deployed', {
-      method: 'POST',
-      body: JSON.stringify({ agentId })
+  async deployAgent(id) {
+    return request('/api/agents/' + id + '/deploy', { method: 'POST' });
+  },
+
+  async executeAgent(id) {
+    return request('/api/agents/' + id + '/execute', { method: 'POST' });
+  },
+
+  async updateAgentStatus(id, status) {
+    return request('/api/agents/' + id + '/status', {
+      method: 'PUT',
+      body: JSON.stringify({ status })
     });
-    return data.data || data;
   },
 
-  // ── Executions ────────────────────────────────────────────────────────────
-  async executeAgent(agentId, taskType, inputs) {
-    const data = await request('/api/execute/' + agentId + '/execute', {
+  // ── SmartNation ──────────────────────────────────────────────────────
+  async getSmartNationSummary() {
+    return request('/api/smartnation/summary');
+  },
+
+  async getSmartNationAgents(params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return request('/api/smartnation/agents' + (qs ? '?' + qs : ''));
+  },
+
+  // ── Sentinel ─────────────────────────────────────────────────────────
+  async getSentinelStatus() {
+    return request('/api/sentinel/status');
+  },
+
+  async getSentinelPolicies() {
+    return request('/api/sentinel/policies');
+  },
+
+  async getSentinelApprovals() {
+    return request('/api/sentinel/approvals');
+  },
+
+  async getSentinelKillSwitches() {
+    return request('/api/sentinel/kill-switches');
+  },
+
+  async getSentinelSecurityEvents() {
+    return request('/api/sentinel/security-events');
+  },
+
+  async getSentinelScore() {
+    return request('/api/sentinel/score');
+  },
+
+  // ── Nexus ────────────────────────────────────────────────────────────
+  async getNexusStatus() {
+    return request('/api/nexus/status');
+  },
+
+  async getNexusWorkflows() {
+    return request('/api/nexus/workflows');
+  },
+
+  async getNexusExecutions() {
+    return request('/api/nexus/executions');
+  },
+
+  // ── AGO ──────────────────────────────────────────────────────────────
+  async getAGOStatus() {
+    return request('/api/ago/status');
+  },
+
+  async getAGOExecutions() {
+    return request('/api/ago/executions');
+  },
+
+  async dispatchAGO(type, payload) {
+    return request('/api/ago/dispatch', {
       method: 'POST',
-      body: JSON.stringify({ taskType: taskType || 'ANALYZE', inputs: inputs || {} })
+      body: JSON.stringify({ type, ...payload })
     });
-    return data.data || data;
   },
 
-  // ── Workflows ─────────────────────────────────────────────────────────────
-  async getWorkflows() {
-    const data = await request('/api/workflows');
-    return data.data || data;
-  },
-
-  async createWorkflow(workflow) {
-    const data = await request('/api/workflows', {
-      method: 'POST',
-      body: JSON.stringify(workflow)
-    });
-    return data.data || data;
-  },
-
-  // ── Governance ────────────────────────────────────────────────────────────
-  async getGovernance() {
-    const data = await request('/api/governance');
-    return data.data || data;
-  },
-
-  // ── Analytics ─────────────────────────────────────────────────────────────
+  // ── Analytics ────────────────────────────────────────────────────────
   async getAnalytics() {
-    const data = await request('/api/analytics');
-    return data.data || data;
+    return request('/api/analytics');
   },
 
-  // ── Deployed Agents ───────────────────────────────────────────────────────
-  async getDeployedAgents() {
-    const data = await request('/api/deployed');
-    return data.data || data;
+  async getDashboardMetrics() {
+    return request('/api/dashboard/metrics');
   },
 
-  // ── Sentinel OS ───────────────────────────────────────────────────────────
-  async getVerticals() {
-    const data = await request('/api/verticals');
-    return data.data || data;
+  // ── CHC / Founder Dashboard ──────────────────────────────────────────
+  async getFounderDashboard() {
+    return request('/api/chc/founder-dashboard');
   },
 
-  async getCISOSummary() {
-      const [sentinel, smartnation, events] = await Promise.allSettled([
-        request('/api/sentinel/status'),
-        request('/api/smartnation/summary'),
-        request('/api/sentinel/security-events?limit=10')
-      ]);
-      return {
-        sentinel:    sentinel.status    === 'fulfilled' ? (sentinel.value.data    || sentinel.value)    : null,
-        smartnation: smartnation.status === 'fulfilled' ? (smartnation.value.data || smartnation.value) : null,
-        events:      events.status      === 'fulfilled' ? (events.value.data      || [])               : []
-      };
-    },
-  
-    async getNexusStatus() {
-      const data = await request('/api/execute/nexus/status');
-      return data.data || data;
-    },
-  
-    async getNexusExecutions(limit) {
-      const data = await request('/api/execute/nexus/executions?limit=' + (limit || 20));
-      return data.data || data;
-    },
-  
-    async getSmartNationSummary() {
-      const data = await request('/api/smartnation/summary');
-      return data.data || data;
-    },
-  
-    async getSentinelStatus() {
-    const data = await request('/api/sentinel/status');
-    return data.data || data;
+  async getCHCMetrics() {
+    return request('/api/chc/metrics');
   },
 
-  async getSecurityEvents(limit) {
-    const data = await request('/api/sentinel/security-events?limit=' + (limit || 50));
-    return data.data || data;
+  // ── CIAG ─────────────────────────────────────────────────────────────
+  async getCIAGPipeline() {
+    return request('/api/ciag/pipeline');
   },
 
-  async getKillSwitches() {
-    const data = await request('/api/sentinel/kill-switches');
-    return data.data || data;
+  async getCIAGIntakeStatus() {
+    return request('/api/ciag/intake/status');
   },
 
-  async activateKillSwitch(agentId, reason) {
-    const data = await request('/api/sentinel/kill-switches', {
-      method: 'POST',
-      body: JSON.stringify({ agentId, reason })
-    });
-    return data.data || data;
+  // ── Deployments ──────────────────────────────────────────────────────
+  async getDeployments() {
+    return request('/api/deployments');
   },
 
-  async deactivateKillSwitch(agentId) {
-    const data = await request('/api/sentinel/kill-switches/' + agentId, {
-      method: 'DELETE'
-    });
-    return data.data || data;
+  async getDeployment(id) {
+    return request('/api/deployments/' + id);
   },
-
-  async getApprovals(status) {
-    const qs = status ? '?status=' + status : '';
-    const data = await request('/api/sentinel/approvals' + qs);
-    return data.data || data;
-  },
-
-  async submitApproval(agentId, taskType, justification) {
-    const data = await request('/api/sentinel/approvals', {
-      method: 'POST',
-      body: JSON.stringify({ agentId, taskType, justification })
-    });
-    return data.data || data;
-  },
-
-  async approveRequest(approvalId) {
-    const data = await request('/api/sentinel/approvals/' + approvalId + '/approve', {
-      method: 'PUT'
-    });
-    return data.data || data;
-  },
-
-  async getRiskTiers() {
-    const data = await request('/api/sentinel/risk-tiers');
-    return data.data || data;
-  }
-
 };
 
 export default api;
