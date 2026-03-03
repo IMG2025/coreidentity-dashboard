@@ -118,6 +118,9 @@ app.use((req, res) => {
 app.use(errorHandler);
 /* script-28-applied */
 
+const missingRouter = require('./routes/missing');
+app.use('/api', missingRouter);
+
 app.listen(PORT, '0.0.0.0', () => {
   logger.info('server_started', { port: PORT, env: process.env.NODE_ENV || 'development' });
 });
