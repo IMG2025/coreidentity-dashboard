@@ -48,7 +48,7 @@ export default function DocsPage() {
     try {
       let body; try { body = JSON.parse(ep.body); } catch(e) { body = {}; }
       // For POST /api/commercial/assess, always allowed
-      const r    = await fetch(ep.path, { method: ep.method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      const r    = await fetch(ep.path, { method: ep.method, credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
       const json = await r.json();
       setTryRes(prev => ({...prev, [ep.path]: JSON.stringify(json, null, 2).slice(0, 800)}));
     } catch(e) {

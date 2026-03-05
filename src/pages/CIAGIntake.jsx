@@ -25,7 +25,7 @@ export default function CIAGIntake() {
     try {
       const res  = await fetch(API + 'https://api.coreidentity.coreholdingcorp.com/api/ciag/intake', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, source: 'portal' })
       });
       const data = await res.json();

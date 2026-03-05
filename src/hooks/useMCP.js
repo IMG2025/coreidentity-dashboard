@@ -14,7 +14,7 @@ export function useMCP() {
   useEffect(() => {
     if (!token) return;
     fetch(`${PORTAL_API}/api/mcp/config`, {
-      headers: { Authorization: `Bearer ${token}` }
+      credentials: 'include', headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => r.json())
       .then(d => {
@@ -35,7 +35,7 @@ export function useMCP() {
 
     const res = await fetch(`${config.url}/mcp`, {
       method: 'POST',
-      headers: {
+      credentials: 'include', headers: {
         'Content-Type': 'application/json',
         'Accept':       'application/json, text/event-stream',
         'x-api-key':    config.key

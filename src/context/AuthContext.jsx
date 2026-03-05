@@ -17,7 +17,7 @@ export function AuthProvider({ children }) {
     try {
       const res  = await fetch(API_URL + 'https://api.coreidentity.coreholdingcorp.com/api/auth/login', {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ email, password }),
       });
       const text = await res.text();

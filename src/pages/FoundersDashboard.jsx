@@ -334,8 +334,8 @@ function AuditTrailView() {
   const fetchAudit = useCallback(async () => {
     try {
       const [execRes, statsRes] = await Promise.all([
-        fetch(API_URL + 'https://api.coreidentity.coreholdingcorp.com/api/telemetry/executions?limit=100', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }),
-        fetch(API_URL + 'https://api.coreidentity.coreholdingcorp.com/api/telemetry/stats', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } })
+        fetch(API_URL + 'https://api.coreidentity.coreholdingcorp.com/api/telemetry/executions?limit=100', { credentials: 'include', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }),
+        fetch(API_URL + 'https://api.coreidentity.coreholdingcorp.com/api/telemetry/stats', { credentials: 'include', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } })
       ]);
       const execJson  = await execRes.json();
       const statsJson = await statsRes.json();
@@ -350,7 +350,7 @@ function AuditTrailView() {
 
   // Seed demo data on mount if store empty
   useEffect(() => {
-    fetch(API_URL + 'https://api.coreidentity.coreholdingcorp.com/api/telemetry/seed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}'  , 'Authorization': `Bearer ${localStorage.getItem('token')}` })
+    fetch(API_URL + 'https://api.coreidentity.coreholdingcorp.com/api/telemetry/seed', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: '{}'  , 'Authorization': `Bearer ${localStorage.getItem('token')}` })
       .then(() => fetchAudit())
       .catch(() => fetchAudit());
     const t = setInterval(fetchAudit, 10000);
@@ -366,7 +366,7 @@ function AuditTrailView() {
       const agent  = agents.find(a => a.id === demoAgent) || agents[0];
       const res    = await fetch(API_URL + 'https://api.coreidentity.coreholdingcorp.com/api/agents/execute', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientId: demoClient, agentId: agent.id, task: agent.task, payload: { demo: true, firedFrom: 'FoundersDashboard' } })
       });
       const json = await res.json();
@@ -565,7 +565,7 @@ export default function FoundersDashboard() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res  = await fetch(API_URL + 'https://api.coreidentity.coreholdingcorp.com/api/live-data', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+      const res  = await fetch(API_URL + 'https://api.coreidentity.coreholdingcorp.com/api/live-data', { credentials: 'include', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
       const json = await res.json();
       if (json.data) {
         setLiveData({ ...json.data, metrics: json.data.company.consolidated, clients: json.data.ciag.retainers, agents: json.data.agents.data });
