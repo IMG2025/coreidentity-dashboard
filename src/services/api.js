@@ -38,7 +38,7 @@ export const api = {
 
   // ── Auth ─────────────────────────────────────────────────────────────
   async getProfile() {
-    return request('https://portal.coreholdingcorp.com/api/auth/profile');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/auth/profile');
   },
 
   // ── Agents ───────────────────────────────────────────────────────────
@@ -47,23 +47,23 @@ export const api = {
     if (category && category !== 'all') params.append('category', category);
     if (search) params.append('search', search);
     const qs = params.toString();
-    return request('https://portal.coreholdingcorp.com/api/agents' + (qs ? '?' + qs : ''));
+    return request('https://api.coreidentity.coreholdingcorp.com/api/agents' + (qs ? '?' + qs : ''));
   },
 
   async getAgent(id) {
-    return request('https://portal.coreholdingcorp.com/api/agents/' + id);
+    return request('https://api.coreidentity.coreholdingcorp.com/api/agents/' + id);
   },
 
   async deployAgent(id) {
-    return request('https://portal.coreholdingcorp.com/api/agents/' + id + '/deploy', { method: 'POST' });
+    return request('https://api.coreidentity.coreholdingcorp.com/api/agents/' + id + '/deploy', { method: 'POST' });
   },
 
   async executeAgent(id) {
-    return request('https://portal.coreholdingcorp.com/api/agents/' + id + '/execute', { method: 'POST' });
+    return request('https://api.coreidentity.coreholdingcorp.com/api/agents/' + id + '/execute', { method: 'POST' });
   },
 
   async updateAgentStatus(id, status) {
-    return request('https://portal.coreholdingcorp.com/api/agents/' + id + '/status', {
+    return request('https://api.coreidentity.coreholdingcorp.com/api/agents/' + id + '/status', {
       method: 'PUT',
       body: JSON.stringify({ status })
     });
@@ -71,63 +71,63 @@ export const api = {
 
   // ── SmartNation ──────────────────────────────────────────────────────
   async getSmartNationSummary() {
-    return request('https://portal.coreholdingcorp.com/api/smartnation/summary');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/smartnation/summary');
   },
 
   async getSmartNationAgents(params = {}) {
     const qs = new URLSearchParams(params).toString();
-    return request('https://portal.coreholdingcorp.com/api/smartnation/agents' + (qs ? '?' + qs : ''));
+    return request('https://api.coreidentity.coreholdingcorp.com/api/smartnation/agents' + (qs ? '?' + qs : ''));
   },
 
   // ── Sentinel ─────────────────────────────────────────────────────────
   async getSentinelStatus() {
-    return request('https://portal.coreholdingcorp.com/api/sentinel/status');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/sentinel/status');
   },
 
   async getSentinelPolicies() {
-    return request('https://portal.coreholdingcorp.com/api/sentinel/policies');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/sentinel/policies');
   },
 
   async getSentinelApprovals() {
-    return request('https://portal.coreholdingcorp.com/api/sentinel/approvals');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/sentinel/approvals');
   },
 
   async getSentinelKillSwitches() {
-    return request('https://portal.coreholdingcorp.com/api/sentinel/kill-switches');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/sentinel/kill-switches');
   },
 
   async getSentinelSecurityEvents() {
-    return request('https://portal.coreholdingcorp.com/api/sentinel/security-events');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/sentinel/security-events');
   },
 
   async getSentinelScore() {
-    return request('https://portal.coreholdingcorp.com/api/sentinel/score');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/sentinel/score');
   },
 
   // ── Nexus ────────────────────────────────────────────────────────────
   async getNexusStatus() {
-    return request('https://portal.coreholdingcorp.com/api/nexus/status');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/nexus/status');
   },
 
   async getNexusWorkflows() {
-    return request('https://portal.coreholdingcorp.com/api/nexus/workflows');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/nexus/workflows');
   },
 
   async getNexusExecutions() {
-    return request('https://portal.coreholdingcorp.com/api/nexus/executions');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/nexus/executions');
   },
 
   // ── AGO ──────────────────────────────────────────────────────────────
   async getAGOStatus() {
-    return request('https://portal.coreholdingcorp.com/api/ago/status');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/ago/status');
   },
 
   async getAGOExecutions() {
-    return request('https://portal.coreholdingcorp.com/api/ago/executions');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/ago/executions');
   },
 
   async dispatchAGO(type, payload) {
-    return request('https://portal.coreholdingcorp.com/api/ago/dispatch', {
+    return request('https://api.coreidentity.coreholdingcorp.com/api/ago/dispatch', {
       method: 'POST',
       body: JSON.stringify({ type, ...payload })
     });
@@ -135,38 +135,38 @@ export const api = {
 
   // ── Analytics ────────────────────────────────────────────────────────
   async getAnalytics() {
-    return request('https://portal.coreholdingcorp.com/api/analytics');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/analytics');
   },
 
   async getDashboardMetrics() {
-    return request('https://portal.coreholdingcorp.com/api/dashboard/metrics');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/dashboard/metrics');
   },
 
   // ── CHC / Founder Dashboard ──────────────────────────────────────────
   async getFounderDashboard() {
-    return request('https://portal.coreholdingcorp.com/api/chc/founder-dashboard');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/chc/founder-dashboard');
   },
 
   async getCHCMetrics() {
-    return request('https://portal.coreholdingcorp.com/api/chc/metrics');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/chc/metrics');
   },
 
   // ── CIAG ─────────────────────────────────────────────────────────────
   async getCIAGPipeline() {
-    return request('https://portal.coreholdingcorp.com/api/ciag/pipeline');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/ciag/pipeline');
   },
 
   async getCIAGIntakeStatus() {
-    return request('https://portal.coreholdingcorp.com/api/ciag/intake/status');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/ciag/intake/status');
   },
 
   // ── Deployments ──────────────────────────────────────────────────────
   async getDeployments() {
-    return request('https://portal.coreholdingcorp.com/api/deployments');
+    return request('https://api.coreidentity.coreholdingcorp.com/api/deployments');
   },
 
   async getDeployment(id) {
-    return request('https://portal.coreholdingcorp.com/api/deployments/' + id);
+    return request('https://api.coreidentity.coreholdingcorp.com/api/deployments/' + id);
   },
 };
 

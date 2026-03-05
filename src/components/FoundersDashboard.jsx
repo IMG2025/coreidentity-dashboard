@@ -883,8 +883,8 @@ function AuditTrailView() {
   const fetchAudit = useCallback(async () => {
     try {
       const [execRes, statsRes] = await Promise.all([
-        fetch('https://portal.coreholdingcorp.com/api/telemetry/executions?limit=100'),
-        fetch('https://portal.coreholdingcorp.com/api/telemetry/stats')
+        fetch('https://api.coreidentity.coreholdingcorp.com/api/telemetry/executions?limit=100'),
+        fetch('https://api.coreidentity.coreholdingcorp.com/api/telemetry/stats')
       ]);
       let execJson={}, statsJson={};
       try { execJson  = await execRes.json();  } catch(e) {}
@@ -896,7 +896,7 @@ function AuditTrailView() {
   }, []);
 
   useEffect(() => {
-    fetch('https://portal.coreholdingcorp.com/api/telemetry/seed',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+    fetch('https://api.coreidentity.coreholdingcorp.com/api/telemetry/seed',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
       .then(()=>fetchAudit()).catch(()=>fetchAudit());
     const t = setInterval(fetchAudit, 10000);
     return () => clearInterval(t);
@@ -907,7 +907,7 @@ function AuditTrailView() {
     try {
       const agents = DEMO_AGENTS[demoClient];
       const agent  = agents.find(a=>a.id===demoAgent)||agents[0];
-      const res    = await fetch('https://portal.coreholdingcorp.com/api/agents/execute',{
+      const res    = await fetch('https://api.coreidentity.coreholdingcorp.com/api/agents/execute',{
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({clientId:demoClient, agentId:agent.id, task:agent.task, payload:{demo:true}})
       });

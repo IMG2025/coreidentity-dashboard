@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     setLoading(true);
     try {
-      const res  = await fetch(API_URL + 'https://portal.coreholdingcorp.com/api/auth/login', {
+      const res  = await fetch(API_URL + 'https://api.coreidentity.coreholdingcorp.com/api/auth/login', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ email, password }),
