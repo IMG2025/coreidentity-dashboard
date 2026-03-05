@@ -568,7 +568,7 @@ export default function FoundersDashboard() {
       const res  = await fetch(API_URL + '/api/live-data', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
       const json = await res.json();
       if (json.data) {
-        setLiveData(json.data);
+        setLiveData({ ...json.data, metrics: json.data.company.consolidated, clients: json.data.ciag.retainers, agents: json.data.agents.data });
         setMeta({ fetchedAt: json.fetchedAt, latencyMs: json.latencyMs });
         setErr(json.errors || null);
       }
@@ -583,7 +583,7 @@ export default function FoundersDashboard() {
   }, [fetchData]);
 
   const ciRev   = liveData?.coreIdentity?.monthly?.revenue || FB.ciRev;
-  const cgRev   = liveData?.ciag?.monthly ? liveData.ciag.monthly.retainerRevenue.map((r,i) => r + liveData.ciag.monthly.projectRevenue[i]) : FB.cgRev;
+  const cgRev   = liveData?.ciag?.monthly ? liveData.ciag.monthly.retainerRevenue.map((r,i) => r + json.data.ciag.monthly.projectRevenue[i]) : FB.cgRev;
   const ciCost  = liveData?.coreIdentity?.monthly?.costs || FB.ciCost;
   const cgCost  = liveData?.ciag?.monthly?.costs || FB.cgCost;
   const chcRev  = ciRev.map((r,i) => r + cgRev[i]);
