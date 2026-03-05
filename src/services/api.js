@@ -1,6 +1,7 @@
 export const API_URL = 'https://api.coreidentity.coreholdingcorp.com/api';
 
-const apiFetch = async (endpoint, options = {}) => {
+// This is the 'api' variable your components are looking for
+export const api = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
   
   const defaultHeaders = {
@@ -14,24 +15,24 @@ const apiFetch = async (endpoint, options = {}) => {
 
   const config = {
     ...options,
-    credentials: 'include', // This is the magic CORS fix
+    credentials: 'include',
     headers: {
       ...defaultHeaders,
       ...options.headers,
     },
   };
 
-  const response = await fetch(`${API_URL}${endpoint}`, config);
+  // Handle endpoints that might already have a leading slash
+  const url = endpoint.startsWith('/') ? `${API_URL}${endpoint}` : `${API_URL}/${endpoint}`;
+  
+  const response = await fetch(url, config);
   
   if (!response.ok) {
-    if (response.status === 401) {
-      // Optional: Redirect to login if token is dead
-      // window.location.href = '/login';
-    }
     throw new Error(`API Error: ${response.status}`);
   }
 
   return response.json();
 };
 
-export default apiFetch;
+// Also keep a default export just in case
+export default api;
