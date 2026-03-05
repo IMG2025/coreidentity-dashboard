@@ -2,24 +2,24 @@ import { useState, useEffect } from 'react';
 import { C, F } from '../chc-design.js';
 
 const ENDPOINTS = [
-  {method:'POST', path:'/api/agents/execute',          auth:true,  group:'Execution', desc:'Dispatch a governed agent execution through the Sentinel policy gate.',
+  {method:'POST', path:'https://portal.coreholdingcorp.com/api/agents/execute',          auth:true,  group:'Execution', desc:'Dispatch a governed agent execution through the Sentinel policy gate.',
    body:'{"clientId":"bank","agentId":"b-01","task":"fraud-detection","payload":{"transactionId":"TXN-001"}}',
    response:'{"success":true,"data":{"executionId":"exec-…","governanceScore":97,"governanceToken":"gov-…","policyChecks":[…],"result":{…},"totalLatencyMs":142,"complianceStatus":"PASSED","auditTrail":true}}'},
-  {method:'GET',  path:'/api/agents/execute/executions',auth:true,  group:'Execution', desc:'Retrieve the governed execution audit log.',
+  {method:'GET',  path:'https://portal.coreholdingcorp.com/api/agents/execute/executions',auth:true,  group:'Execution', desc:'Retrieve the governed execution audit log.',
    params:[{name:'limit',type:'integer',default:'50',desc:'Max results (max 200)'},{name:'clientId',type:'string',default:'',desc:'Filter by client: bank|health|retail|legal'}],
    response:'{"success":true,"total":248,"count":50,"data":[{…}]}'},
-  {method:'GET',  path:'/api/agents/execute/stats',    auth:true,  group:'Execution', desc:'Aggregate governance stats across all clients.',
+  {method:'GET',  path:'https://portal.coreholdingcorp.com/api/agents/execute/stats',    auth:true,  group:'Execution', desc:'Aggregate governance stats across all clients.',
    response:'{"success":true,"totalExecutions":248,"avgGovernanceScore":94,"byClient":{"bank":{…},"health":{…}}}'},
-  {method:'GET',  path:'/api/telemetry/executions',    auth:true,  group:'Telemetry', desc:'Live telemetry execution feed from the in-memory ring buffer.',
+  {method:'GET',  path:'https://portal.coreholdingcorp.com/api/telemetry/executions',    auth:true,  group:'Telemetry', desc:'Live telemetry execution feed from the in-memory ring buffer.',
    params:[{name:'limit',type:'integer',default:'100',desc:'Max results (max 200)'},{name:'clientId',type:'string',default:'',desc:'Filter by client ID'}]},
-  {method:'GET',  path:'/api/telemetry/stats',         auth:true,  group:'Telemetry', desc:'Cross-client governance statistics and sync history.'},
-  {method:'POST', path:'/api/telemetry/ingest',        auth:true,  group:'Telemetry', desc:'Ingest telemetry from external sources or GCP services.',
+  {method:'GET',  path:'https://portal.coreholdingcorp.com/api/telemetry/stats',         auth:true,  group:'Telemetry', desc:'Cross-client governance statistics and sync history.'},
+  {method:'POST', path:'https://portal.coreholdingcorp.com/api/telemetry/ingest',        auth:true,  group:'Telemetry', desc:'Ingest telemetry from external sources or GCP services.',
    body:'{"source":"MY_SYSTEM","executions":[{"agentId":"b-01","task":"fraud-detection","governanceScore":95,"executedAt":"2026-02-27T00:00:00Z"}],"syncType":"PUSH"}'},
-  {method:'GET',  path:'/api/live-data',               auth:true,  group:'Platform',  desc:'Aggregate live data from all 5 GCP services in a single request. Used by the Founders Dashboard.'},
-  {method:'POST', path:'/api/commercial/assess',       auth:false, group:'Commercial',desc:'Generate an instant governance assessment for a prospect.',
+  {method:'GET',  path:'https://portal.coreholdingcorp.com/api/live-data',               auth:true,  group:'Platform',  desc:'Aggregate live data from all 5 GCP services in a single request. Used by the Founders Dashboard.'},
+  {method:'POST', path:'https://portal.coreholdingcorp.com/api/commercial/assess',       auth:false, group:'Commercial',desc:'Generate an instant governance assessment for a prospect.',
    body:'{"industry":"Healthcare","agentCount":18,"currentScore":58,"company":"Acme Hospital","email":"ciso@acme.com"}'},
-  {method:'GET',  path:'/api/commercial/pricing',      auth:false, group:'Commercial',desc:'Current pricing tiers and configuration.'},
-  {method:'GET',  path:'/api/commercial/report/:client',auth:true, group:'Commercial',desc:'Executive governance report for a client. :client = bank|health|retail|legal'},
+  {method:'GET',  path:'https://portal.coreholdingcorp.com/api/commercial/pricing',      auth:false, group:'Commercial',desc:'Current pricing tiers and configuration.'},
+  {method:'GET',  path:'https://portal.coreholdingcorp.com/api/commercial/report/:client',auth:true, group:'Commercial',desc:'Executive governance report for a client. :client = bank|health|retail|legal'},
 ];
 
 const GROUPS = ['Execution','Telemetry','Platform','Commercial'];
@@ -33,7 +33,7 @@ export default function DocsPage() {
   const [trying,   setTrying]   = useState(null);
 
   useEffect(() => {
-    fetch('/api/commercial/docs')
+    fetch('https://portal.coreholdingcorp.com/api/commercial/docs')
       .then(r => r.json())
       .then(j => {
         if (j.endpoints) {

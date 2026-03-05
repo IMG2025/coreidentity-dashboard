@@ -143,7 +143,7 @@ function LiveFire() {
   const fire = async () => {
     setBusy(true); setRes(null); setErr(null);
     try {
-      const r    = await fetch('/api/agents/execute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientId:a.cid,agentId:a.id,task:a.task,payload:{demo:true}})});
+      const r    = await fetch('https://portal.coreholdingcorp.com/api/agents/execute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientId:a.cid,agentId:a.id,task:a.task,payload:{demo:true}})});
       const json = await r.json();
       if (json.success) setRes(json.data); else setErr(json.error||'Failed');
     } catch(e) { setErr(e.message); }

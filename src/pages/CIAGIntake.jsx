@@ -23,7 +23,7 @@ export default function CIAGIntake() {
     e.preventDefault();
     setStatus('loading'); setMessage('');
     try {
-      const res  = await fetch(API + '/api/ciag/intake', {
+      const res  = await fetch(API + 'https://portal.coreholdingcorp.com/api/ciag/intake', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, source: 'portal' })

@@ -52,7 +52,7 @@ export default function Analytics() {
     try {
       setLoading(true);
       const token = localStorage.getItem('ci_token');
-      const res = await fetch(API_URL + '/api/analytics', {
+      const res = await fetch(API_URL + 'https://portal.coreholdingcorp.com/api/analytics', {
         headers: { Authorization: 'Bearer ' + token }
       });
       const json = await res.json();
