@@ -1,23 +1,37 @@
-import axios from 'axios';
-
 export const API_URL = 'https://api.coreidentity.coreholdingcorp.com/api';
 
-const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
-});
-
-// Add a request interceptor to attach the token
-api.interceptors.request.use((config) => {
+const apiFetch = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+  
+  const defaultHeaders = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
 
-export default api;
+  if (token) {
+    defaultHeaders['Authorization'] = `Bearer ${token}`;
+  }
+
+  const config = {
+    ...options,
+    credentials: 'include', // This is the magic CORS fix
+    headers: {
+      ...defaultHeaders,
+      ...options.headers,
+    },
+  };
+
+  const response = await fetch(`${API_URL}${endpoint}`, config);
+  
+  if (!response.ok) {
+    if (response.status === 401) {
+      // Optional: Redirect to login if token is dead
+      // window.location.href = '/login';
+    }
+    throw new Error(`API Error: ${response.status}`);
+  }
+
+  return response.json();
+};
+
+export default apiFetch;
