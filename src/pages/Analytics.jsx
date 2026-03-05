@@ -57,7 +57,7 @@ export default function Analytics() {
       });
       const json = await res.json();
       if (!json.success) throw new Error(json.error || 'Failed');
-      setData(json.data);
+      setData({ ...json.data, metrics: json.data.company.consolidated, clients: json.data.ciag.retainers, agents: json.data.agents.data });
     } catch(e) {
       setError(e.message);
     } finally {
