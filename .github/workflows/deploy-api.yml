@@ -26,7 +26,7 @@ jobs:
       - name: Build and push image
         run: |
           IMAGE=636058550262.dkr.ecr.us-east-2.amazonaws.com/coreidentity-api:latest
-          docker build -t $IMAGE ./api
+          docker build --no-cache -t $IMAGE ./api
           docker push $IMAGE
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
         id: build
