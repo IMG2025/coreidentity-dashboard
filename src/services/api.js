@@ -17,8 +17,24 @@ export const api = async (endpoint, options = {}) => {
   return response.json();
 };
 
-// Add the missing functions that NexusOS.jsx is looking for
+// --- RESTORED METHODS FOR ALL PAGES ---
+
+// Nexus & Ops
 api.getNexusStatus = () => api('/nexus/status');
 api.getNexusExecutions = (limit = 20) => api(`/nexus/executions?limit=${limit}`);
+
+// SmartNation & Agents
+api.getAgents = () => api('/agents');
+api.getAgentMetrics = () => api('/agents/metrics');
+api.getMarketplaceAgents = () => api('/marketplace/agents');
+
+// Governance & Sentinel
+api.getGovernanceStats = () => api('/governance/stats');
+api.getSentinelLogs = () => api('/sentinel/logs');
+api.getComplianceStatus = () => api('/compliance/status');
+
+// Identity & General
+api.getIdentityProfiles = () => api('/identity/profiles');
+api.getSystemHealth = () => api('/health');
 
 export default api;
