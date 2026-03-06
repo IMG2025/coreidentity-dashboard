@@ -568,7 +568,7 @@ export default function FoundersDashboard() {
       const res  = await fetch(API_URL + 'https://api.coreidentity.coreholdingcorp.com/api/live-data', { credentials: 'include', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
       const json = await res.json();
       if (json.data) {
-        setLiveData({ ...json.data, metrics: json.data.company.consolidated, clients: json.data.ciag.retainers, agents: json.data.agents.data });
+        setLiveData({ ...json.data, metrics: json.data?.company.consolidated, clients: json.data.ciag.retainers, agents: json.data?.agents.data });
         setMeta({ fetchedAt: json.fetchedAt, latencyMs: json.latencyMs });
         setErr(json.errors || null);
       }
