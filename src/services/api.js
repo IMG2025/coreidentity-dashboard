@@ -8,7 +8,7 @@ export const api = async (endpoint, options = {}) => {
     mode: 'cors',
     credentials: 'include', // Required because the server is not "same-origin"
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json', 'x-api-key': 'chc-corp-dev-key-2026',
       'Accept': 'application/json',
       ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...options.headers,
