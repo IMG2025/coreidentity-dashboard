@@ -4,7 +4,7 @@ import { BarChart3, TrendingUp, Users, Activity, Shield, Zap, Clock, CheckCircle
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://api.coreidentity.coreholdingcorp.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://portal.coreholdingcorp.com';
 
 function StatCard({ icon: Icon, label, value, sub, color }) {
   const colors = {
@@ -52,7 +52,7 @@ export default function Analytics() {
     try {
       setLoading(true);
       const token = localStorage.getItem('ci_token');
-      const res = await fetch(API_URL + 'https://api.coreidentity.coreholdingcorp.com/api/analytics', {
+      const res = await fetch(API_URL + '/api/analytics', {
         credentials: 'include', headers: { Authorization: 'Bearer ' + token }
       });
       const json = await res.json();

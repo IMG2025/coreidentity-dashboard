@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, CheckCircle, Loader, AlertCircle, ChevronDown, CreditCard } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const API = import.meta.env.VITE_API_URL || 'https://api.coreidentity.coreholdingcorp.com';
+const API = import.meta.env.VITE_API_URL || 'https://portal.coreholdingcorp.com';
 
 export default function ClientOnboarding() {
   const { token } = useAuth();

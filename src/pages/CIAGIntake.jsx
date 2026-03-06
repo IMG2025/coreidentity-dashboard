@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CheckCircle, Send, Loader, AlertCircle, ChevronDown } from 'lucide-react';
 
-const API = import.meta.env.VITE_API_URL || 'https://api.coreidentity.coreholdingcorp.com';
+const API = import.meta.env.VITE_API_URL || 'https://portal.coreholdingcorp.com';
 
 const ENGAGEMENTS = [
   { value: 'diagnostic',     label: 'Diagnostic Assessment',     duration: '21 days',  range: '$85K-$110K',    desc: 'Inventory AI usage, identify governance exposure, risk classification' },
@@ -23,7 +23,7 @@ export default function CIAGIntake() {
     e.preventDefault();
     setStatus('loading'); setMessage('');
     try {
-      const res  = await fetch(API + 'https://api.coreidentity.coreholdingcorp.com/api/ciag/intake', {
+      const res  = await fetch(API + '/api/ciag/intake', {
         method: 'POST',
         credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, source: 'portal' })
