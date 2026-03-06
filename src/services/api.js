@@ -2,38 +2,41 @@ export const API_URL = 'https://api.coreidentity.coreholdingcorp.com/api';
 
 export const api = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
+  
   const config = {
     ...options,
-    credentials: 'include',
+    mode: 'cors',
+    credentials: 'include', // Required because the server is not "same-origin"
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': token ? `Bearer ${token}` : '',
+      'Accept': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...options.headers,
     },
   };
+
   const url = endpoint.startsWith('/') ? `${API_URL}${endpoint}` : `${API_URL}/${endpoint}`;
-  const response = await fetch(url, config);
-  if (!response.ok) throw new Error(`API Error: ${response.status}`);
-  return response.json();
+  
+  try {
+    const response = await fetch(url, config);
+    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    // This will help us see if it's a network error or a blocked error
+    console.error('API Fetch Error:', error);
+    throw error;
+  }
 };
 
-// --- RESTORED METHODS FOR ALL PAGES ---
-
-// Nexus & Ops
+// Restore all methods
 api.getNexusStatus = () => api('/nexus/status');
 api.getNexusExecutions = (limit = 20) => api(`/nexus/executions?limit=${limit}`);
-
-// SmartNation & Agents
 api.getAgents = () => api('/agents');
 api.getAgentMetrics = () => api('/agents/metrics');
 api.getMarketplaceAgents = () => api('/marketplace/agents');
-
-// Governance & Sentinel
 api.getGovernanceStats = () => api('/governance/stats');
 api.getSentinelLogs = () => api('/sentinel/logs');
 api.getComplianceStatus = () => api('/compliance/status');
-
-// Identity & General
 api.getIdentityProfiles = () => api('/identity/profiles');
 api.getSystemHealth = () => api('/health');
 
