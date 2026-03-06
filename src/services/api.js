@@ -1,4 +1,4 @@
-export const API_URL = 'https://api.coreidentity.coreholdingcorp.com/api';
+export const API_URL = 'https://portal.coreholdingcorp.com';
 
 export const api = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');

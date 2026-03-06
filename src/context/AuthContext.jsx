@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState } from 'react';
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
 
-const API_URL   = 'https://api.coreidentity.coreholdingcorp.com';
+const API_URL   = 'https://portal.coreholdingcorp.com';
 const TOKEN_KEY = 'ci_token';
 const USER_KEY  = 'ci_user';
 
@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     setLoading(true);
     try {
-      const res  = await fetch(API_URL + 'https://api.coreidentity.coreholdingcorp.com/api/auth/login', {
+      const res  = await fetch(API_URL + '/api/auth/login', {
         method:  'POST',
         credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ email, password }),
