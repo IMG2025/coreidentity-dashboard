@@ -91,8 +91,17 @@ export default function AgentCatalog() {
     const key = agentId(agent) + '-' + taskType;
     setExecuting(function(p) { return Object.assign({}, p, { [key]: true }); });
     try {
-      const res = await api.executeAgent(agentId(agent), taskType, {});
-      setResult(res);
+      const raw = await api.executeAgent(agentId(agent), taskType, {});
+          const normalized = {
+            agent_name: agent.name || agentId(agent),
+            status:     raw.policyBlocked ? 'BLOCKED' : raw.success === false ? 'FAILED' : 'OK',
+            task_type:  taskType,
+            domain_id:  agent.category || agent.domain || 'governance',
+            task_id:    raw.taskId || raw.task_id || raw.executionId || 'N/A',
+            sentinel:   raw.sentinel || (raw.policyBlocked ? { tier_id: 'SENTINEL_BLOCKED' } : null),
+            output:     raw.output || raw.result || raw.data || { message: raw.message || 'Agent task dispatched' },
+          };
+          setResult(normalized);
       addNotification(agent.name + ' ' + taskType + ' complete', 'success');
     } catch(err) {
       const msg = err.response && err.response.data ? err.response.data.error : err.message;
