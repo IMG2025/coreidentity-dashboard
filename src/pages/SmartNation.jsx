@@ -201,9 +201,6 @@ export default function SmartNationAI() {
   function loadAgents() {
     // SmartNation registry is the governed product catalog (108 agents)
     setAgents(SN_AGENTS);
-    api.getAgents('all', '').catch(function() {}); // keep for future ECS SN endpoint
-    void(0
-      .catch(function(e) { console.warn('Agents unavailable:', e.message); });
   }
 
   const categories = ['all'].concat(
