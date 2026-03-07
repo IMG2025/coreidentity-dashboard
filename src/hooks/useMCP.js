@@ -19,7 +19,7 @@ export function useMCP() {
       .then(r => r.json())
       .then(d => {
         if (d.error) throw new Error(d.error);
-        setConfig(d);
+        setConfig(d.data || d); // unwrap _meta envelope — url is at data.url
         setReady(true);
       })
       .catch(e => setError(e.message));

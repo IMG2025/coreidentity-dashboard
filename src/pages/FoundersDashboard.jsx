@@ -334,13 +334,13 @@ function AuditTrailView() {
   const fetchAudit = useCallback(async () => {
     try {
       const [execRes, statsRes] = await Promise.all([
-        fetch(API_URL + '/api/telemetry/executions?limit=100', { credentials: 'include', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }),
-        fetch(API_URL + '/api/telemetry/stats', { credentials: 'include', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } })
+        fetch(API_URL + '/api/telemetry/executions?limit=100', { credentials: 'include', headers: { 'Authorization': `Bearer ${localStorage.getItem('ci_token')}` } }),
+        fetch(API_URL + '/api/telemetry/stats', { credentials: 'include', headers: { 'Authorization': `Bearer ${localStorage.getItem('ci_token')}` } })
       ]);
       const execJson  = await execRes.json();
       const statsJson = await statsRes.json();
-      if (execJson.data)  setExecutions(execJson.data);
-      if (statsJson.data) setStats(statsJson.data);
+      setExecutions(Array.isArray(execJson) ? execJson : (execJson.data || execJson.executions || []));
+      if (statsJson && (statsJson.totalExecutions !== undefined || statsJson.data)) setStats(statsJson.data || statsJson);
     } catch(e) {
       // Silently retry
     } finally {
@@ -350,7 +350,7 @@ function AuditTrailView() {
 
   // Seed demo data on mount if store empty
   useEffect(() => {
-    fetch(API_URL + '/api/telemetry/seed', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: '{}'  , 'Authorization': `Bearer ${localStorage.getItem('token')}` })
+    fetch(API_URL + '/api/telemetry/seed', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: '{}'  , 'Authorization': `Bearer ${localStorage.getItem('ci_token')}` })
       .then(() => fetchAudit())
       .catch(() => fetchAudit());
     const t = setInterval(fetchAudit, 10000);
@@ -370,9 +370,10 @@ function AuditTrailView() {
         body: JSON.stringify({ clientId: demoClient, agentId: agent.id, task: agent.task, payload: { demo: true, firedFrom: 'FoundersDashboard' } })
       });
       const json = await res.json();
-      if (json.success) {
-        setLastFired(json.data);
-        setFlashId(json.data.executionId);
+      if (json.success || json.executionId || json.governanceScore) {
+        const d = json.data || json;
+        setLastFired(d);
+        setFlashId(d.executionId);
         setTimeout(() => setFlashId(null), 3000);
         setTimeout(() => fetchAudit(), 500);
       } else {
@@ -565,10 +566,11 @@ export default function FoundersDashboard() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res  = await fetch(API_URL + '/api/live-data', { credentials: 'include', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+      const res  = await fetch(API_URL + '/api/live-data', { credentials: 'include', headers: { 'Authorization': `Bearer ${localStorage.getItem('ci_token')}` } });
       const json = await res.json();
-      if (json.data) {
-        setLiveData({ ...json.data, metrics: json.data?.company.consolidated, clients: json.data.ciag.retainers, agents: json.data?.agents.data });
+      if (json && (json.company || json.data)) {
+        const d = json.data || json;
+        setLiveData({ ...d, metrics: d?.company?.consolidated, clients: d?.clients || [], agents: d?.agents?.data || [] });
         setMeta({ fetchedAt: json.fetchedAt, latencyMs: json.latencyMs });
         setErr(json.errors || null);
       }
