@@ -56,8 +56,7 @@ export default function Analytics() {
         credentials: 'include', headers: { Authorization: 'Bearer ' + token }
       });
       const json = await res.json();
-      if (!json.success) throw new Error(json.error || 'Failed');
-      setData({ ...json.data, metrics: json.data?.company.consolidated, clients: json.data.ciag.retainers, agents: json.data?.agents.data });
+      setData({ ...json, metrics: json?.company?.consolidated, clients: json?.ciag?.retainers, agents: json?.agents?.data });
     } catch(e) {
       setError(e.message);
     } finally {

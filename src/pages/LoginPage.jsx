@@ -110,7 +110,7 @@ export default function LoginPage() {
       return;
     }
     const res = await login(email.trim(), password);
-    if (!res?.success) setError(res?.error || 'Login failed — please try again.');
+    if (!res?.token) setError(res?.error || 'Login failed — please try again.');
   };
 
   const inp = (field) => ({

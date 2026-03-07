@@ -25,7 +25,7 @@ export default function Workflows() {
     try {
       /* script-37-wf */
       const res = await api.getWorkflows();
-      setWorkflows(Array.isArray(res) ? res : (res.data || []));
+      setWorkflows(Array.isArray(res) ? res : (res || []));
     } catch (err) {
       addNotification('Failed to load workflows', 'error');
     } finally {

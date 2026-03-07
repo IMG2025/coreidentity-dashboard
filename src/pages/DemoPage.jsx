@@ -145,7 +145,7 @@ function LiveFire() {
     try {
       const r    = await fetch('https://portal.coreholdingcorp.com/api/agents/execute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientId:a.cid,agentId:a.id,task:a.task,payload:{demo:true}})});
       const json = await r.json();
-      if (json.success) setRes(json.data); else setErr(json.error||'Failed');
+      if (json) setRes(json); else setErr('No data returned');
     } catch(e) { setErr(e.message); }
     finally    { setBusy(false); }
   };
