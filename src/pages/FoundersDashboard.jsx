@@ -583,7 +583,7 @@ export default function FoundersDashboard() {
   }, [fetchData]);
 
   const ciRev   = liveData?.coreIdentity?.monthly?.revenue || FB.ciRev;
-  const cgRev   = liveData?.ciag?.monthly ? liveData.ciag.monthly.retainerRevenue.map((r,i) => r + json.data.ciag.monthly.projectRevenue[i]) : FB.cgRev;
+  const cgRev   = liveData?.ciag?.monthly ? liveData.ciag.monthly.retainerRevenue.map((r,i) => r + (liveData.ciag.monthly.projectRevenue[i] || 0)) : FB.cgRev;
   const ciCost  = liveData?.coreIdentity?.monthly?.costs || FB.ciCost;
   const cgCost  = liveData?.ciag?.monthly?.costs || FB.cgCost;
   const chcRev  = ciRev.map((r,i) => r + cgRev[i]);
