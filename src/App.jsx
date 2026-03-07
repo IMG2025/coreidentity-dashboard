@@ -64,6 +64,17 @@ const PUBLIC_PAGES = {
 
 const PUBLIC_ROUTES = new Set(Object.keys(PUBLIC_PAGES));
 
+// Routes restricted to ADMIN role only — redirect others to /dashboard
+const ADMIN_ONLY_ROUTES = new Set([
+  '/#/dashboard',    // Founders Dashboard
+  '/#/analytics',    // Financial analytics
+  '/#/ciso',         // CISO security dashboard
+  '/#/settings',     // Platform settings
+]);
+
+// Routes restricted to authenticated users with any role
+// (all PORTAL_PAGES not in ADMIN_ONLY are accessible to any logged-in user)
+
 function getRoute() {
   const hash = window.location.hash || '';
   if (!hash || hash === '#' || hash === '#/') return '/#/dashboard';
@@ -167,6 +178,26 @@ export default function App() {
   }
 
   if (!user) return <LoginPage />;
+
+  // ── Role-based access control ─────────────────────────────
+  // ADMIN_ONLY_ROUTES: redirect non-admins to agents page
+  if (ADMIN_ONLY_ROUTES.has(route) && user?.role !== 'ADMIN') {
+    const FallbackPage = PORTAL_PAGES['/#/agents'] || PORTAL_PAGES['/#/smartnation'];
+    return (
+      <NotificationContextWrapper>
+        <div style={{ minHeight:'100vh', background:'#070c18', fontFamily:"'DM Sans','Segoe UI',sans-serif" }}>
+          <PortalNav route={'/#/agents'} onNavigate={setRoute} userEmail={user?.email} onLogout={logout} />
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh' }}>
+            <div style={{ textAlign:'center', color:'#8892a4' }}>
+              <div style={{ fontSize:48, marginBottom:16 }}>🔒</div>
+              <div style={{ color:'#fff', fontSize:18, fontWeight:600, marginBottom:8 }}>Access Restricted</div>
+              <div style={{ fontSize:14 }}>This section requires administrator privileges.</div>
+            </div>
+          </div>
+        </div>
+      </NotificationContextWrapper>
+    );
+  }
 
   const Page = PORTAL_PAGES[route] || FoundersDashboard;
 
