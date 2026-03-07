@@ -27,6 +27,7 @@ import InvestorPage      from './pages/InvestorPage.jsx';
 import PricingPage       from './pages/PricingPage.jsx';
 import ReportsPage       from './pages/ReportsPage.jsx';
 import DocsPage          from './pages/DocsPage.jsx';
+import CISODashboard from './pages/CISODashboard.jsx';
 
 // ── Notifications context ─────────────────────────────────────
 /* patch-33 */
@@ -125,6 +126,27 @@ function NotificationContextWrapper({ children }) {
 
 
 
+
+// Degraded data notification banner
+function DegradedBanner() {
+  const [degraded, setDegraded] = React.useState(false);
+  const [message,  setMessage]  = React.useState('');
+  React.useEffect(() => {
+    function handler(e) {
+      setDegraded(e.detail?.degraded || false);
+      setMessage(e.detail?.message  || 'Displaying cached data — live connection restoring.');
+    }
+    window.addEventListener('chc-data-degraded', handler);
+    return () => window.removeEventListener('chc-data-degraded', handler);
+  }, []);
+  if (!degraded) return null;
+  return (
+    <div style={{ background: '#fffbeb', borderBottom: '1px solid #fcd34d', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#92400e' }}>
+      <span style={{ fontWeight: 600 }}>⚠ {message}</span>
+    </div>
+  );
+}
+
 export default function App() {
   const { user, logout } = useAuth();
   const [route, setRoute] = useState(getRoute);
@@ -139,7 +161,8 @@ export default function App() {
   // Public/marketing routes
   if (PUBLIC_ROUTES.has(route)) {
     const Page = PUBLIC_PAGES[route] || MarketingPage;
-    return <div style={{ minHeight:'100vh', background:'#070c18', fontFamily:"'DM Sans','Segoe UI',sans-serif" }}><Page /></div>;
+    return <div style={{ minHeight:'100vh', background:'#070c18', fontFamily:"'DM Sans','Segoe UI',sans-serif" }}>
+        <DegradedBanner /><Page /></div>;
   }
 
   if (!user) return <LoginPage />;
