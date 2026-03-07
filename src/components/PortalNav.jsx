@@ -15,6 +15,7 @@ const NAV_SECTIONS = [
   ['/#/live-demo',   '▶️',  'Live Demo'],
   ['/#/ciag-intake', '📋',  'CIAG Intake'],
   ['/#/analytics',   '📊',  'Analytics'],
+  ['/#/ciso',        '🔒',  'CISO'],
   ['/#/settings',    '⚙',   'Settings'],
 ];
 

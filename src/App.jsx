@@ -48,6 +48,7 @@ const PORTAL_PAGES = {
   '/#/ciag-intake': CIAGIntake,
   '/#/client-onboarding': ClientOnboarding,
   '/#/analytics':   Analytics,
+  '/#/ciso':        CISODashboard,
   '/#/settings':    SettingsPage,
 };
 
