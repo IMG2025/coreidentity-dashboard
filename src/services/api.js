@@ -20,7 +20,14 @@ export const api = async (endpoint, options = {}) => {
   try {
     const response = await fetch(url, config);
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
-    return await response.json();
+    const parsed = await response.json();
+// Emit degradation event for global notification banner
+    if (parsed && parsed._meta) {
+      window.dispatchEvent(new CustomEvent('chc-data-degraded', {
+        detail: { degraded: parsed._meta.degraded || false, message: parsed._meta.message || '' }
+      }));
+    }
+    return parsed.data ?? parsed;
   } catch (error) {
     console.error('API Fetch Error:', error);
     throw error;
