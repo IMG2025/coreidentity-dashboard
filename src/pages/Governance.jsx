@@ -167,8 +167,8 @@ export default function Governance() {
   );
 
   const scores = normalizeScores(data ? data.scores : null);
-  const frameworks = data ? data.frameworks : [];
-  const alerts = data ? data.alerts : [];
+  const frameworks = data?.frameworks || [];
+  const alerts = data?.alerts || [];
 
   return (
     <div className='max-w-4xl mx-auto px-4 py-6'>

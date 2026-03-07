@@ -67,6 +67,16 @@ api.getComplianceStatus = () => api('/api/compliance/status');
 
 // Sentinel
 api.getSentinelLogs = () => api('/api/sentinel/logs');
+// Sentinel — full method set
+api.getSentinelStatus    = () => api('/api/sentinel/status').then(r => r.data || r);
+api.getSecurityEvents    = (limit = 30) => api(`/api/sentinel/events?limit=${limit}`).then(r => Array.isArray(r) ? r : (r.data || r.events || []));
+api.getKillSwitches      = () => api('/api/sentinel/killswitches').then(r => Array.isArray(r) ? r : (r.data || r.killSwitches || []));
+api.getApprovals         = () => api('/api/sentinel/approvals').then(r => Array.isArray(r) ? r : (r.data || r.approvals || []));
+api.getRiskTiers         = () => api('/api/sentinel/risk-tiers').then(r => r.data || r || {});
+api.activateKillSwitch   = (agentId, reason) => api('/api/sentinel/killswitches', { method: 'POST', body: JSON.stringify({ agentId, reason }) });
+api.deactivateKillSwitch = (agentId) => api(`/api/sentinel/killswitches/${agentId}`, { method: 'DELETE', body: '{}' });
+api.approveRequest       = (approvalId) => api(`/api/sentinel/approvals/${approvalId}/approve`, { method: 'POST', body: '{}' });
+
 
 // Nexus
 api.getNexusStatus     = () => api('/api/nexus/status').then(r => r.data || r);
