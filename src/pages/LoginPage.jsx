@@ -143,7 +143,7 @@ export default function LoginPage() {
             onFocus={() => setFocus('email')}
             onBlur={() => setFocus('')}
             style={inp('email')}
-            placeholder="you@coreholdingcorp.com"
+            placeholder="you@coreidentitygroup.com"
             autoComplete="email"
             autoFocus
           />

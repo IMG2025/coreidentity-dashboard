@@ -30,7 +30,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     setLoading(true); setReport(null);
-    fetch('https://portal.coreholdingcorp.com/api/commercial/report/' + clientId)
+    fetch('https://portal.coreidentitygroup.com/api/commercial/report/' + clientId)
       .then(r => r.json())
       .then(j => { if (j.success) setReport(j.report); })
       .catch(() => {})

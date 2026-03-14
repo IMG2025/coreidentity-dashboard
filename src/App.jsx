@@ -77,7 +77,7 @@ const ADMIN_ONLY_ROUTES = new Set([
 
 function getRoute() {
   const hash = window.location.hash || '';
-  if (!hash || hash === '#' || hash === '#/') return '/#/dashboard';
+  if (!hash || hash === '#' || hash === '#/') return user?.role === 'ADMIN' ? '/#/dashboard' : '/#/agents';
   return '/#' + hash.slice(1);
 }
 

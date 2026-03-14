@@ -42,8 +42,8 @@ router.post('/checkout', adminOnly, async (req, res) => {
     customer_email: email,
     metadata: { clientId, plan, companyName: companyName || '' },
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${process.env.PORTAL_URL || 'https://portal.coreholdingcorp.com'}/#/settings?billing=success`,
-    cancel_url:  `${process.env.PORTAL_URL || 'https://portal.coreholdingcorp.com'}/#/settings`,
+    success_url: `${process.env.PORTAL_URL || 'https://portal.coreidentitygroup.com'}/#/settings?billing=success`,
+    cancel_url:  `${process.env.PORTAL_URL || 'https://portal.coreidentitygroup.com'}/#/settings`,
     subscription_data: { metadata: { clientId, plan } }
   });
 

@@ -32,10 +32,10 @@ const commercialRouter = require('./routes/commercial');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://portal.coreholdingcorp.com,https://coreidentity.coreholdingcorp.com,https://coreidentity-dashboard.pages.dev').split(',');
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://portal.coreidentitygroup.com,https://coreidentity.coreidentitygroup.com,https://coreidentity-dashboard.pages.dev').split(',');
 
 // ── Security ────────────────────────────────────────────────────────────
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);

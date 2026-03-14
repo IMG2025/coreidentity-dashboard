@@ -11,8 +11,8 @@ const db  = DynamoDBDocumentClient.from(new DynamoDBClient({ region: process.env
 const ses = new SESv2Client({ region: process.env.AWS_REGION || 'us-east-2' });
 
 const TABLE        = 'ciag-intake';
-const NOTIFY_EMAIL = process.env.CIAG_NOTIFY_EMAIL || 'tmorgan@coreholdingcorp.com';
-const SENDER_EMAIL = process.env.CIAG_SENDER_EMAIL || 'tmorgan@coreholdingcorp.com';
+const NOTIFY_EMAIL = process.env.CIAG_NOTIFY_EMAIL || 'tmorgan@coreidentitygroup.com';
+const SENDER_EMAIL = process.env.CIAG_SENDER_EMAIL || 'tmorgan@coreidentitygroup.com';
 
 const TIERS = {
   diagnostic:     { label: 'Diagnostic Assessment',     duration: '21 days',  range: '$85K-$110K' },

@@ -139,7 +139,7 @@ export default function PricingPage() {
                   fontSize:14, fontWeight:700, letterSpacing:'0.04em', marginBottom:24,
                 }}>Start 30-Day Trial</a>
               ) : (
-                <a href="mailto:sales@coreholdingcorp.com" style={{
+                <a href="mailto:sales@coreidentitygroup.com" style={{
                   display:'block', textAlign:'center',
                   background:'none', color:C.purple,
                   textDecoration:'none', padding:'12px', borderRadius:8,
@@ -249,7 +249,7 @@ export default function PricingPage() {
               padding:'16px 32px', borderRadius:8, fontSize:16, fontWeight:700 }}>
               Free Assessment →
             </a>
-            <a href="mailto:sales@coreholdingcorp.com" style={{ background:'none', color:C.white,
+            <a href="mailto:sales@coreidentitygroup.com" style={{ background:'none', color:C.white,
               textDecoration:'none', padding:'16px 32px', borderRadius:8, fontSize:16,
               fontWeight:500, border:'1px solid '+C.border }}>
               Talk to Sales

@@ -15,7 +15,7 @@ export default function OnboardPage() {
 
   const assess = async () => {
     try {
-      const r    = await fetch('https://portal.coreholdingcorp.com/api/commercial/assess',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:form.industry,agentCount:form.agentCount,currentScore:form.currentScore,company:form.company,email:form.email})});
+      const r    = await fetch('https://portal.coreidentitygroup.com/api/commercial/assess',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:form.industry,agentCount:form.agentCount,currentScore:form.currentScore,company:form.company,email:form.email})});
       const json = await r.json();
       if (json.success) setResult(json.assessment);
     } catch(e) {
@@ -153,7 +153,7 @@ export default function OnboardPage() {
                     <div style={{color:C.slate,fontSize:12}}>per month</div>
                   </div>
                 </div>
-                {key===result.recommendedTier && <a href="mailto:sales@coreholdingcorp.com" style={{display:'block',textAlign:'center',background:C.gold,color:C.bg,textDecoration:'none',padding:12,borderRadius:8,fontSize:14,fontWeight:700,letterSpacing:'0.04em'}}>Start 30-Day Pilot →</a>}
+                {key===result.recommendedTier && <a href="mailto:sales@coreidentitygroup.com" style={{display:'block',textAlign:'center',background:C.gold,color:C.bg,textDecoration:'none',padding:12,borderRadius:8,fontSize:14,fontWeight:700,letterSpacing:'0.04em'}}>Start 30-Day Pilot →</a>}
               </div>
             ))}
           </div>

@@ -13,7 +13,7 @@ const ses = new SESv2Client({ region: process.env.AWS_REGION || 'us-east-2' });
 
 const CLIENTS_TABLE = 'client-accounts';
 const USERS_TABLE   = 'coreidentity-users';
-const SENDER_EMAIL  = process.env.CIAG_SENDER_EMAIL || 'tmorgan@coreholdingcorp.com';
+const SENDER_EMAIL  = process.env.CIAG_SENDER_EMAIL || 'tmorgan@coreidentitygroup.com';
 
 const VIRTUAL_COMPANIES = [
   'CHC Corporate API','Virtual Bank','Health Network','Legal Partners','Retail Group',
@@ -81,7 +81,7 @@ router.post('/', adminOnly, async (req, res) => {
             '',
             'Your CoreIdentity Governance Portal account is ready.',
             '',
-            `Portal:    https://portal.coreholdingcorp.com`,
+            `Portal:    https://portal.coreidentitygroup.com`,
             `Email:     ${contactEmail}`,
             `Password:  ${password}`,
             '',

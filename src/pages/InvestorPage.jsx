@@ -194,7 +194,7 @@ function Section({ active }) {
       <div style={{background:C.gold+'11',border:'1px solid '+C.gold+'44',borderRadius:8,padding:28,textAlign:'center'}}>
         <div style={{fontFamily:F.display,fontSize:32,color:C.gold,letterSpacing:'0.06em',marginBottom:8}}>READY TO TALK?</div>
         <div style={{color:C.slate,fontSize:15,marginBottom:20}}>Schedule a 30-minute call. We'll walk through the platform live, answer any questions, and share the full data room.</div>
-        <a href="mailto:investors@coreholdingcorp.com" style={{display:'inline-block',background:C.gold,color:C.bg,textDecoration:'none',padding:'14px 36px',borderRadius:8,fontSize:15,fontWeight:700,letterSpacing:'0.04em'}}>investors@coreholdingcorp.com</a>
+        <a href="mailto:investors@coreidentitygroup.com" style={{display:'inline-block',background:C.gold,color:C.bg,textDecoration:'none',padding:'14px 36px',borderRadius:8,fontSize:15,fontWeight:700,letterSpacing:'0.04em'}}>investors@coreidentitygroup.com</a>
       </div>
     </>);
 
@@ -221,7 +221,7 @@ export default function InvestorPage() {
         <input type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&tryUnlock()} placeholder="Access code" style={{width:'100%',background:C.bg,border:'1px solid '+(err?C.red:C.border),color:C.white,borderRadius:8,padding:'14px 16px',fontSize:15,textAlign:'center',boxSizing:'border-box',letterSpacing:'0.2em',marginBottom:12,fontFamily:F.body}}/>
         {err && <div style={{color:C.red,fontSize:12,marginBottom:10}}>Invalid access code</div>}
         <button onClick={tryUnlock} style={{width:'100%',background:C.gold,color:C.bg,border:'none',borderRadius:8,padding:14,fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:F.display,letterSpacing:'0.08em'}}>ACCESS DATA ROOM</button>
-        <div style={{color:C.slate,fontSize:11,marginTop:16}}>Code: <span style={{color:C.gold}}>investor</span> · Contact: <a href="mailto:investors@coreholdingcorp.com" style={{color:C.gold,textDecoration:'none'}}>investors@coreholdingcorp.com</a></div>
+        <div style={{color:C.slate,fontSize:11,marginTop:16}}>Code: <span style={{color:C.gold}}>investor</span> · Contact: <a href="mailto:investors@coreidentitygroup.com" style={{color:C.gold,textDecoration:'none'}}>investors@coreidentitygroup.com</a></div>
       </div>
     </div>
   );

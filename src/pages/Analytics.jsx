@@ -4,7 +4,7 @@ import { BarChart3, TrendingUp, Users, Activity, Shield, Zap, Clock, CheckCircle
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://portal.coreholdingcorp.com';
+const API_URL = import.meta.env.VITE_API_URL || 'https://portal.coreidentitygroup.com';
 
 function StatCard({ icon: Icon, label, value, sub, color }) {
   const colors = {

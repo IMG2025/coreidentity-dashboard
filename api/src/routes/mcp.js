@@ -2,7 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const https   = require('https');
 
-const MCP_URL = process.env.MCP_SERVER_URL || 'https://mcp.coreidentity.coreholdingcorp.com';
+const MCP_URL = process.env.MCP_SERVER_URL || 'https://mcp.coreidentity.coreidentitygroup.com';
 const MCP_KEY = process.env.MCP_API_KEY    || '';
 
 // GET /api/mcp/config — returns MCP connection details to authenticated users
