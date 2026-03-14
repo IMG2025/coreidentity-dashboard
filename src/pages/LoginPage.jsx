@@ -122,7 +122,7 @@ export default function LoginPage() {
     <div style={S.root}>
       <div style={S.card}>
         <div style={S.logoRow}>
-          <div style={S.logoMark}>C</div>
+          <img src="/logo-light.png" alt="CoreIdentity Development Group" style={{height:'64px',width:'auto',marginBottom:'8px'}} />
           <div>
             <div style={S.logoName}>CoreIdentity</div>
             <div style={S.logoSub}>CoreIdentity Development Group</div>

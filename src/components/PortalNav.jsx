@@ -74,11 +74,7 @@ export default function PortalNav({ route, onNavigate, userEmail, onLogout, user
             display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, padding: 0,
           }}
         >
-          <img
-            src="/chc-logo.png"
-            alt="CHC"
-            style={{ width: 28, height: 28, objectFit: 'contain', background: 'transparent' }}
-          />
+          <img src="/logo-dark.png" alt="CoreIdentity Development Group" style={{height:'32px',width:'auto'}} />
           <div>
             <div style={{ color: C.white, fontFamily: F.display, fontSize: 13, letterSpacing: '0.08em', lineHeight: 1.1 }}>
               COREIDENTITY DEVELOPMENT GROUP

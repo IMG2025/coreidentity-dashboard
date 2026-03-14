@@ -46,7 +46,7 @@ api.getAgents = (category, search) => {
   if (category && category !== 'all') params.push(`category=${encodeURIComponent(category)}`);
   if (search) params.push(`search=${encodeURIComponent(search)}`);
   if (params.length) url += '?' + params.join('&');
-  return api(url).then(r => Array.isArray(r) ? r : (r.data || r.agents || []));
+  return api(url).then(r => Array.isArray(r) ? r : (Array.isArray(r?.data) ? r.data : []));
 };
 
 api.getAgentMetrics      = () => api('/api/agents/metrics');
@@ -83,7 +83,7 @@ api.getNexusStatus     = () => api('/api/nexus/status').then(r => r.data || r);
 api.getNexusExecutions = (limit = 20) => api(`/api/nexus/executions?limit=${limit}`);
 
 // Workflows
-api.getWorkflows   = () => api('/api/workflows').then(r => Array.isArray(r) ? r : (r.data || []));
+api.getWorkflows   = () => api('/api/workflows').then(r => Array.isArray(r) ? r : (Array.isArray(r?.data) ? r.data : (r?.data || [])));
 api.createWorkflow = (data) => api('/api/workflows', { method: 'POST', body: JSON.stringify(data) });
 
 // SmartNation AI
