@@ -42,7 +42,11 @@ export default function ClientOnboarding() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create client');
-      setResult(data); setStatus('success'); loadClients();
+      // ECS may return 200 with error in body — check unwrapped data
+      const body = data?.data || data;
+      if (body?.error) throw new Error(body.error);
+      if (body?.success === false) throw new Error(body.message || 'Failed to create client');
+      setResult(body); setStatus('success'); loadClients();
     } catch (err) { setError(err.message); setStatus('error'); }
   }
 

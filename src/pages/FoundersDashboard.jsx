@@ -67,8 +67,8 @@ const CLIENT_LABELS = {
   legal:  'Meridian Legal Partners LLP'
 };
 
-const CLIENT_COLORS = { bank:C.blue, health:C.green, retail:C.orange, legal:C.purple };
-const CLIENT_ICONS  = { bank:'🏦', health:'🏥', retail:'🛍️', legal:'⚖️' };
+const CLIENT_COLORS = { bank:C.blue, health:C.green, retail:C.orange, legal:C.purple, fnvb:C.blue, rhn:C.green, mrg:C.orange, lpg:C.purple };
+const CLIENT_ICONS  = { bank:'🏦', health:'🏥', retail:'🛍️', legal:'⚖️', fnvb:'🏦', rhn:'🏥', mrg:'🛍️', lpg:'⚖️' };
 
 // ── Utilities ─────────────────────────────────────────────────
 const fmtK   = n => !n ? '$0' : n >= 1000000 ? '$'+(n/1000000).toFixed(1)+'M' : '$'+(n/1000).toFixed(0)+'K';

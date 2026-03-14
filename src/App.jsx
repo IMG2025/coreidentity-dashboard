@@ -208,7 +208,7 @@ export default function App() {
           route={route}
           onNavigate={setRoute}
           userEmail={user?.email}
-          onLogout={logout}
+          onLogout={logout} user={user}
         />
         <Page />
       </div>

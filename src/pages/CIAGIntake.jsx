@@ -1,3 +1,4 @@
+import { useAuth } from '../context/AuthContext';
 import React, { useState } from 'react';
 import { CheckCircle, Send, Loader, AlertCircle, ChevronDown } from 'lucide-react';
 
@@ -14,6 +15,7 @@ const INDUSTRIES = ['Financial Services','Healthcare','Legal','Government / Publ
 const SIZES = ['1-50','51-200','201-1,000','1,001-5,000','5,000+'];
 
 export default function CIAGIntake() {
+  const { token } = useAuth();
   const [form, setForm] = useState({ firstName:'', lastName:'', email:'', company:'', title:'', engagement:'', companySize:'', industry:'', message:'' });
   const [status,  setStatus]  = useState('idle');
   const [message, setMessage] = useState('');
@@ -25,7 +27,11 @@ export default function CIAGIntake() {
     try {
       const res  = await fetch(API + '/api/ciag/intake', {
         method: 'POST',
-        credentials: 'include', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ ...form, source: 'portal' })
       });
       const data = await res.json();

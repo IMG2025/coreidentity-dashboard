@@ -143,12 +143,45 @@ export default function AgentCatalog() {
     }
   }
 
+
+  async function handleStop(agent) {
+    const agentId = agent.agentId || agent.id;
+    const agentName = agent.name || 'Agent';
+    if (!window.confirm(`Stop ${agentName}? This will add it to the killswitch list.`)) return;
+    try {
+      const token = localStorage.getItem('ci_token');
+      const API = import.meta.env.VITE_API_URL || 'https://portal.coreholdingcorp.com';
+      const res = await fetch(`${API}/api/sentinel/killswitches`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          agentId,
+          agentName,
+          reason: 'Stopped by user via Agent Catalog',
+          triggeredBy: user?.email || 'portal'
+        })
+      });
+      const data = await res.json();
+      const body = data?.data || data;
+      if (body?.error) throw new Error(body.error);
+      alert(`${agentName} has been stopped and added to the killswitch list.`);
+    } catch (err) {
+      alert(`Stop failed: ${err.message}`);
+    }
+  }
+
   const isAdmin = user && user.role === 'ADMIN';
   const taskButtons = isAdmin
     ? [['EXECUTE','Execute',Play,'bg-blue-600 hover:bg-blue-700 text-white'],
        ['ANALYZE','Analyze',BarChart2,'bg-green-600 hover:bg-green-700 text-white'],
-       ['ESCALATE','Escalate',AlertTriangle,'bg-orange-500 hover:bg-orange-600 text-white']]
-    : [['ANALYZE','Analyze',BarChart2,'bg-green-600 hover:bg-green-700 text-white']];
+       ['ESCALATE','Escalate',AlertTriangle,'bg-orange-500 hover:bg-orange-600 text-white'],
+       ['STOP','Stop',Square,'bg-red-600 hover:bg-red-700 text-white']]
+    : [['EXECUTE','Execute',Play,'bg-blue-600 hover:bg-blue-700 text-white'],
+       ['ANALYZE','Analyze',BarChart2,'bg-green-600 hover:bg-green-700 text-white'],
+       ['STOP','Stop',Square,'bg-red-600 hover:bg-red-700 text-white']];
 
   return (
     <div className='max-w-4xl mx-auto px-4 py-6'>
@@ -235,7 +268,7 @@ export default function AgentCatalog() {
                     const key = agentId(agent) + '-' + taskType;
                     return (
                       <button key={taskType}
-                        onClick={function() { handleExecute(agent, taskType); }}
+                        onClick={function() { taskType === 'STOP' ? handleStop(agent) : handleExecute(agent, taskType); }}
                         disabled={!!executing[key]}
                         className={'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium disabled:opacity-50 ' + cls}>
                         {executing[key]

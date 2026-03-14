@@ -4,22 +4,22 @@ import { useState } from 'react';
 import { C, F, useWindowWidth } from '../chc-design.js';
 
 const NAV_SECTIONS = [
-  ['/#/dashboard',   '🏛',  'Founders'],
-  ['/#/agents',      '🤖',  'Agents'],
-  ['/#/sentinel',    '🛡',  'Sentinel OS'],
-  ['/#/nexus',       '⚡',  'Nexus OS'],
-  ['/#/smartnation', '🌐',  'SmartNation AI'],
-  ['/#/governance',  '📋',  'Governance'],
-  ['/#/workflows',   '🔄',  'Workflows'],
-  ['/#/mcp-demo',    '🤖',  'MCP Demo'],
-  ['/#/live-demo',   '▶️',  'Live Demo'],
-  ['/#/ciag-intake', '📋',  'CIAG Intake'],
-  ['/#/analytics',   '📊',  'Analytics'],
-  ['/#/ciso',        '🔒',  'CISO'],
-  ['/#/settings',    '⚙',   'Settings'],
+  ['/#/dashboard',   '🏛',  'Founders',       true],   // ADMIN only
+  ['/#/agents',      '🤖',  'Agents',          false],
+  ['/#/sentinel',    '🛡',  'Sentinel OS',     false],
+  ['/#/nexus',       '⚡',  'Nexus OS',        false],
+  ['/#/smartnation', '🌐',  'SmartNation AI',  false],
+  ['/#/governance',  '📋',  'Governance',      false],
+  ['/#/workflows',   '🔄',  'Workflows',       false],
+  ['/#/mcp-demo',    '🤖',  'MCP Demo',        false],
+  ['/#/live-demo',   '▶️',  'Live Demo',        false],
+  ['/#/ciag-intake', '📋',  'CIAG Intake',     false],
+  ['/#/analytics',   '📊',  'Analytics',       true],   // ADMIN only
+  ['/#/ciso',        '🔒',  'CISO',            true],   // ADMIN only
+  ['/#/settings',    '⚙',   'Settings',        true],   // ADMIN only
 ];
 
-export default function PortalNav({ route, onNavigate, userEmail, onLogout }) {
+export default function PortalNav({ route, onNavigate, userEmail, onLogout, user }) {
   const w = useWindowWidth();
   const isMobile = w < 900;
   const [open, setOpen] = useState(false);
@@ -92,7 +92,7 @@ export default function PortalNav({ route, onNavigate, userEmail, onLogout }) {
         {/* Desktop inline nav links */}
         {!isMobile && (
           <div style={{ display: 'flex', gap: 2, alignItems: 'center', flex: 1, justifyContent: 'center', flexWrap: 'nowrap', overflow: 'hidden' }}>
-            {NAV_SECTIONS.map(([h, icon, label]) => (
+            {NAV_SECTIONS.filter(([,, , adminOnly]) => !adminOnly || user?.role === 'ADMIN').map(([h, icon, label]) => (
               <button
                 key={h}
                 onClick={() => navigate(h)}
@@ -161,7 +161,7 @@ export default function PortalNav({ route, onNavigate, userEmail, onLogout }) {
           gap: 2,
           overflowY: 'auto',
         }}>
-          {NAV_SECTIONS.map(([h, icon, label]) => (
+          {NAV_SECTIONS.filter(([,, , adminOnly]) => !adminOnly || user?.role === 'ADMIN').map(([h, icon, label]) => (
             <button
               key={h}
               onClick={() => navigate(h)}

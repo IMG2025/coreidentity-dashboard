@@ -1,4 +1,4 @@
-export const API_URL = 'https://portal.coreholdingcorp.com';
+export const API_URL = 'https://api.coreidentity.coreidentitygroup.com';
 
 export const api = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token') || localStorage.getItem('ci_token');
@@ -94,4 +94,26 @@ api.getSmartNationAgents  = (cat, q) => api.getAgents(cat, q);
 api.getIdentityProfiles = () => api('/api/identity/profiles');
 api.getSystemHealth     = () => api('/api/health');
 
+
+// ── Customer + Client + Billing — attached as api object methods ──────────────
+// SettingsPage imports { api } and calls api.createCustomer() — must be on object
+api.createCustomer = (data) =>
+  api('/api/users/create', { method: 'POST', body: JSON.stringify(data) });
+
+api.getUsers = () =>
+  api('/api/users');
+
+api.createClient = (data) =>
+  api('/api/clients', { method: 'POST', body: JSON.stringify(data) });
+
+api.getClients = () =>
+  api('/api/clients');
+
+api.createBillingCheckout = (clientId, plan, email, companyName) =>
+  api('/api/billing/checkout', {
+    method: 'POST',
+    body: JSON.stringify({ clientId, plan, email, companyName })
+  });
+
 export default api;
+
