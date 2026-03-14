@@ -150,7 +150,7 @@ export default function AgentCatalog() {
     if (!window.confirm(`Stop ${agentName}? This will add it to the killswitch list.`)) return;
     try {
       const token = localStorage.getItem('ci_token');
-      const API = import.meta.env.VITE_API_URL || 'https://portal.coreidentitygroup.com';
+      const API = 'https://api.coreidentity.coreidentitygroup.com';
       const res = await fetch(`${API}/api/sentinel/killswitches`, {
         method: 'POST',
         headers: {

@@ -2,7 +2,7 @@ import { useAuth } from '../context/AuthContext';
 import React, { useState } from 'react';
 import { CheckCircle, Send, Loader, AlertCircle, ChevronDown } from 'lucide-react';
 
-const API = import.meta.env.VITE_API_URL || 'https://portal.coreidentitygroup.com';
+const API = 'https://api.coreidentity.coreidentitygroup.com';
 
 const ENGAGEMENTS = [
   { value: 'diagnostic',     label: 'Diagnostic Assessment',     duration: '21 days',  range: '$85K-$110K',    desc: 'Inventory AI usage, identify governance exposure, risk classification' },

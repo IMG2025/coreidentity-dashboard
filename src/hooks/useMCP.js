@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-const PORTAL_API = import.meta.env.VITE_API_URL || 'https://portal.coreidentitygroup.com';
+const PORTAL_API = 'https://api.coreidentity.coreidentitygroup.com';
 
 // useMCP — fetches MCP config from backend, then calls Cloud Run directly
 // API key is never in the bundle — always fetched at runtime via JWT-gated endpoint

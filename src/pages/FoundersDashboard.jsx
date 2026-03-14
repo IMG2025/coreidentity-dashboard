@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line } from 'recharts';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://portal.coreidentitygroup.com';
+const API_URL = 'https://api.coreidentity.coreidentitygroup.com';
 
 // ── Design tokens ─────────────────────────────────────────────
 const C = {
