@@ -31,6 +31,7 @@ const marketRouter = require('./routes/market');
 const commercialRouter = require('./routes/commercial');
 
 const app = express();
+app.set('trust proxy', 1); // Trust ELB/ALB proxy headers
 const PORT = process.env.PORT || 8080;
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://portal.coreidentitygroup.com,https://coreidentity.coreidentitygroup.com,https://coreidentity-dashboard.pages.dev').split(',');
 
