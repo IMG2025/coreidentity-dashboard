@@ -43,7 +43,7 @@ app.use(cors({
     callback(new Error(`CORS policy violation: ${origin}`));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'cache-control', 'Accept'],
   credentials: true
 }));
 

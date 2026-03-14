@@ -9,7 +9,6 @@ export const api = async (endpoint, options = {}) => {
     headers: {
       'Content-Type': 'application/json',
       'cache-control': 'no-cache',
-      'x-api-key': 'chc-corp-dev-key-2026',
       'Accept': 'application/json',
       ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...options.headers,
