@@ -47,10 +47,10 @@ app.use(cors({
 }));
 
 // ── Rate limiting ────────────────────────────────────────────────────────
-app.use('/api/billing', require('./routes/billing'));
-app.use('/api/clients', require('./routes/clients'));
-app.use('/api/ciag', require('./routes/ciag'));
-app.use('/api/mcp', require('./routes/mcp'));
+app.use('/api/billing', authenticate, require('./routes/billing'));
+app.use('/api/clients', authenticate, require('./routes/clients'));
+app.use('/api/ciag', authenticate, require('./routes/ciag'));
+app.use('/api/mcp', authenticate, require('./routes/mcp'));
 app.use('/api/auth', rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20, // Strict limit on auth endpoints
