@@ -21,11 +21,11 @@ PERSISTENT = [
     {'name': 'PORT',              'value': '8080'},
     {'name': 'AWS_REGION',        'value': 'us-east-2'},
     {'name': 'JWT_EXPIRES_IN',    'value': '24h'},
-    {'name': 'ALLOWED_ORIGINS',   'value': 'https://portal.coreholdingcorp.com,https://coreidentity.coreholdingcorp.com,https://coreidentity-dashboard.pages.dev'},
+    {'name': 'ALLOWED_ORIGINS',   'value': 'https://portal.coreidentitygroup.com,https://coreidentity.coreidentitygroup.com,https://coreidentity-dashboard.pages.dev'},
     {'name': 'MCP_SERVER_URL',    'value': 'https://chc-mcp-server-lvuq2yqbma-ue.a.run.app'},
-    {'name': 'CIAG_NOTIFY_EMAIL', 'value': 'tmorgan@coreholdingcorp.com'},
-    {'name': 'CIAG_SENDER_EMAIL', 'value': 'tmorgan@coreholdingcorp.com'},
-    {'name': 'PORTAL_URL',        'value': 'https://portal.coreholdingcorp.com'},
+    {'name': 'CIAG_NOTIFY_EMAIL', 'value': 'tmorgan@coreidentitygroup.com'},
+    {'name': 'CIAG_SENDER_EMAIL', 'value': 'tmorgan@coreidentitygroup.com'},
+    {'name': 'PORTAL_URL',        'value': 'https://portal.coreidentitygroup.com'},
 ]
 
 # Preserve secrets already in the task definition (JWT_SECRET, MCP_API_KEY etc)
