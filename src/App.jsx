@@ -75,7 +75,7 @@ const ADMIN_ONLY_ROUTES = new Set([
 // Routes restricted to authenticated users with any role
 // (all PORTAL_PAGES not in ADMIN_ONLY are accessible to any logged-in user)
 
-function getRoute() {
+function getRoute(user) {
   const hash = window.location.hash || '';
   if (!hash || hash === '#' || hash === '#/') return user?.role === 'ADMIN' ? '/#/dashboard' : '/#/agents';
   return '/#' + hash.slice(1);
@@ -161,11 +161,11 @@ function DegradedBanner() {
 
 export default function App() {
   const { user, logout } = useAuth();
-  const [route, setRoute] = useState(getRoute);
+  const [route, setRoute] = useState(() => getRoute(null));
 
   useEffect(() => {
     injectFonts();
-    const onHash = () => setRoute(getRoute());
+    const onHash = () => setRoute(getRoute(user));
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
