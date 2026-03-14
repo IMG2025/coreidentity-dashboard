@@ -125,7 +125,7 @@ export default function LoginPage() {
           <div style={S.logoMark}>C</div>
           <div>
             <div style={S.logoName}>CoreIdentity</div>
-            <div style={S.logoSub}>Core Holding Corp</div>
+            <div style={S.logoSub}>CoreIdentity Development Group</div>
           </div>
         </div>
 
@@ -169,7 +169,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div style={S.footer}>CoreIdentity Governance Portal · Core Holding Corp</div>
+        <div style={S.footer}>CoreIdentity Governance Portal · CoreIdentity Development Group</div>
       </div>
     </div>
   );

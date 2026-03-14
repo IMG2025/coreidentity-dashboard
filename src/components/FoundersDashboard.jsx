@@ -1067,7 +1067,7 @@ export default function FoundersDashboard() {
         <div style={{display:'flex',alignItems:'center',gap:14}}>
           <img src="/chc-logo.png" alt="CHC" style={{height:36,width:'auto',objectFit:'contain'}} onError={e=>e.target.style.display='none'}/>
           <div>
-            <div style={{fontSize:10,color:C.slate,letterSpacing:'0.15em',textTransform:'uppercase',marginBottom:2}}>Core Holding Corp</div>
+            <div style={{fontSize:10,color:C.slate,letterSpacing:'0.15em',textTransform:'uppercase',marginBottom:2}}>CoreIdentity Development Group</div>
             <div style={{fontSize:18,fontWeight:600}}>Founders Intelligence Center</div>
           </div>
         </div>

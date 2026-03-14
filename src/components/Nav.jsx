@@ -45,7 +45,7 @@ export default function Nav({ route }) {
           {!isMobile && (
             <div>
               <div style={{ color:C.white, fontFamily:F.display, fontSize:16, letterSpacing:'0.08em' }}>COREIDENTITY</div>
-              <div style={{ color:C.slate, fontSize:9, letterSpacing:'0.15em', textTransform:'uppercase', marginTop:-2 }}>by Core Holding Corp</div>
+              <div style={{ color:C.slate, fontSize:9, letterSpacing:'0.15em', textTransform:'uppercase', marginTop:-2 }}>CoreIdentity Development Group</div>
             </div>
           )}
           {isMobile && (

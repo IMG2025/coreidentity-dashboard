@@ -18,7 +18,7 @@ function Section({ active }) {
   switch(active) {
     case 'Overview': return wrap(<>
       <H>EXECUTIVE SUMMARY</H>
-      <P>Core Holding Corp (CHC) is the enterprise AI governance layer for regulated industries. CoreIdentity governs AI agent executions in real time — policy gate, compliance scoring, audit trail, regulatory framework enforcement — deployed across healthcare, finance, legal, and retail.</P>
+      <P>CoreIdentity Development Group is the governance-first institutional platform and control layer for governed AI — combining enforceable policy control, multi-agent orchestration, scalable AI workforce deployment, and automated compliance under a single holding structure.</P>
       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14,marginBottom:32}}>
         <Card label="MRR"                  value="$295K"    sub="CoreIdentity + CIAG"        />
         <Card label="ARR"                  value="$3.54M"   sub="Current run rate"           />
@@ -232,7 +232,7 @@ export default function InvestorPage() {
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:40}}>
           <div>
             <div style={{color:C.gold,fontSize:11,letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:8}}>Confidential · Investor Data Room</div>
-            <h1 style={{fontFamily:F.display,fontSize:48,color:C.white,margin:0,letterSpacing:'0.04em'}}>CORE HOLDING CORP</h1>
+            <h1 style={{fontFamily:F.display,fontSize:48,color:C.white,margin:0,letterSpacing:'0.04em'}}>COREIDENTITY DEVELOPMENT GROUP</h1>
           </div>
           <div style={{textAlign:'right'}}>
             <div style={{color:C.slate,fontSize:11,textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:4}}>Raising</div>

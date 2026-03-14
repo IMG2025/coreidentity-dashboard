@@ -81,7 +81,7 @@ export default function PortalNav({ route, onNavigate, userEmail, onLogout, user
           />
           <div>
             <div style={{ color: C.white, fontFamily: F.display, fontSize: 13, letterSpacing: '0.08em', lineHeight: 1.1 }}>
-              CORE HOLDING CORP
+              COREIDENTITY DEVELOPMENT GROUP
             </div>
             <div style={{ color: C.gold, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', lineHeight: 1.1 }}>
               Governance Portal

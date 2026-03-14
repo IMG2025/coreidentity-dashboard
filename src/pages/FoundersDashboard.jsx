@@ -611,7 +611,7 @@ export default function FoundersDashboard() {
       {/* Header */}
       <div style={{borderBottom:'1px solid '+C.border, padding:'18px 32px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
         <div>
-          <div style={{fontSize:10, color:C.slate, letterSpacing: '0', textTransform:'uppercase', marginBottom:4}}>Core Holding Corp</div>
+          <div style={{fontSize:10, color:C.slate, letterSpacing: '0', textTransform:'uppercase', marginBottom:4}}>CoreIdentity Development Group</div>
           <div style={{fontSize:20, fontWeight:600}}>Founders Dashboard</div>
         </div>
         <div style={{display:'flex', gap:24, alignItems:'center'}}>

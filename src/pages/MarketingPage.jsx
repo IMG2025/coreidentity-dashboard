@@ -273,7 +273,7 @@ export default function MarketingPage() {
       <footer style={{ background:C.bg, borderTop:'1px solid '+C.border,
         padding: m ? '24px 16px' : '40px', textAlign:'center' }}>
         <div style={{ fontFamily:F.display, fontSize:18, color:C.gold,
-          letterSpacing:'0.1em', marginBottom:16 }}>COREIDENTITY · CORE HOLDING CORP</div>
+          letterSpacing:'0.1em', marginBottom:16 }}>COREIDENTITY · COREIDENTITY DEVELOPMENT GROUP</div>
         <div style={{ display:'flex', gap:24, justifyContent:'center',
           flexWrap:'wrap', marginBottom:16 }}>
           {[['#/demo','Demo'],['#/pricing','Pricing'],['#/docs','API'],
@@ -282,7 +282,7 @@ export default function MarketingPage() {
           ))}
         </div>
         <div style={{ color:C.slate, fontSize:11 }}>
-          © 2026 Core Holding Corp · AI Governance Infrastructure
+          © 2026 CoreIdentity Development Group · AI Governance Infrastructure
         </div>
       </footer>
     </div>
