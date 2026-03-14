@@ -42,7 +42,8 @@ app.use(cors({
     callback(new Error(`CORS policy violation: ${origin}`));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 // ── Rate limiting ────────────────────────────────────────────────────────
