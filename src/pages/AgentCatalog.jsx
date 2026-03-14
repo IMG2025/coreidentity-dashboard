@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Play, BarChart2, AlertTriangle, Star,
+import { Search, Play, BarChart2, AlertTriangle, Star, Square,
          Rocket, Database, ChevronDown } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
