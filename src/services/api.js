@@ -52,7 +52,7 @@ api.getAgentMetrics      = () => api('/api/agents/metrics');
 api.getMarketplaceAgents = () => api('/api/marketplace/agents');
 
 api.executeAgent = (agentId, taskType, payload) => api('/api/agents/execute', {
-  method: 'POST', body: JSON.stringify({ agentId, taskType, ...payload })
+  method: 'POST', body: JSON.stringify({ agentId, task: taskType, clientId: 'chc-ops', payload: payload || {} })
 }).then(r => r.data || r);
 
 api.deployAgent = (agentId) => api('/api/deployed', { method: 'POST', body: JSON.stringify({ agentId }) });
