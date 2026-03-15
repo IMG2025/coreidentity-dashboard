@@ -6,6 +6,7 @@ const Sentinel      = require('../sentinel');
 const NexusOS       = require('../nexus');
 const agentRegistry = require('../smartnation/agentRegistry');
 const { executeAgent: agoExecuteAgent } = require('../ago/agoBridge');
+const { arbitrate: salArbitrate } = require('../sal/salClient');
 
 // Executor passed to NexusOS — uses agoBridge directly
 async function agoExecutor(agentId, taskType, inputs) {
@@ -41,6 +42,31 @@ router.post('/:agentId/execute', authenticate, async function(req, res) {
     }
 
     // 3. Nexus OS execution with lifecycle management
+    // ── SAL KERNEL ARBITRATION — IIAAC Five-Dimension Evaluation ─────────
+    /* sal-integration-v1 */
+    const salResult = await salArbitrate(
+      agentObj || agent,
+      req.user,
+      taskType,
+      policyResult,
+      req
+    );
+
+    if (!salResult.allowed) {
+      const isSalEscalated = salResult.escalated === true;
+      return res.status(isSalEscalated ? 202 : 403).json({
+        error:       isSalEscalated
+                       ? 'Execution escalated for human review — SAL governance gate'
+                       : 'Execution blocked by SAL governance gate',
+        reason:      salResult.reason,
+        code:        salResult.errorCode || 'SAL_BLOCKED',
+        proof_pack_id: salResult.proofPackId,
+        sal:         { blocked: true, escalated: isSalEscalated, timestamp: new Date().toISOString() }
+      });
+    }
+    // ── END SAL GATE ───────────────────────────────────────────────────────
+
+
     const execution = await NexusOS.dispatch(
       agentId, taskType, inputs,
       { riskTier: policyResult.riskTier, decision: 'APPROVED', eventId: policyResult.eventId },

@@ -22,7 +22,21 @@ const TIERS = {
 };
 
 router.post('/intake', async (req, res) => {
-  const { firstName, lastName, email, company, title, engagement, companySize, industry, message, source } = req.body || {};
+  const {
+  /* ciag-body-fix-v1 */
+  // Ensure ECS receives all required fields explicitly
+  const { firstName, lastName, email, company, engagement, message, phone } = req.body;
+  const normalizedBody = {
+    firstName:  firstName || req.body.first_name || req.body.name?.split(' ')[0] || '',
+    lastName:   lastName  || req.body.last_name  || req.body.name?.split(' ')[1] || '',
+    email:      email     || req.body.email_address || '',
+    company:    company   || req.body.organization || req.body.companyName || '',
+    engagement: engagement || req.body.engagementType || req.body.type || 'GENERAL',
+    message:    message   || req.body.notes || req.body.description || '',
+    phone:      phone     || req.body.phoneNumber || req.body.contact || '',
+  };
+  req.body = normalizedBody;
+ firstName, lastName, email, company, title, engagement, companySize, industry, message, source } = req.body || {};
   const missing = ['firstName','lastName','email','company','engagement'].filter(f => !req.body?.[f]);
   if (missing.length) return res.status(400).json({ error: 'Missing: ' + missing.join(', ') });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Invalid email' });
