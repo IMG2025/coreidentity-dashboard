@@ -13,10 +13,11 @@ const legalPartnersClient = require('../integrations/legalPartnersClient');
 
 // Client registry — maps clientId to HTTP client
 const CLIENT_REGISTRY = {
-  bank:   { client: gcpBankClient,       name: 'First National Virtual Bank',    apiKey: 'chc-bank-dev-key-2026'   },
-  health: { client: healthNetworkClient, name: 'Cascade Regional Health Network', apiKey: 'chc-health-dev-key-2026' },
-  retail: { client: retailGroupClient,   name: 'Summit Retail Group',             apiKey: 'chc-retail-dev-key-2026' },
-  legal:  { client: legalPartnersClient, name: 'Meridian Legal Partners LLP',     apiKey: 'chc-legal-dev-key-2026'  }
+  bank:     { client: gcpBankClient,       name: 'First National Virtual Bank',     apiKey: 'chc-bank-dev-key-2026'   },
+  health:   { client: healthNetworkClient, name: 'Cascade Regional Health Network', apiKey: 'chc-health-dev-key-2026' },
+  retail:   { client: retailGroupClient,   name: 'Summit Retail Group',             apiKey: 'chc-retail-dev-key-2026' },
+  legal:    { client: legalPartnersClient, name: 'Meridian Legal Partners LLP',     apiKey: 'chc-legal-dev-key-2026'  },
+  'chc-ops':{ client: gcpBankClient,       name: 'CoreIdentity Development Group',  apiKey: 'chc-corp-dev-key-2026'   },
 };
 
 // In-memory execution log (last 1000 executions)
