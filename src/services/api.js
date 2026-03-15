@@ -55,9 +55,7 @@ api.executeAgent = (agentId, taskType, payload) => api('/api/agents/execute', {
   method: 'POST', body: JSON.stringify({ agentId, taskType, ...payload })
 }).then(r => r.data || r);
 
-api.deployAgent = (agentId) => api('/api/deployed', {
-  method: 'POST', body: '{}'
-});
+api.deployAgent = (agentId) => api('/api/deployed', { method: 'POST', body: JSON.stringify({ agentId }) });
 
 // Governance
 api.getGovernance       = () => api('/api/governance/stats').then(r => r.data || r);
