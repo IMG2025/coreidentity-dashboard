@@ -32,7 +32,7 @@ router.post('/:agentId/execute', authenticate, async function(req, res) {
       taskType
     );
 
-    if (!policyResult.approved) {
+    if (!policyResult.allowed) {
       return res.status(403).json({
         error:   'Policy violation — execution blocked by Sentinel OS',
         reason:  policyResult.reason,
