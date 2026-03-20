@@ -69,7 +69,7 @@ router.post('/:agentId/execute', authenticate, async function(req, res) {
 
     const execution = await NexusOS.dispatch(
       agentId, taskType, inputs,
-      { riskTier: policyResult.riskTier, decision: 'APPROVED', eventId: policyResult.eventId },
+      { riskTier: policyResult.tierId, decision: 'APPROVED', eventId: policyResult.eventId },
       agoExecutor
     );
 
