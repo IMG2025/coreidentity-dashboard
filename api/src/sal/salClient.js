@@ -20,7 +20,10 @@ function buildPayload(agent, user, taskType, sentinelResult, req) {
       cert_fingerprint: user ? crypto.createHash('sha256').update(user.userId||'').digest('hex').slice(0,16) : 'no-cert',
       cert_expiry: '2099-01-01T00:00:00Z'
     },
-    intent: { declared: taskType + '_v1', inferred_tool: agent ? agent.name : 'UnknownAgent' },
+    intent: {
+      declared: {'ANALYZE':'DataAnalysis_v1','EXECUTE':'DataModification_v1','STOP':'DataDeletion_v1','ESCALATE':'AuditLog_v1'}[taskType.toUpperCase()] || 'DataAnalysis_v1',
+      inferred_tool: agent ? agent.name : 'UnknownAgent'
+    },
     asset: { resource_uri: 'agent://' + verticalId + '/' + (agent ? (agent.agentId||agent.id||'unknown') : 'unknown'), normalized_id: verticalId + '.agents.' + ((agent && agent.category)||'general').toLowerCase().replace(/\s+/g,'_') },
     action: { mcp_method: 'agents/' + taskType.toLowerCase(), classification: actionMap[taskType.toUpperCase()] || 'MaskedRead' },
     context: { source_ip: (req&&req.ip)||'0.0.0.0', session_id: crypto.randomUUID(), risk_score: riskMap[(sentinelResult&&sentinelResult.riskTier)||'LOW']||0.1, system_time: new Date().toISOString() }
