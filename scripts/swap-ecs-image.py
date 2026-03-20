@@ -26,6 +26,9 @@ PERSISTENT = [
     {'name': 'CIAG_NOTIFY_EMAIL', 'value': 'tmorgan@coreidentitygroup.com'},
     {'name': 'CIAG_SENDER_EMAIL', 'value': 'tmorgan@coreidentitygroup.com'},
     {'name': 'PORTAL_URL',        'value': 'https://portal.coreidentitygroup.com'},
+    {'name': 'SAL_KERNEL_URL',    'value': 'http://sal-kernel.coreidentitygroup.com:8443'},
+    {'name': 'SAL_TIMEOUT_MS',    'value': '10000'},
+    {'name': 'SAL_DEV_MODE',      'value': 'false'},
 ]
 
 # Preserve secrets already in the task definition (JWT_SECRET, MCP_API_KEY etc)
