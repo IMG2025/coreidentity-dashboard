@@ -65,8 +65,7 @@ async function getSubmission(submissionId) {
   const result = await db.send(new ScanCommand({
     TableName: INTAKE_TABLE,
     FilterExpression: 'submissionId = :sid',
-    ExpressionAttributeValues: { ':sid': submissionId },
-    Limit: 1
+    ExpressionAttributeValues: { ':sid': submissionId }
   }));
   return (result.Items && result.Items[0]) || null;
 }
