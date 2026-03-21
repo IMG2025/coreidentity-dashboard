@@ -159,7 +159,7 @@ function detectVertical(industry, company, primaryVertical) {
     .toLowerCase();
 
   for (const [key, v] of Object.entries(VERTICALS)) {
-    if (v.aliases.some(alias => search.includes(alias))) {
+    if (v.aliases.some(alias => { const re = new RegExp('(^|[\\s,])' + alias.replace(/[.*+?^]/g, '\\$&') + '([\\s,]|$)'); return re.test(search) || search === alias; })) {
       return key;
     }
   }
