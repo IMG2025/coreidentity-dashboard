@@ -41,8 +41,7 @@ router.post('/query', async (req, res) => {
     const text = await response.text();
     let data;
     if (text.startsWith('event:')) {
-      const dataLine = text.split('
-').find(l => l.startsWith('data:'));
+      const dataLine = text.split(String.fromCharCode(10)).find(l => l.startsWith('data:'));
       data = dataLine ? JSON.parse(dataLine.slice(5).trim()) : {};
     } else {
       data = JSON.parse(text);
@@ -73,8 +72,7 @@ data: {...}
 '
     let data;
     if (text.startsWith('event:')) {
-      const dataLine = text.split('
-').find(l => l.startsWith('data:'));
+      const dataLine = text.split(String.fromCharCode(10)).find(l => l.startsWith('data:'));
       data = dataLine ? JSON.parse(dataLine.slice(5).trim()) : {};
     } else {
       data = JSON.parse(text);
