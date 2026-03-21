@@ -62,11 +62,13 @@ async function sendEmail(to, subject, body) {
 
 // ── Safe DynamoDB fetch ───────────────────────────────────────────────────────
 async function getSubmission(submissionId) {
-  const result = await db.send(new GetCommand({
+  const result = await db.send(new ScanCommand({
     TableName: INTAKE_TABLE,
-    Key: { submissionId }
+    FilterExpression: 'submissionId = :sid',
+    ExpressionAttributeValues: { ':sid': submissionId },
+    Limit: 1
   }));
-  return result.Item || null;
+  return (result.Items && result.Items[0]) || null;
 }
 
 // =============================================================================
