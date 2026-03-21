@@ -58,7 +58,19 @@ router.get('/tools', async (_req, res) => {
       },
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} })
     });
-    const data = await response.json();
+    const text = await response.text();
+    // Parse SSE format: 'event: message
+data: {...}
+
+'
+    let data;
+    if (text.startsWith('event:')) {
+      const dataLine = text.split('
+').find(l => l.startsWith('data:'));
+      data = dataLine ? JSON.parse(dataLine.slice(5).trim()) : {};
+    } else {
+      data = JSON.parse(text);
+    }
     return res.json({ tools: data?.result?.tools || [] });
   } catch (err) {
     return res.status(502).json({ error: err.message });
