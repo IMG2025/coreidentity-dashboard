@@ -621,46 +621,11 @@ router.post('/submissions/:id/scorecard', async (req, res) => {
     advisory:       { identity: 55, policy: 55, observability: 50, data: 55, validation: 45 },
   };
 
-  const dimensionScores = scores || baselineScores[submission.engagement] || baselineScores.diagnostic;
-
-  // Calculate weighted overall score
-  let overallScore = 0;
-  const dimensionDetails = {};
-  Object.entries(SCORECARD_DIMENSIONS).forEach(([key, dim]) => {
-    const score = dimensionScores[key] || 50;
-    overallScore += score * dim.weight;
-    dimensionDetails[key] = {
-      label:       dim.label,
-      score,
-      weight:      dim.weight,
-      description: dim.description,
-      grade:       score >= 80 ? 'A' : score >= 65 ? 'B' : score >= 50 ? 'C' : 'D',
-      status:      score >= 70 ? 'Compliant' : score >= 50 ? 'Partial' : 'Non-Compliant',
-    };
-  });
-
-  overallScore = Math.round(overallScore);
-
-  // Generate gap analysis and recommendations
-  const gaps = [];
-  const recommendations = [];
-
-  Object.entries(dimensionDetails).forEach(([key, d]) => {
-    if (d.score < 70) {
-      gaps.push(`${d.label} (${d.score}/100 — ${d.status})`);
-    }
-    if (d.score < 50) {
-      recommendations.push(`CRITICAL: Remediate ${d.label} before platform deployment`);
-    } else if (d.score < 70) {
-      recommendations.push(`Strengthen ${d.label} — target 80+ for enterprise readiness`);
-    }
-  });
-
-  // Certification tier
-  const certTier = overallScore >= 85 ? 'Platinum' :
-                   overallScore >= 70 ? 'Gold' :
-                   overallScore >= 55 ? 'Silver' : 'Foundation';
-
+  const scorecardResult = calculateScorecard(submission, scores);
+  const { overallScore, certTier, dimensions: dimensionDetails,
+          gaps, recommendations, riskFlags: scorecardRiskFlags,
+          verticalKey, verticalLabel, frameworks, baaRequired,
+          verticalNotes, recommendedEngagement, recommendedEngagementLabel } = scorecardResult;
   const scorecardId  = uuidv4();
   const generatedAt  = new Date().toISOString();
 
