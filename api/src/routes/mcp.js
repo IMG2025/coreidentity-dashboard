@@ -38,7 +38,15 @@ router.post('/query', async (req, res) => {
       body: payload
     });
 
-    const data = await response.json();
+    const text = await response.text();
+    let data;
+    if (text.startsWith('event:')) {
+      const dataLine = text.split('
+').find(l => l.startsWith('data:'));
+      data = dataLine ? JSON.parse(dataLine.slice(5).trim()) : {};
+    } else {
+      data = JSON.parse(text);
+    }
     if (data.error) return res.status(400).json({ error: data.error.message });
     return res.json(data.result || {});
   } catch (err) {
