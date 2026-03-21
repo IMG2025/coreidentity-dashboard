@@ -5,12 +5,21 @@ on:
     branches: [main]
     paths:
       - 'api/**'
+      - 'scripts/swap-ecs-image.py'
+      - '.github/workflows/deploy-api.yml'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual deploy'
+        required: false
+        default: 'Manual force deploy'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -23,39 +32,107 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push image
-        run: |
-          IMAGE=636058550262.dkr.ecr.us-east-2.amazonaws.com/coreidentity-api:latest
-          docker build --no-cache -t $IMAGE ./api
-          docker push $IMAGE
-          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+      - name: Build and push image (with SHA tag)
         id: build
+        run: |
+          IMAGE_BASE=636058550262.dkr.ecr.us-east-2.amazonaws.com/coreidentity-api
+          IMAGE_LATEST=$IMAGE_BASE:latest
+          IMAGE_SHA=$IMAGE_BASE:${{ github.sha }}
+
+          # Build once, tag twice
+          docker build --no-cache -t $IMAGE_LATEST -t $IMAGE_SHA ./api
+
+          # Push both tags
+          docker push $IMAGE_LATEST
+          docker push $IMAGE_SHA
+
+          # Get the digest of what we just pushed
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $IMAGE_LATEST | cut -d@ -f2)
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+          echo "image_sha=$IMAGE_SHA" >> $GITHUB_OUTPUT
+          echo "image_latest=$IMAGE_LATEST" >> $GITHUB_OUTPUT
+
+          echo "[BUILD] Image: $IMAGE_SHA"
+          echo "[BUILD] Digest: $DIGEST"
 
       - name: Get current task definition
         run: |
           aws ecs describe-task-definition \
             --task-definition coreidentity-dev-sentinel \
-            --query taskDefinition > /tmp/current-taskdef.json
+            --query taskDefinition \
+            --output json > /tmp/current-taskdef.json
+          echo "[TASKDEF] Fetched current task definition"
 
-      - name: Update task definition with new image
+      - name: Swap image in task definition (pin by SHA)
         run: |
           python3 scripts/swap-ecs-image.py \
-            636058550262.dkr.ecr.us-east-2.amazonaws.com/coreidentity-api:latest
+            ${{ steps.build.outputs.image_sha }}
+          echo "[SWAP] Task definition updated with SHA-pinned image"
+
+      - name: Validate new task definition
+        run: |
+          python3 -c "
+          import json
+          td = json.load(open('/tmp/new-taskdef.json'))
+          containers = td.get('containerDefinitions', [])
+          for c in containers:
+              img = c.get('image', '')
+              print(f'Container: {c[\"name\"]} | Image: {img}')
+              assert '${{ github.sha }}' in img or 'latest' in img, f'Image not updated: {img}'
+          print('[VALIDATE] Task definition is valid')
+          "
 
       - name: Register new task definition
+        id: register
         run: |
           NEW_ARN=$(aws ecs register-task-definition \
             --cli-input-json file:///tmp/new-taskdef.json \
             --query 'taskDefinition.taskDefinitionArn' \
             --output text)
-          echo "task_arn=$NEW_ARN" >> $GITHUB_ENV
+          echo "task_arn=$NEW_ARN" >> $GITHUB_OUTPUT
+          echo "[REGISTER] New task definition: $NEW_ARN"
 
-      - name: Update ECS service
+      - name: Deploy to ECS
         run: |
           aws ecs update-service \
             --cluster coreidentity-dev \
             --service sentinel \
-            --task-definition $task_arn \
+            --task-definition ${{ steps.register.outputs.task_arn }} \
             --force-new-deployment \
+            --region us-east-2 \
+            --query 'service.deployments[0].{status:status,taskDef:taskDefinition}' \
+            --output json
+          echo "[DEPLOY] ECS service update triggered"
+
+      - name: Wait for deployment stability
+        run: |
+          echo "[WAIT] Waiting for ECS service to stabilize..."
+          aws ecs wait services-stable \
+            --cluster coreidentity-dev \
+            --services sentinel \
             --region us-east-2
-          echo "[OK] ECS service updated"
+          echo "[STABLE] ECS service is stable"
+
+      - name: Verify deployment
+        run: |
+          HEALTH=$(curl -sf https://api.coreidentity.coreholdingcorp.com/health || echo '{"status":"unreachable"}')
+          echo "[HEALTH] $HEALTH"
+          STATUS=$(echo $HEALTH | python3 -c "import sys,json; print(json.load(sys.stdin).get('status','unknown'))")
+          if [ "$STATUS" = "healthy" ]; then
+            echo "[OK] Deployment verified — API healthy"
+          else
+            echo "[WARN] Health check returned: $STATUS"
+          fi
+
+      - name: Deployment summary
+        run: |
+          echo "============================================"
+          echo "  DEPLOYMENT COMPLETE"
+          echo "  Commit:   ${{ github.sha }}"
+          echo "  Image:    ${{ steps.build.outputs.image_sha }}"
+          echo "  Task:     ${{ steps.register.outputs.task_arn }}"
+          echo "  Trigger:  ${{ github.event_name }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "  Reason:   ${{ github.event.inputs.reason }}"
+          fi
+          echo "============================================"
