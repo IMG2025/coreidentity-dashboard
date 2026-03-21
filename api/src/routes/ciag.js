@@ -35,14 +35,284 @@ const TIERS = {
   advisory:       { label: 'Ongoing Advisory',          duration: 'Monthly',  range: '$25K-$100K/mo', description: 'Retained advisory with monthly governance review cadence.' },
 };
 
-// ── Scorecard dimensions (CoreIdentity Certified Governance Scorecard™) ──────
-const SCORECARD_DIMENSIONS = {
-  identity:       { label: 'Identity & Agent Registry',    weight: 0.20, description: 'Agent credentialing, role assignment, and registry completeness' },
-  policy:         { label: 'Policy Enforcement',           weight: 0.25, description: 'Real-time policy gate coverage, fail-closed enforcement rate' },
-  observability:  { label: 'Observability & Audit Trail',  weight: 0.20, description: 'Execution logging completeness, audit artifact generation' },
-  data:           { label: 'Data Governance',              weight: 0.20, description: 'PII handling, data classification, retention compliance' },
-  validation:     { label: 'Validation & Testing',         weight: 0.15, description: 'Governance test coverage, drift detection, soak testing' },
+/* ciag-vertical-v1 */
+// =============================================================================
+// VERTICAL ENGINE — CoreIdentity Certified Governance Scorecard™
+// 7 verticals, vertical-specific dimension weights + regulatory baselines
+// =============================================================================
+
+const VERTICALS = {
+  healthcare: {
+    label:       'Healthcare',
+    aliases:     ['healthcare', 'health', 'medical', 'pharma', 'biotech', 'hospital', 'cvs', 'health system'],
+    frameworks:  ['HIPAA', 'SOC2', 'HITRUST', 'FDA 21 CFR Part 11', 'NIST AI RMF'],
+    baaRequired: true,
+    weights: { identity: 0.25, policy: 0.25, observability: 0.20, data: 0.25, validation: 0.05 },
+    baseline: { identity: 35, policy: 40, observability: 30, data: 35, validation: 25 },
+    riskFlags: [
+      { condition: (s) => s.regulatoryFrameworks?.includes('HIPAA'), flag: 'HIPAA scope — BAA required before PHI agent deployment (90-day remediation, $40K-$75K)' },
+      { condition: (s) => (s.agentCount || 0) > 10000, flag: 'Large agent fleet — phased deployment required, tier escalation recommended' },
+      { condition: (s) => !s.regulatoryFrameworks?.length, flag: 'No regulatory frameworks specified — compliance mapping required in diagnostic phase' },
+    ],
+    recommendedEngagement: (score) => score >= 70 ? 'transformation' : score >= 45 ? 'deployment' : 'diagnostic',
+    notes: 'PHI agent governance requires BAA execution before platform deployment. HIPAA Security Rule mapping included in all engagement tiers.',
+  },
+
+  financial_services: {
+    label:       'Financial Services',
+    aliases:     ['financial', 'finance', 'banking', 'bank', 'insurance', 'wealth', 'investment', 'fintech', 'bfsi'],
+    frameworks:  ['GLBA', 'PCI-DSS', 'SOX', 'DORA', 'NIST AI RMF', 'SR 11-7'],
+    baaRequired: false,
+    weights: { identity: 0.20, policy: 0.30, observability: 0.20, data: 0.20, validation: 0.10 },
+    baseline: { identity: 50, policy: 45, observability: 40, data: 45, validation: 35 },
+    riskFlags: [
+      { condition: (s) => s.regulatoryFrameworks?.includes('SOX'), flag: 'SOX scope — model risk governance documentation required' },
+      { condition: (s) => s.regulatoryFrameworks?.includes('DORA'), flag: 'DORA scope — ICT risk management framework mapping required' },
+      { condition: (s) => (s.agentCount || 0) > 5000, flag: 'High agent count in regulated environment — SR 11-7 model risk management applies' },
+    ],
+    recommendedEngagement: (score) => score >= 75 ? 'transformation' : score >= 50 ? 'deployment' : 'diagnostic',
+    notes: 'Model risk governance (SR 11-7) applies to AI agents in decision-making roles. Policy enforcement layer is the primary risk mitigation.',
+  },
+
+  legal: {
+    label:       'Legal',
+    aliases:     ['legal', 'law', 'attorney', 'counsel', 'litigation', 'compliance', 'regulatory'],
+    frameworks:  ['ABA Model Rules', 'CCPA', 'GDPR', 'State Bar Requirements', 'NIST AI RMF'],
+    baaRequired: false,
+    weights: { identity: 0.20, policy: 0.25, observability: 0.25, data: 0.20, validation: 0.10 },
+    baseline: { identity: 40, policy: 45, observability: 35, data: 40, validation: 30 },
+    riskFlags: [
+      { condition: (s) => !s.regulatoryFrameworks?.length, flag: 'Attorney-client privilege implications — data governance framework mapping required' },
+      { condition: (s) => (s.agentCount || 0) > 500, flag: 'Large agent deployment — ABA competence rule (1.1) review recommended' },
+    ],
+    recommendedEngagement: (score) => score >= 65 ? 'deployment' : 'diagnostic',
+    notes: 'Attorney-client privilege and confidentiality obligations require robust observability and audit trail. ABA Model Rule 1.1 competence applies to AI tool adoption.',
+  },
+
+  hospitality: {
+    label:       'Hospitality',
+    aliases:     ['hospitality', 'hotel', 'restaurant', 'travel', 'tourism', 'food service', 'lodging'],
+    frameworks:  ['PCI-DSS', 'CCPA', 'GDPR', 'State Privacy Laws'],
+    baaRequired: false,
+    weights: { identity: 0.15, policy: 0.20, observability: 0.20, data: 0.25, validation: 0.20 },
+    baseline: { identity: 45, policy: 40, observability: 35, data: 40, validation: 35 },
+    riskFlags: [
+      { condition: (s) => s.regulatoryFrameworks?.includes('PCI-DSS'), flag: 'PCI-DSS scope — payment agent governance and cardholder data protection required' },
+      { condition: (s) => (s.agentCount || 0) > 1000, flag: 'Customer-facing agent fleet — brand risk and customer experience governance recommended' },
+    ],
+    recommendedEngagement: (score) => score >= 60 ? 'deployment' : 'diagnostic',
+    notes: 'Customer data handling and pricing algorithm transparency are primary governance vectors. Fastest procurement cycle — design partner candidate.',
+  },
+
+  retail: {
+    label:       'Retail',
+    aliases:     ['retail', 'ecommerce', 'e-commerce', 'commerce', 'consumer', 'cpg', 'merchandise'],
+    frameworks:  ['PCI-DSS', 'CCPA', 'GDPR', 'FTC Act', 'State Privacy Laws'],
+    baaRequired: false,
+    weights: { identity: 0.15, policy: 0.20, observability: 0.20, data: 0.30, validation: 0.15 },
+    baseline: { identity: 45, policy: 40, observability: 35, data: 45, validation: 35 },
+    riskFlags: [
+      { condition: (s) => s.regulatoryFrameworks?.includes('PCI-DSS'), flag: 'PCI-DSS scope — payment processing agents require cardholder data environment isolation' },
+      { condition: (s) => s.regulatoryFrameworks?.includes('CCPA'), flag: 'CCPA scope — consumer data agent governance and opt-out mechanisms required' },
+    ],
+    recommendedEngagement: (score) => score >= 60 ? 'deployment' : 'diagnostic',
+    notes: 'Consumer data protection and pricing algorithm fairness are primary governance vectors. Data governance dimension is weighted highest.',
+  },
+
+  manufacturing: {
+    label:       'Manufacturing',
+    aliases:     ['manufacturing', 'industrial', 'factory', 'production', 'supply chain', 'logistics', 'automotive', 'aerospace'],
+    frameworks:  ['ISO 9001', 'OSHA', 'FDA 21 CFR Part 11', 'ITAR', 'NIST AI RMF'],
+    baaRequired: false,
+    weights: { identity: 0.20, policy: 0.25, observability: 0.20, data: 0.20, validation: 0.15 },
+    baseline: { identity: 40, policy: 35, observability: 30, data: 35, validation: 30 },
+    riskFlags: [
+      { condition: (s) => s.regulatoryFrameworks?.includes('ITAR'), flag: 'ITAR scope — export control compliance required for AI agent deployment' },
+      { condition: (s) => s.regulatoryFrameworks?.includes('FDA 21 CFR Part 11'), flag: 'FDA 21 CFR Part 11 — electronic records validation required for process agents' },
+      { condition: (s) => (s.agentCount || 0) > 500, flag: 'Autonomous process agents — safety-critical governance layer required' },
+    ],
+    recommendedEngagement: (score) => score >= 65 ? 'deployment' : 'diagnostic',
+    notes: 'Safety-critical autonomous process agents require deterministic policy enforcement. ISO 9001 quality management framework integration available.',
+  },
+
+  enterprise_bfsi: {
+    label:       'Enterprise / BFSI',
+    aliases:     ['enterprise', 'conglomerate', 'holding', 'bfsi', 'diversified', 'corporate'],
+    frameworks:  ['SOX', 'Basel III', 'DORA', 'ISO 27001', 'NIST AI RMF', 'SEC AI Guidance'],
+    baaRequired: false,
+    weights: { identity: 0.20, policy: 0.25, observability: 0.20, data: 0.20, validation: 0.15 },
+    baseline: { identity: 50, policy: 50, observability: 45, data: 45, validation: 40 },
+    riskFlags: [
+      { condition: (s) => s.regulatoryFrameworks?.includes('SOX'), flag: 'SOX scope — AI agent audit trail and financial reporting governance required' },
+      { condition: (s) => (s.agentCount || 0) > 50000, flag: 'Enterprise-scale fleet — multi-vertical governance framework and phased rollout required' },
+    ],
+    recommendedEngagement: (score) => score >= 75 ? 'transformation' : score >= 55 ? 'deployment' : 'diagnostic',
+    notes: 'Multi-vertical governance framework with enterprise-grade audit trail. Transformation engagement recommended for fleets >50K agents.',
+  },
 };
+
+// Detect vertical from industry string or company context
+function detectVertical(industry, company, primaryVertical) {
+  const search = [industry, company, primaryVertical]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  for (const [key, v] of Object.entries(VERTICALS)) {
+    if (v.aliases.some(alias => search.includes(alias))) {
+      return key;
+    }
+  }
+  return 'enterprise_bfsi'; // safe default
+}
+
+// Calculate vertical-aware scorecard
+function calculateScorecard(submission, manualScores = null) {
+  const verticalKey = detectVertical(
+    submission.industry,
+    submission.company,
+    submission.primaryVertical
+  );
+  const vertical = VERTICALS[verticalKey];
+
+  // Use manual scores or generate baseline from vertical + engagement
+  const engagementMultipliers = {
+    diagnostic:     1.0,
+    deployment:     1.15,
+    transformation: 1.30,
+    advisory:       1.10,
+  };
+  const mult = engagementMultipliers[submission.engagement] || 1.0;
+
+  const dimensionScores = {};
+  Object.keys(vertical.baseline).forEach(dim => {
+    dimensionScores[dim] = manualScores?.[dim] ||
+      Math.min(95, Math.round(vertical.baseline[dim] * mult));
+  });
+
+  // Calculate weighted overall score using vertical weights
+  let overallScore = 0;
+  const dimensionDetails = {};
+  const SCORECARD_DIMENSIONS_META = {
+    identity:       { label: 'Identity & Agent Registry',    description: 'Agent credentialing, role assignment, and registry completeness' },
+    policy:         { label: 'Policy Enforcement',           description: 'Real-time policy gate coverage, fail-closed enforcement rate' },
+    observability:  { label: 'Observability & Audit Trail',  description: 'Execution logging completeness, audit artifact generation' },
+    data:           { label: 'Data Governance',              description: 'PII handling, data classification, retention compliance' },
+    validation:     { label: 'Validation & Testing',         description: 'Governance test coverage, drift detection, soak testing' },
+  };
+
+  Object.entries(vertical.weights).forEach(([dim, weight]) => {
+    const score = dimensionScores[dim] || 50;
+    overallScore += score * weight;
+    dimensionDetails[dim] = {
+      label:       SCORECARD_DIMENSIONS_META[dim].label,
+      score,
+      weight,
+      weightPct:   Math.round(weight * 100),
+      description: SCORECARD_DIMENSIONS_META[dim].description,
+      grade:       score >= 80 ? 'A' : score >= 65 ? 'B' : score >= 50 ? 'C' : 'D',
+      status:      score >= 70 ? 'Compliant' : score >= 50 ? 'Partial' : 'Non-Compliant',
+    };
+  });
+
+  overallScore = Math.round(overallScore);
+
+  // Risk flags from vertical engine
+  const riskFlags = vertical.riskFlags
+    .filter(rf => rf.condition(submission))
+    .map(rf => rf.flag);
+
+  // Gap analysis
+  const gaps = Object.entries(dimensionDetails)
+    .filter(([, d]) => d.score < 70)
+    .map(([, d]) => `${d.label} (${d.score}/100 — ${d.status})`);
+
+  // Recommendations
+  const recommendations = [];
+  Object.entries(dimensionDetails).forEach(([, d]) => {
+    if (d.score < 50) recommendations.push(`CRITICAL: Remediate ${d.label} before platform deployment`);
+    else if (d.score < 70) recommendations.push(`Strengthen ${d.label} — target 80+ for enterprise readiness`);
+  });
+  if (vertical.baaRequired) {
+    recommendations.unshift('Execute BAA before any PHI-scoped agent deployment');
+  }
+
+  const certTier = overallScore >= 85 ? 'Platinum' :
+                   overallScore >= 70 ? 'Gold' :
+                   overallScore >= 55 ? 'Silver' : 'Foundation';
+
+  const recommendedEngagement = vertical.recommendedEngagement(overallScore);
+
+  return {
+    verticalKey,
+    verticalLabel:         vertical.label,
+    frameworks:            vertical.frameworks,
+    baaRequired:           vertical.baaRequired,
+    overallScore,
+    certTier,
+    dimensions:            dimensionDetails,
+    gaps,
+    recommendations,
+    riskFlags,
+    verticalNotes:         vertical.notes,
+    recommendedEngagement,
+    recommendedEngagementLabel: TIERS[recommendedEngagement]?.label || recommendedEngagement,
+  };
+}
+
+// Vertical-aware pre-qualification score
+function calculatePrequalScore(submission) {
+  const verticalKey = detectVertical(
+    submission.industry,
+    submission.company,
+    submission.primaryVertical
+  );
+  const vertical = VERTICALS[verticalKey];
+
+  let score = 40; // base
+
+  // Agent count signal
+  const agents = submission.agentCount || 0;
+  if (agents > 50000) score += 25;
+  else if (agents > 10000) score += 20;
+  else if (agents > 1000) score += 12;
+  else if (agents > 100) score += 6;
+
+  // Regulatory complexity signal
+  const frameworks = submission.regulatoryFrameworks || [];
+  score += Math.min(20, frameworks.length * 5);
+
+  // Engagement ambition signal
+  if (submission.engagement === 'transformation') score += 15;
+  else if (submission.engagement === 'deployment') score += 8;
+  else if (submission.engagement === 'advisory') score += 5;
+
+  // Vertical premium
+  const premiumVerticals = ['healthcare', 'financial_services', 'enterprise_bfsi'];
+  if (premiumVerticals.includes(verticalKey)) score += 10;
+
+  score = Math.min(95, Math.max(25, score));
+
+  const riskFlags = vertical.riskFlags
+    .filter(rf => rf.condition(submission))
+    .map(rf => rf.flag);
+
+  return {
+    qualificationScore:       score,
+    verticalKey,
+    verticalLabel:            vertical.label,
+    recommendedTier:          vertical.recommendedEngagement(50), // baseline
+    recommendedTierLabel:     TIERS[vertical.recommendedEngagement(50)]?.label,
+    riskFlags,
+    baaRequired:              vertical.baaRequired,
+    frameworks:               vertical.frameworks,
+    verticalNotes:            vertical.notes,
+  };
+}
+
+
+
+// Scorecard dimensions now handled by VERTICALS engine (ciag-vertical-v1)
 
 // ── Email helper ─────────────────────────────────────────────────────────────
 async function sendEmail(to, subject, body) {
@@ -396,19 +666,27 @@ router.post('/submissions/:id/scorecard', async (req, res) => {
 
   const scorecard = {
     scorecardId,
-    submissionId: req.params.id,
-    company:      submission.company,
-    engagement:   submission.engagement,
+    submissionId:              req.params.id,
+    company:                   submission.company,
+    engagement:                submission.engagement,
     generatedAt,
-    generatedBy:  req.user?.email || 'system',
+    generatedBy:               req.user?.email || 'system',
     overallScore,
     certTier,
-    dimensions:   dimensionDetails,
+    dimensions:                dimensionDetails,
     gaps,
     recommendations,
+    riskFlags:                 scorecardRiskFlags || [],
     assessorNotes,
-    framework:    'CoreIdentity Certified Governance Scorecard™ v1.0',
-    nextReview:   new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    verticalKey:               verticalKey || 'enterprise_bfsi',
+    verticalLabel:             verticalLabel || 'Enterprise / BFSI',
+    regulatoryFrameworks:      frameworks || [],
+    baaRequired:               baaRequired || false,
+    verticalNotes:             verticalNotes || '',
+    recommendedEngagement,
+    recommendedEngagementLabel,
+    framework:                 'CoreIdentity Certified Governance Scorecard™ v1.0',
+    nextReview:                new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   };
 
   await db.send(new PutCommand({ TableName: SCORECARD_TABLE, Item: scorecard }));
@@ -449,13 +727,14 @@ router.post('/submissions/:id/prequalify', async (req, res) => {
 
   const now = new Date().toISOString();
 
-  // Dispatch to AGO execution engine (ciag-ago-1 executor)
-  // Uses the ANALYZE task type to generate a pre-qualification signal
+  // Vertical-aware pre-qualification baseline
+  const prequalBaseline = calculatePrequalScore(submission);
   let agoResult = null;
-  let qualificationScore = null;
-  let recommendedTier = submission.engagement;
-  let riskFlags = [];
+  let qualificationScore = prequalBaseline.qualificationScore;
+  let recommendedTier = prequalBaseline.recommendedTier;
+  let riskFlags = prequalBaseline.riskFlags;
 
+  // Attempt AGO execution for enriched signal
   try {
     const authResp = await fetch(`${ECS_API}/api/auth/login`, {
       method: 'POST',
@@ -530,14 +809,19 @@ router.post('/submissions/:id/prequalify', async (req, res) => {
   }
 
   const prequalResult = {
-    prequalifiedAt: now,
+    prequalifiedAt:           now,
     qualificationScore,
     recommendedTier,
-    recommendedTierLabel: TIERS[recommendedTier]?.label,
+    recommendedTierLabel:     TIERS[recommendedTier]?.label,
     riskFlags,
-    agoExecuted: !!agoResult?.success,
-    agoExecutionId: agoResult?.executionId || null,
-    salProofPackId: agoResult?.sal?.proof_pack_id || null,
+    verticalKey:              prequalBaseline.verticalKey,
+    verticalLabel:            prequalBaseline.verticalLabel,
+    regulatoryFrameworks:     prequalBaseline.frameworks,
+    baaRequired:              prequalBaseline.baaRequired,
+    verticalNotes:            prequalBaseline.verticalNotes,
+    agoExecuted:              !!agoResult?.success,
+    agoExecutionId:           agoResult?.executionId || null,
+    salProofPackId:           agoResult?.sal?.proof_pack_id || null,
   };
 
   // Update submission
@@ -614,6 +898,22 @@ router.get('/pipeline', async (req, res) => {
     success: true,
     data: { pipeline, totalPipeline, totalSubmissions: items.length, recentActivity }
   });
+});
+
+
+// =============================================================================
+// GET /api/ciag/verticals — list all supported verticals + frameworks
+// =============================================================================
+router.get('/verticals', async (req, res) => {
+  const verticalList = Object.entries(VERTICALS).map(([key, v]) => ({
+    key,
+    label:        v.label,
+    frameworks:   v.frameworks,
+    baaRequired:  v.baaRequired,
+    weights:      v.weights,
+    notes:        v.notes,
+  }));
+  return res.json({ success: true, verticals: verticalList, count: verticalList.length });
 });
 
 module.exports = router;
