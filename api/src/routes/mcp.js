@@ -66,10 +66,6 @@ router.get('/tools', async (_req, res) => {
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} })
     });
     const text = await response.text();
-    // Parse SSE format: 'event: message
-data: {...}
-
-'
     let data;
     if (text.startsWith('event:')) {
       const dataLine = text.split(String.fromCharCode(10)).find(l => l.startsWith('data:'));
