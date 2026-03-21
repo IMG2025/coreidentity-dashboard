@@ -48,6 +48,8 @@ app.use(cors({
 }));
 
 // ── Rate limiting ────────────────────────────────────────────────────────
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 app.use('/api/billing', authenticate, require('./routes/billing'));
 app.use('/api/clients', authenticate, require('./routes/clients'));
 app.use('/api/ciag', authenticate, require('./routes/ciag'));
@@ -67,8 +69,6 @@ app.use('/api', rateLimit({
 }));
 
 // ── Parsing & logging ────────────────────────────────────────────────────
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
 // ── Health check (public) ────────────────────────────────────────────────
