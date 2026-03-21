@@ -261,7 +261,7 @@ router.patch('/submissions/:id/status', async (req, res) => {
 
   await db.send(new UpdateCommand({
     TableName: INTAKE_TABLE,
-    Key: { submissionId: req.params.id },
+    Key: { submissionId: req.params.id, submittedAt: submission.submittedAt },
     UpdateExpression: 'SET #status = :status, lastActivity = :now',
     ExpressionAttributeNames: { '#status': 'status' },
     ExpressionAttributeValues: { ':status': status, ':now': now }
@@ -322,7 +322,7 @@ router.post('/submissions/:id/notes', async (req, res) => {
   // Update lastActivity on parent record
   await db.send(new UpdateCommand({
     TableName: INTAKE_TABLE,
-    Key: { submissionId: req.params.id },
+    Key: { submissionId: req.params.id, submittedAt: submission.submittedAt },
     UpdateExpression: 'SET lastActivity = :now',
     ExpressionAttributeValues: { ':now': now }
   }));
@@ -416,7 +416,7 @@ router.post('/submissions/:id/scorecard', async (req, res) => {
   // Link scorecard to submission
   await db.send(new UpdateCommand({
     TableName: INTAKE_TABLE,
-    Key: { submissionId: req.params.id },
+    Key: { submissionId: req.params.id, submittedAt: submission.submittedAt },
     UpdateExpression: 'SET scorecardId = :sid, lastActivity = :now',
     ExpressionAttributeValues: { ':sid': scorecardId, ':now': generatedAt }
   }));
@@ -543,7 +543,7 @@ router.post('/submissions/:id/prequalify', async (req, res) => {
   // Update submission
   await db.send(new UpdateCommand({
     TableName: INTAKE_TABLE,
-    Key: { submissionId: req.params.id },
+    Key: { submissionId: req.params.id, submittedAt: submission.submittedAt },
     UpdateExpression: 'SET prequalified = :pq, prequalResult = :pqr, lastActivity = :now',
     ExpressionAttributeValues: {
       ':pq':  true,
