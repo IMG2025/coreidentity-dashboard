@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 
 // TODO: migrate to api.coreidentitygroup.com after DNS cutover
-const API_BASE = import.meta.env.VITE_API_URL || 'https://api.coreidentity.coreholdingcorp.com';
+// DNS cutover complete — api.coreidentitygroup.com live with TLS
+const API_BASE = import.meta.env.VITE_API_URL || 'https://api.coreidentitygroup.com';
 
 export function useApi() {
   const call = useCallback(async (path, method = 'GET', body = null) => {
