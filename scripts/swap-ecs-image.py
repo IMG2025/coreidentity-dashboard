@@ -29,6 +29,8 @@ PERSISTENT = [
     {'name': 'SAL_KERNEL_URL',    'value': 'http://sal-kernel.coreidentitygroup.com:8443'},
     {'name': 'SAL_TIMEOUT_MS',    'value': '10000'},
     {'name': 'SAL_DEV_MODE',      'value': 'false'},
+    {'name': 'COREIDENTITY_API_EMAIL',    'value': 'tmorgan@coreidentitygroup.com'},
+    {'name': 'COREIDENTITY_API_PASSWORD', 'value': 'CoreIdentity2026!'},
     {'name': 'MCP_SERVER_URL',    'value': 'https://chc-mcp-server-lvuq2yqbma-ue.a.run.app'},
     {'name': 'MCP_API_KEY',       'value': 'ci-mcp-0fd7c746897385efff1aac560d0157d9'},
 ]
