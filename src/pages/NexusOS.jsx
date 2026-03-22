@@ -53,7 +53,8 @@ export default function NexusOS() {
       .catch(function(e) { console.warn('Nexus executions:', e.message); });
   }
 
-  const stats = status ? status.execution_stats : null;
+  const stats = status ? (status.execution_stats || status.data?.execution_stats || {}) : {};
+  const safeNum = (v) => (v !== undefined && v !== null && !isNaN(v)) ? Number(v).toLocaleString() : '0';
 
   return (
     <div className='max-w-6xl mx-auto px-4 py-6'>

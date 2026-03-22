@@ -3,7 +3,7 @@ import { Cpu, Zap, CheckCircle, AlertCircle, Loader, ChevronRight } from 'lucide
 import { useMCP } from '../hooks/useMCP';
 
 const PRESET_QUERIES = [
-  { label: 'Governance posture',  tool: 'agents_summary', args: {},                              description: 'Overall posture across all 108 agents' },
+  { label: 'Governance posture',  tool: 'agents_summary', args: {},                              description: 'Overall posture across all 10,000 agents' },
   { label: 'TIER_1 agents',       tool: 'agents_list',    args: { risk_tier: 'TIER_1', limit: 5 }, description: 'Highest risk agents requiring closest oversight' },
   { label: 'Scores below 70',     tool: 'agents_list',    args: { max_score: 70, limit: 5 },     description: 'Agents requiring governance remediation' },
   { label: 'Active compliance',   tool: 'agents_list',    args: { category: 'Compliance', status: 'active' }, description: 'Live compliance agents in production' },

@@ -4,7 +4,7 @@ import { BarChart3, TrendingUp, Users, Activity, Shield, Zap, Clock, CheckCircle
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-const API_URL = 'https://api.coreidentity.coreidentitygroup.com';
+const API_URL = 'https://api.coreidentitygroup.com';
 
 function StatCard({ icon: Icon, label, value, sub, color }) {
   const colors = {
@@ -19,7 +19,7 @@ function StatCard({ icon: Icon, label, value, sub, color }) {
       <div className={'h-9 w-9 rounded-lg flex items-center justify-center ' + (colors[color] || colors.blue)}>
         <Icon className="h-5 w-5" />
       </div>
-      <p className="text-2xl font-bold text-gray-900">{value ?? '—'}</p>
+      <p className="text-2xl font-bold text-gray-900">{value !== undefined && value !== null ? value : '—'}</p>
       <p className="text-sm font-medium text-gray-700">{label}</p>
       {sub && <p className="text-xs text-gray-400">{sub}</p>}
     </div>
@@ -56,7 +56,21 @@ export default function Analytics() {
         credentials: 'include', headers: { Authorization: 'Bearer ' + token }
       });
       const json = await res.json();
-      setData({ ...json, metrics: json?.company?.consolidated, clients: json?.ciag?.retainers, agents: json?.agents?.data });
+      // Normalize response — handle both direct and nested shapes
+      const normalized = {
+        ...json,
+        totalAgents:      json?.agents?.total        || json?.totalAgents        || 0,
+        activeAgents:     json?.agents?.active        || json?.activeAgents       || 0,
+        totalDeployments: json?.deployments?.total    || json?.totalDeployments   || 0,
+        activeDeployments:json?.deployments?.active   || json?.activeDeployments  || 0,
+        totalExecutions:  json?.executions?.total     || json?.totalExecutions    || 0,
+        successRate:      json?.executions?.successRate || json?.successRate      || 0,
+        avgGovernanceScore: json?.agents?.avgScore    || json?.avgGovernanceScore || 0,
+        byTier:           json?.agents?.byTier        || json?.byTier            || {},
+        byCategory:       json?.executions?.byType    || json?.byCategory        || {},
+        byDate:           json?.executions?.byDate    || json?.byDate            || [],
+      };
+      setData(normalized);
     } catch(e) {
       setError(e.message);
     } finally {

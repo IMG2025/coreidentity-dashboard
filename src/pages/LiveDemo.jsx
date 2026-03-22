@@ -106,7 +106,7 @@ export default function LiveDemo() {
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6 min-h-48">
         {step === 1 && (
           <div>
-            <p className="text-gray-400 text-sm mb-4">Pulls first active agent from SmartNation AI registry — 108 agents across 12 verticals.</p>
+            <p className="text-gray-400 text-sm mb-4">Pulls first active agent from SmartNation AI registry — 10,000 agents across 8 verticals.</p>
             <button onClick={step1} disabled={loading || !ready}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors">
               {loading ? <Loader size={16} className="animate-spin" /> : <Play size={16} />}

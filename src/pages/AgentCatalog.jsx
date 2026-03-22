@@ -7,15 +7,19 @@ import { useNotifications } from '../App';
 /* patch-32 */
 const agentId = (a) => a.agentId || a.id || String(a.agentId || a.id || '');
 
-const CATEGORIES = ['all','Data Analysis','Document Processing','Communication',
-  'Research','Compliance','Integration','Marketing','Customer Service'];
+const CATEGORIES = [
+  'all',
+  'Healthcare',
+  'Financial Services',
+  'Legal',
+  'Hospitality',
+  'Retail',
+  'Manufacturing',
+  'Logistics',
+  'Enterprise / BFSI',
+];
 
-const TIER_MAP = {
-  'Customer Service': 'TIER_1', 'Research': 'TIER_1',
-  'Communication': 'TIER_2',   'Data Analysis': 'TIER_2',
-  'Document Processing': 'TIER_2', 'Marketing': 'TIER_2',
-  'Integration': 'TIER_3',    'Compliance': 'TIER_3', 'Legal': 'TIER_3'
-};
+// Risk tiers now stored directly on agent records in DynamoDB
 
 const TIER_COLORS = {
   TIER_1: 'bg-green-100 text-green-700',
@@ -71,20 +75,44 @@ export default function AgentCatalog() {
   const { user } = useAuth();
   const { addNotification } = useNotifications();
   const [agents, setAgents]       = useState([]);
+  const [total, setTotal]         = useState(0);
+  const [page, setPage]           = useState(1);
+  const [hasMore, setHasMore]     = useState(false);
   const [category, setCategory]   = useState('all');
   const [search, setSearch]       = useState('');
   const [loading, setLoading]     = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [executing, setExecuting] = useState({});
   const [deploying, setDeploying] = useState({});
   const [result, setResult]       = useState(null);
+  const PAGE_SIZE = 50;
 
-  useEffect(function() { loadAgents(); }, [category, search]);
+  useEffect(function() { loadAgents(true); }, [category, search]);
 
-  async function loadAgents() {
+  async function loadAgents(reset) {
+    if (reset) { setPage(1); setAgents([]); }
     setLoading(true);
-    try { setAgents(await api.getAgents(category, search)); }
+    try {
+      const currentPage = reset ? 1 : page;
+      const result = await api.getAgents(category, search, PAGE_SIZE, (currentPage - 1) * PAGE_SIZE);
+      const items = Array.isArray(result) ? result : (result.agents || result.data || []);
+      const count = result.total || result.count || items.length;
+      if (reset) {
+        setAgents(items);
+      } else {
+        setAgents(function(prev) { return [...prev, ...items]; });
+      }
+      setTotal(count);
+      setHasMore(items.length === PAGE_SIZE);
+    }
     catch(e) { addNotification('Failed to load agents', 'error'); }
-    finally { setLoading(false); }
+    finally { setLoading(false); setLoadingMore(false); }
+  }
+
+  async function loadMore() {
+    setLoadingMore(true);
+    setPage(function(p) { return p + 1; });
+    await loadAgents(false);
   }
 
   async function handleExecute(agent, taskType) {

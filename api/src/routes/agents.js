@@ -41,4 +41,47 @@ router.get('/registry/summary', authenticate, async function(req, res) {
   }
 });
 
+// POST /api/agents/:id/deploy — deploy an agent
+router.post('/:id/deploy', authenticate, async function(req, res) {
+  try {
+    const agentId = req.params.id;
+    const agent = await agentRegistry.getAgent(agentId);
+    if (!agent) return res.status(404).json({ error: 'Agent not found', code: 'NOT_FOUND' });
+
+    // Record deployment in coreidentity-deployments table
+    const { DynamoDB } = require('@aws-sdk/client-dynamodb');
+    const { DynamoDBDocument } = require('@aws-sdk/lib-dynamodb');
+    const client = DynamoDBDocument.from(new DynamoDB({ region: process.env.AWS_REGION || 'us-east-2' }));
+    const deploymentId = require('crypto').randomUUID();
+    const now = new Date().toISOString();
+
+    await client.put({
+      TableName: 'coreidentity-deployments',
+      Item: {
+        deploymentId,
+        agentId: agentId,
+        agentName: agent.name,
+        vertical: agent.vertical || agent.verticalKey || 'unknown',
+        category: agent.category || 'unknown',
+        riskTier: agent.riskTier || 'TIER_2',
+        governanceScore: agent.governanceScore || 0,
+        status: 'active',
+        deployedBy: req.user?.email || 'admin',
+        deployedAt: now,
+        updatedAt: now,
+        complianceFrameworks: agent.complianceFrameworks || [],
+      }
+    });
+
+    res.json({
+      success: true,
+      data: { deploymentId, agentId, agentName: agent.name, status: 'active', deployedAt: now },
+      message: `Agent ${agent.name} deployed successfully`
+    });
+  } catch(err) {
+    console.error('[Agents] Deploy error:', err);
+    res.status(500).json({ error: 'Deployment failed', code: 'DEPLOY_ERROR', details: err.message });
+  }
+});
+
 module.exports = router;

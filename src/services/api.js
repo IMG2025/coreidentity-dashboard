@@ -112,5 +112,29 @@ api.createBillingCheckout = (clientId, plan, email, companyName) =>
     body: JSON.stringify({ clientId, plan, email, companyName })
   });
 
+
+api.getProfile = async function() {
+  const token = localStorage.getItem('ci_token');
+  const res = await fetch(BASE_URL + '/api/auth/profile', {
+    credentials: 'include', headers: { Authorization: 'Bearer ' + token }
+  });
+  return res.json();
+};
+
+api.getSentinelStatus = async function() {
+  const token = localStorage.getItem('ci_token');
+  const res = await fetch(BASE_URL + '/api/sentinel/status', {
+    credentials: 'include', headers: { Authorization: 'Bearer ' + token }
+  });
+  return res.json();
+};
+
+api.getSentinelLogs = async function() {
+  const token = localStorage.getItem('ci_token');
+  const res = await fetch(BASE_URL + '/api/sentinel/logs', {
+    credentials: 'include', headers: { Authorization: 'Bearer ' + token }
+  });
+  return res.json();
+};
 export default api;
 

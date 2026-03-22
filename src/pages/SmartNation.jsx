@@ -199,7 +199,7 @@ export default function SmartNationAI() {
   }
 
   function loadAgents() {
-    // SmartNation registry is the governed product catalog (108 agents)
+    // SmartNation registry is the governed product catalog (10,000 agents)
     setAgents(SN_AGENTS);
   }
 

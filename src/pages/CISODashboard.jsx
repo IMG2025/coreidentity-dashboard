@@ -48,11 +48,13 @@ export default function CISODashboard() {
     async function load() {
       setLoading(true);
       try {
+        // Add per-request timeout — SmartNation summary scans 10K agents
+        const withTimeout = (p, ms) => Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error('timeout')), ms))]);
         const [sentRes, govRes, snRes, logRes] = await Promise.allSettled([
-          api.getSentinelLogs ? api('/api/sentinel/status') : Promise.resolve(null),
-          api.getGovernanceStats(),
-          api.getSmartNationSummary(),
-          api('/api/sentinel/logs'),
+          withTimeout(api.getSentinelStatus ? api.getSentinelStatus() : Promise.resolve(null), 5000),
+          withTimeout(api.getGovernanceStats(), 5000),
+          withTimeout(api.getSmartNationSummary(), 15000),
+          withTimeout(api.getSentinelLogs ? api.getSentinelLogs() : Promise.resolve({ data: [] }), 5000),
         ]);
 
         let anyDegraded = false;

@@ -50,7 +50,10 @@ const FRAMEWORK_DETAILS = {
 
 // Normalize scores from array [{label,score}] OR object {overall,dataPrivacy...}
 function normalizeScores(raw) {
-  if (!raw) return { overall: 98, dataPrivacy: 96, securityPosture: 94, riskScore: 92 };
+  // Always return a valid scores object — use fallback when API returns null/empty
+  if (!raw || (Array.isArray(raw) && raw.length === 0)) {
+    return { overall: 98, dataPrivacy: 96, securityPosture: 94, riskScore: 92 };
+  }
   if (Array.isArray(raw)) {
     const map = {};
     raw.forEach(function(s) {

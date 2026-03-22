@@ -8,6 +8,16 @@ export default function SettingsPage() {
   const [form, setForm] = useState({ email: '', password: '', firstName: '', lastName: '' });
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState(null);
+
+  // Refresh profile from API on mount — ensures email reflects latest DynamoDB record
+  React.useEffect(() => {
+    api.getProfile ? api.getProfile().then(function(p) {
+      setProfile(p?.data || p);
+    }).catch(function() {}) : null;
+  }, []);
+
+  const displayUser = profile || user;
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -42,23 +52,23 @@ export default function SettingsPage() {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500">Name</span>
-            <span className="font-medium">{user?.firstName} {user?.lastName}</span>
+            <span className="font-medium">{displayUser?.firstName} {displayUser?.lastName}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Email</span>
-            <span className="font-medium">{user?.email}</span>
+            <span className="font-medium">{displayUser?.email}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Role</span>
-            <span className={`font-medium px-2 py-0.5 rounded-full text-xs ${user?.role === 'ADMIN' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
-              {user?.role}
+            <span className={`font-medium px-2 py-0.5 rounded-full text-xs ${displayUser?.role === 'ADMIN' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
+              {displayUser?.role}
             </span>
           </div>
         </div>
       </div>
 
       {/* Customer Registration — ADMIN only */}
-      {user?.role === 'ADMIN' && (
+      {displayUser?.role === 'ADMIN' && (
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center gap-3 mb-4">
             <Shield className="h-5 w-5 text-blue-600" />
