@@ -31,8 +31,15 @@ async function getAgent(agentId) {
 async function listAgents({ category, search, limit } = {}) {
   const params = { TableName: TABLE };
   
-  const result = await client.scan(params);
-  let items = result.Items || [];
+  // Paginate through all DynamoDB pages — table may exceed 1MB single scan
+  let items = [];
+  let lastKey = undefined;
+  do {
+    const scanParams = lastKey ? { ...params, ExclusiveStartKey: lastKey } : params;
+    const result = await client.scan(scanParams);
+    items = items.concat(result.Items || []);
+    lastKey = result.LastEvaluatedKey;
+  } while (lastKey);
 
   if (category && category !== 'all') {
     items = items.filter(function(a) { return a.category === category; });
