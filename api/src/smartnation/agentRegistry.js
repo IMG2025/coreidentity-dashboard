@@ -28,7 +28,7 @@ async function getAgent(agentId) {
   return result.Item || null;
 }
 
-async function listAgents({ category, search, limit } = {}) {
+async function listAgents({ category, search, limit, offset } = {}) {
   const params = { TableName: TABLE };
   
   // Paginate through all DynamoDB pages — table may exceed 1MB single scan
@@ -56,7 +56,8 @@ async function listAgents({ category, search, limit } = {}) {
 
   items.sort(function(a, b) { return (b.governanceScore || 0) - (a.governanceScore || 0); });
 
-  if (limit) items = items.slice(0, limit);
+  if (offset) items = items.slice(parseInt(offset));
+  if (limit)  items = items.slice(0, parseInt(limit));
   return items;
 }
 

@@ -39,13 +39,17 @@ api.post = (ep, data) => api(ep, { method: 'POST', body: JSON.stringify(data) })
 api.put  = (ep, data) => api(ep, { method: 'PUT',  body: JSON.stringify(data) });
 
 // Agents
-api.getAgents = (category, search) => {
-  let url = '/api/agents';
+api.getAgents = (category, search, limit, offset) => {
   const params = [];
-  if (category && category !== 'all') params.push(`category=${encodeURIComponent(category)}`);
-  if (search) params.push(`search=${encodeURIComponent(search)}`);
-  if (params.length) url += '?' + params.join('&');
-  return api(url).then(r => Array.isArray(r) ? r : (Array.isArray(r?.data) ? r.data : []));
+  if (category && category !== 'all') params.push('category=' + encodeURIComponent(category));
+  if (search) params.push('search=' + encodeURIComponent(search));
+  params.push('limit=' + (limit || 50));
+  if (offset) params.push('offset=' + offset);
+  return api('/api/agents?' + params.join('&')).then(r => {
+    if (Array.isArray(r)) return r;
+    if (Array.isArray(r && r.data)) return r.data;
+    return r || [];
+  });
 };
 
 api.getAgentMetrics      = () => api('/api/agents/metrics');

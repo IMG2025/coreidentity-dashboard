@@ -157,4 +157,19 @@ router.get('/me', authenticate, async (req, res) => {
   }
 });
 
+
+router.get('/profile', authenticate, async function(req, res) {
+  try {
+    const { DynamoDB } = require('@aws-sdk/client-dynamodb');
+    const { DynamoDBDocument } = require('@aws-sdk/lib-dynamodb');
+    const client = DynamoDBDocument.from(new DynamoDB({ region: process.env.AWS_REGION || 'us-east-2' }));
+    const result = await client.get({ TableName: 'coreidentity-users', Key: { userId: req.user.userId } });
+    const user = result.Item;
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ success: true, data: { userId: user.userId, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role } });
+  } catch(err) {
+    res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+
 module.exports = router;

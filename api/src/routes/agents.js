@@ -6,13 +6,14 @@ const agentRegistry    = require('../smartnation/agentRegistry');
 // GET /api/agents — list from SmartNation registry
 router.get('/', authenticate, async function(req, res) {
   try {
-    const { category, search, limit } = req.query;
+    const { category, search, limit, offset } = req.query;
     const agents = await agentRegistry.listAgents({
       category: category || 'all',
       search:   search   || '',
-      limit:    limit ? parseInt(limit) : undefined
+      limit:    limit  ? parseInt(limit)  : 50,
+      offset:   offset ? parseInt(offset) : 0,
     });
-    res.json({ success: true, data: agents, count: agents.length, source: 'SmartNation AI Registry' });
+    res.json({ success: true, data: agents, count: agents.length, limit: parseInt(limit||50), offset: parseInt(offset||0), source: 'SmartNation AI Registry' });
   } catch(err) {
     console.error('[Agents] List error:', err);
     res.status(500).json({ error: 'Failed to fetch agents', code: 'REGISTRY_ERROR' });
