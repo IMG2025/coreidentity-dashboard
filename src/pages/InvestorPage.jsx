@@ -22,7 +22,7 @@ function Section({ active }) {
       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14,marginBottom:32}}>
         <Card label="MRR"                  value="$295K"    sub="CoreIdentity + CIAG"        />
         <Card label="ARR"                  value="$3.54M"   sub="Current run rate"           />
-        <Card label="Net Margin"           value="74%"      sub="Blended CHC margin"  color={C.green} />
+        <Card label="Net Margin"           value="74%"      sub="Blended margin"  color={C.green} />
         <Card label="Client Companies"     value="4"        sub="Pilot → production"  color={C.blue}  />
         <Card label="Agents Governed"      value="66"       sub="Across 4 verticals"  color={C.teal}  />
         <Card label="Exposure Mitigated"   value="$16.85M"  sub="Regulatory liability" color={C.red}  />
@@ -34,7 +34,7 @@ function Section({ active }) {
           'Regulated industries are deploying AI faster than compliance teams can respond.',
           'Every unmonitored AI execution is a regulatory liability waiting to materialize.',
           'CoreIdentity is the infrastructure layer between enterprise AI and regulatory exposure — the only platform built for this exact problem.',
-          'CIAG advisory (CHC subsidiary) converts governance assessments into $18–28K/month retainers — SaaS + services flywheel.'
+          'CIAG advisory converts governance assessments into $18–28K/month retainers — SaaS + services flywheel.'
         ].map((p,i) => <div key={i} style={{color:C.slate,fontSize:14,lineHeight:1.7,marginBottom:10}}>→ {p}</div>)}
       </div>
     </>);
@@ -106,11 +106,11 @@ function Section({ active }) {
         <div style={{color:C.slate,paddingLeft:16}}>├── AGO Modules      ← 20 vertical handlers</div>
         <div style={{color:C.slate,paddingLeft:16}}>└── Founders Dashboard ← live multi-client view</div>
         <div style={{marginTop:8}}>GCP Cloud Run (5 client services)</div>
-        <div style={{color:C.slate,paddingLeft:16}}>├── chc-corporate-api</div>
-        <div style={{color:C.slate,paddingLeft:16}}>├── chc-virtual-bank</div>
-        <div style={{color:C.slate,paddingLeft:16}}>├── chc-health-network</div>
-        <div style={{color:C.slate,paddingLeft:16}}>├── chc-retail-group</div>
-        <div style={{color:C.slate,paddingLeft:16}}>└── chc-legal-partners</div>
+        <div style={{color:C.slate,paddingLeft:16}}>├── cidg-corporate-api</div>
+        <div style={{color:C.slate,paddingLeft:16}}>├── cidg-virtual-bank</div>
+        <div style={{color:C.slate,paddingLeft:16}}>├── cidg-health-network</div>
+        <div style={{color:C.slate,paddingLeft:16}}>├── cidg-retail-group</div>
+        <div style={{color:C.slate,paddingLeft:16}}>└── cidg-legal-partners</div>
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12}}>
         {[

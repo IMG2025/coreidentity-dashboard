@@ -37,7 +37,7 @@ const TIERS = {
 
 /* ciag-vertical-v1 */
 // =============================================================================
-// VERTICAL ENGINE — CoreIdentity Certified Governance Scorecard™
+// VERTICAL ENGINE — CoreIdentity Certified Governance Scorecard
 // 7 verticals, vertical-specific dimension weights + regulatory baselines
 // =============================================================================
 
@@ -650,7 +650,7 @@ router.post('/submissions/:id/scorecard', async (req, res) => {
     verticalNotes:             verticalNotes || '',
     recommendedEngagement,
     recommendedEngagementLabel,
-    framework:                 'CoreIdentity Certified Governance Scorecard™ v1.0',
+    framework:                 'CoreIdentity Certified Governance Scorecard v1.0',
     nextReview:                new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   };
 

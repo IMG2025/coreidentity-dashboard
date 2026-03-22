@@ -16,6 +16,7 @@ import Governance        from './pages/Governance.jsx';
 import Workflows         from './pages/Workflows.jsx';
 import MCPDemo     from './pages/MCPDemo.jsx';
 import LiveDemo     from './pages/LiveDemo.jsx';
+import CIAGDashboard from './pages/ciag/CIAGDashboard.jsx';
 import CIAGIntake   from './pages/CIAGIntake.jsx';
 import ClientOnboarding from './pages/ClientOnboarding.jsx';
 import Analytics  from './pages/Analytics.jsx';
@@ -46,6 +47,7 @@ const PORTAL_PAGES = {
   '/#/mcp-demo':    MCPDemo,
   '/#/live-demo':   LiveDemo,
   '/#/ciag-intake': CIAGIntake,
+  '/#/ciag':        CIAGDashboard,
   '/#/client-onboarding': ClientOnboarding,
   '/#/analytics':   Analytics,
   '/#/ciso':        CISODashboard,

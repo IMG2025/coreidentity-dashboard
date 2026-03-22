@@ -133,7 +133,7 @@ export default function MCPDemo() {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-http"],
       "env": {
-        "MCP_SERVER_URL": "https://chc-mcp-server-lvuq2yqbma-ue.a.run.app",
+        "MCP_SERVER_URL": "https://chc-mcp-server-554248182051.us-east1.run.app",
         "MCP_API_KEY": "<your-api-key>"
       }
     }

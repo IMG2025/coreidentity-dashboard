@@ -209,7 +209,7 @@ function SubmissionDetail({ sub, onClose, onRefresh }) {
         {d.scorecard && (
           <div style={{ background: '#F5F3FF', border: '1px solid #C4B5FD', borderRadius: 8, padding: 14, marginBottom: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#4C1D95', textTransform: 'uppercase', letterSpacing: 1 }}>Governance Scorecard™</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#4C1D95', textTransform: 'uppercase', letterSpacing: 1 }}>Governance Scorecard</div>
               <div style={{ fontSize: 24, fontWeight: 900, color: '#7C3AED' }}>{d.scorecard.overallScore}<span style={{ fontSize: 12 }}>/100</span></div>
             </div>
             <div style={{ fontSize: 12, color: '#4C1D95', fontWeight: 600, marginBottom: 8 }}>{d.scorecard.certTier} Certification</div>

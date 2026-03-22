@@ -13,7 +13,7 @@ const NAV_SECTIONS = [
   ['/#/workflows',   '🔄',  'Workflows',       false],
   ['/#/mcp-demo',    '🤖',  'MCP Demo',        false],
   ['/#/live-demo',   '▶️',  'Live Demo',        false],
-  ['/#/ciag-intake', '📋',  'CIAG Intake',     false],
+  ['/#/ciag',        '📊',  'CIAG Pipeline',   true],
   ['/#/analytics',   '📊',  'Analytics',       true],   // ADMIN only
   ['/#/ciso',        '🔒',  'CISO',            true],   // ADMIN only
   ['/#/settings',    '⚙',   'Settings',        true],   // ADMIN only

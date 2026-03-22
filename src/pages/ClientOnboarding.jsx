@@ -153,7 +153,7 @@ export default function ClientOnboarding() {
                   <div className="relative">
                     <select value={form.virtualCompany} onChange={e => set('virtualCompany',e.target.value)}
                       className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white appearance-none focus:border-blue-600 focus:outline-none">
-                      <option value="">None (CHC Corporate)</option>
+                      <option value="">None (CoreIdentity Corporate)</option>
                       {(options.virtualCompanies || []).map(vc => <option key={vc} value={vc}>{vc}</option>)}
                     </select>
                     <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />

@@ -138,7 +138,7 @@ function ConsolidatedView({vm, d}) {
         <Card label="ARR"        value={fmtK(curRev*12)}  sub="Annualized run rate"                accent={C.blue} />
         <Card label="Net Profit" value={fmtK(curProf)}    sub={delta(curProf,chcProf[10])+'% MoM'} trend={parseFloat(delta(curProf,chcProf[10]))} accent={C.green} />
         <Card label="Net Margin" value={curMgn+'%'}       sub="Blended margin"                     accent={C.teal} />
-        <Card label="CHC Agents" value={d?.agents?.total||23} sub="100% governed"                  accent={C.gold} />
+        <Card label="Governed Agents" value={d?.agents?.total||23} sub="100% governed"                  accent={C.gold} />
         <Card label="Clients"    value={d?.clients?.length||4} sub="Active portfolio"              accent={C.purple} />
       </div>
       {vm==='trend'      && (<><SecHdr title="12-Month Revenue · Costs · Profit" live={!!d}/><ResponsiveContainer width="100%" height={260}><AreaChart data={trendData(chcRev,chcCost,chcTgt)}><defs><linearGradient id="gR" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={C.gold} stopOpacity={0.2}/><stop offset="95%" stopColor={C.gold} stopOpacity={0}/></linearGradient><linearGradient id="gP" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={C.green} stopOpacity={0.2}/><stop offset="95%" stopColor={C.green} stopOpacity={0}/></linearGradient></defs><CartesianGrid stroke={C.border} strokeDasharray="3 3"/><XAxis dataKey="month" tick={{fill:C.slate,fontSize:11}}/><YAxis tickFormatter={v=>'$'+(v/1000)+'K'} tick={{fill:C.slate,fontSize:11}}/><Tooltip content={<ChartTip/>}/><Legend wrapperStyle={{color:C.slate,fontSize:12}}/><Area type="monotone" dataKey="Revenue" stroke={C.gold} fill="url(#gR)" strokeWidth={2}/><Area type="monotone" dataKey="Profit" stroke={C.green} fill="url(#gP)" strokeWidth={2}/><Line type="monotone" dataKey="Costs" stroke={C.red} strokeWidth={1.5} dot={false}/></AreaChart></ResponsiveContainer></>)}
@@ -150,7 +150,7 @@ function ConsolidatedView({vm, d}) {
           <tbody>
             <tr style={{borderBottom:'1px solid '+C.border}}><td style={{padding:'12px',color:C.white,fontWeight:600}}>CoreIdentity</td><td style={{padding:'12px',color:C.slate}}>SaaS Platform</td><td style={{padding:'12px',color:C.gold,fontFamily:'monospace'}}>{fmtK(last(ciRev))}</td><td style={{padding:'12px',color:C.red,fontFamily:'monospace'}}>{fmtK(last(ciCost))}</td><td style={{padding:'12px',color:C.green,fontFamily:'monospace'}}>{fmtK(last(ciRev)-last(ciCost))}</td><td style={{padding:'12px',color:C.teal}}>{Math.round((last(ciRev)-last(ciCost))/last(ciRev)*100)}%</td><td style={{padding:'12px',color:C.white}}>{d?.coreIdentity?.agents?.length||15}</td></tr>
             <tr style={{borderBottom:'1px solid '+C.border}}><td style={{padding:'12px',color:C.white,fontWeight:600}}>CIAG</td><td style={{padding:'12px',color:C.slate}}>Advisory Group</td><td style={{padding:'12px',color:C.gold,fontFamily:'monospace'}}>{fmtK(last(cgRev))}</td><td style={{padding:'12px',color:C.red,fontFamily:'monospace'}}>{fmtK(last(cgCost))}</td><td style={{padding:'12px',color:C.green,fontFamily:'monospace'}}>{fmtK(last(cgRev)-last(cgCost))}</td><td style={{padding:'12px',color:C.teal}}>{Math.round((last(cgRev)-last(cgCost))/last(cgRev)*100)}%</td><td style={{padding:'12px',color:C.white}}>{d?.ciag?.agents?.length||8}</td></tr>
-            <tr style={{background:C.border+'33'}}><td style={{padding:'12px',color:C.gold,fontWeight:700}}>CHC Consolidated</td><td style={{padding:'12px',color:C.slate}}>Holding Company</td><td style={{padding:'12px',color:C.gold,fontFamily:'monospace',fontWeight:700}}>{fmtK(curRev)}</td><td style={{padding:'12px',color:C.red,fontFamily:'monospace',fontWeight:700}}>{fmtK(curCost)}</td><td style={{padding:'12px',color:C.green,fontFamily:'monospace',fontWeight:700}}>{fmtK(curProf)}</td><td style={{padding:'12px',color:C.teal,fontWeight:700}}>{curMgn}%</td><td style={{padding:'12px',color:C.white,fontWeight:700}}>{d?.agents?.total||23}</td></tr>
+            <tr style={{background:C.border+'33'}}><td style={{padding:'12px',color:C.gold,fontWeight:700}}>CIDG Consolidated</td><td style={{padding:'12px',color:C.slate}}>Holding Company</td><td style={{padding:'12px',color:C.gold,fontFamily:'monospace',fontWeight:700}}>{fmtK(curRev)}</td><td style={{padding:'12px',color:C.red,fontFamily:'monospace',fontWeight:700}}>{fmtK(curCost)}</td><td style={{padding:'12px',color:C.green,fontFamily:'monospace',fontWeight:700}}>{fmtK(curProf)}</td><td style={{padding:'12px',color:C.teal,fontWeight:700}}>{curMgn}%</td><td style={{padding:'12px',color:C.white,fontWeight:700}}>{d?.agents?.total||23}</td></tr>
           </tbody>
         </table></>
       )}
@@ -593,7 +593,7 @@ export default function FoundersDashboard() {
   const now     = new Date().toLocaleString('en-US', { month:'short', year:'numeric' });
 
   const TABS  = [
-    { id:'consolidated', label:'CHC Consolidated' },
+    { id:'consolidated', label:'CIDG Consolidated' },
     { id:'coreidentity', label:'CoreIdentity' },
     { id:'ciag',         label:'CIAG' },
     { id:'clients',      label:'Clients (4)' },
@@ -615,7 +615,7 @@ export default function FoundersDashboard() {
           <div style={{fontSize:20, fontWeight:600}}>Founders Dashboard</div>
         </div>
         <div style={{display:'flex', gap:24, alignItems:'center'}}>
-          <div style={{textAlign:'right'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0'}}>CHC Revenue</div><div style={{color:C.gold,fontFamily:'monospace',fontSize:22,fontWeight:700}}>{fmtK(last(chcRev))}</div></div>
+          <div style={{textAlign:'right'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0'}}>Platform Revenue</div><div style={{color:C.gold,fontFamily:'monospace',fontSize:22,fontWeight:700}}>{fmtK(last(chcRev))}</div></div>
           <div style={{textAlign:'right'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0'}}>Net Profit</div><div style={{color:C.green,fontFamily:'monospace',fontSize:22,fontWeight:700}}>{fmtK(last(chcProf))}</div></div>
           <div style={{textAlign:'right'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0'}}>Mitigated</div><div style={{color:C.teal,fontFamily:'monospace',fontSize:22,fontWeight:700}}>$16.85M</div></div>
           <div style={{display:'flex', flexDirection:'column', gap:4, alignItems:'flex-end'}}>

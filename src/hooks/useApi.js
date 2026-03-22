@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 
+// TODO: migrate to api.coreidentitygroup.com after DNS cutover
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.coreidentity.coreholdingcorp.com';
 
 export function useApi() {
