@@ -4,6 +4,8 @@ import React, { useState, useEffect, createContext, useContext } from 'react';
 import { useAuth } from './context/AuthContext';
 import { injectFonts } from './chc-design.js';
 import PortalNav from './components/PortalNav.jsx';
+import { TenantProvider } from './context/TenantContext.jsx';
+import TenantDashboard from './pages/TenantDashboard.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 
 // ── Page imports ──────────────────────────────────────────────
@@ -48,6 +50,7 @@ const PORTAL_PAGES = {
   '/#/live-demo':   LiveDemo,
   '/#/ciag-intake': CIAGIntake,
   '/#/ciag':        CIAGDashboard,
+  '/#/tenants':     TenantDashboard,
   '/#/client-onboarding': ClientOnboarding,
   '/#/analytics':   Analytics,
   '/#/ciso':        CISODashboard,
@@ -186,6 +189,7 @@ export default function App() {
   if (ADMIN_ONLY_ROUTES.has(route) && user?.role !== 'ADMIN') {
     const FallbackPage = PORTAL_PAGES['/#/agents'] || PORTAL_PAGES['/#/smartnation'];
     return (
+      <TenantProvider>
       <NotificationContextWrapper>
         <div style={{ minHeight:'100vh', background:'#070c18', fontFamily:"'DM Sans','Segoe UI',sans-serif" }}>
           <PortalNav route={'/#/agents'} onNavigate={setRoute} userEmail={user?.email} onLogout={logout} />
@@ -198,23 +202,27 @@ export default function App() {
           </div>
         </div>
       </NotificationContextWrapper>
+      </TenantProvider>
     );
   }
 
   const Page = PORTAL_PAGES[route] || FoundersDashboard;
 
   return (
-    <NotificationContextWrapper>
-      <div style={{ minHeight:'100vh', background:'#070c18', fontFamily:"'DM Sans','Segoe UI',sans-serif" }}>
-        <PortalNav
-          route={route}
-          onNavigate={setRoute}
-          userEmail={user?.email}
-          onLogout={logout} user={user}
-        />
-        <Page />
-      </div>
-    </NotificationContextWrapper>
+    <TenantProvider>
+      <NotificationContextWrapper>
+        <div style={{ minHeight:'100vh', background:'#070c18', fontFamily:"'DM Sans','Segoe UI',sans-serif" }}>
+          <PortalNav
+            route={route}
+            onNavigate={setRoute}
+            userEmail={user?.email}
+            onLogout={logout} user={user}
+          />
+          <div style={{ padding:'0' }}>
+            <Page />
+          </div>
+        </div>
+      </NotificationContextWrapper>
+    </TenantProvider>
   );
 }
-// Sun Mar  1 05:34:25 EST 2026
