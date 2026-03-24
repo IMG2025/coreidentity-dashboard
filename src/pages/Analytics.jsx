@@ -1,192 +1,455 @@
-/* script-37 */
-import React, { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, Users, Activity, Shield, Zap, Clock, CheckCircle } from 'lucide-react';
-import { api } from '../services/api';
-import { useAuth } from '../context/AuthContext';
+/* script-41 */
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  BarChart3, TrendingUp, Users, Activity, Shield,
+  Zap, RefreshCw, AlertTriangle, CheckCircle, Clock
+} from 'lucide-react';
+import { C, F } from '../chc-design.js';
 
-const API_URL = 'https://api.coreidentitygroup.com';
+const API = 'https://api.coreidentitygroup.com';
+const token = () => localStorage.getItem('ci_token') || localStorage.getItem('token') || '';
 
-function StatCard({ icon: Icon, label, value, sub, color }) {
-  const colors = {
-    blue:   'bg-blue-50 text-blue-600',
-    green:  'bg-green-50 text-green-600',
-    purple: 'bg-purple-50 text-purple-600',
-    orange: 'bg-orange-50 text-orange-600',
-    gray:   'bg-gray-50 text-gray-600',
-  };
+// ── Components ────────────────────────────────────────────────────────────────
+
+function TelemetryCard({ icon: Icon, label, value, sub, accent, mono }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 flex flex-col gap-2">
-      <div className={'h-9 w-9 rounded-lg flex items-center justify-center ' + (colors[color] || colors.blue)}>
-        <Icon className="h-5 w-5" />
+    <div style={{
+      background: C.surface,
+      border: '1px solid ' + C.border,
+      borderTop: '2px solid ' + (accent || C.blue),
+      borderRadius: 6,
+      padding: '16px 18px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 6,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ color: C.slate, fontSize: 10, fontFamily: F.mono, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{label}</span>
+        <Icon size={14} color={accent || C.blue} />
       </div>
-      <p className="text-2xl font-bold text-gray-900">{value !== undefined && value !== null ? value : '—'}</p>
-      <p className="text-sm font-medium text-gray-700">{label}</p>
-      {sub && <p className="text-xs text-gray-400">{sub}</p>}
+      <div style={{
+        fontSize: 28,
+        fontWeight: 700,
+        fontFamily: mono ? F.mono : F.display,
+        color: C.white,
+        letterSpacing: mono ? '0.02em' : '0.05em',
+        lineHeight: 1,
+      }}>
+        {value !== undefined && value !== null ? value : '—'}
+      </div>
+      {sub && (
+        <div style={{ fontSize: 11, color: C.slate, fontFamily: F.mono }}>{sub}</div>
+      )}
     </div>
   );
 }
 
-function Bar({ label, value, max, color }) {
+function BarRow({ label, value, max, accent }) {
   const pct = max > 0 ? Math.round((value / max) * 100) : 0;
-  const colors = { blue: 'bg-blue-500', green: 'bg-green-500', purple: 'bg-purple-500', orange: 'bg-orange-400', gray: 'bg-gray-400' };
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-xs text-gray-500 w-24 truncate shrink-0">{label}</span>
-      <div className="flex-1 bg-gray-100 rounded-full h-2">
-        <div className={'h-2 rounded-full ' + (colors[color] || colors.blue)} style={{ width: pct + '%' }} />
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <span style={{
+        fontSize: 11,
+        color: C.slate,
+        fontFamily: F.mono,
+        width: 120,
+        flexShrink: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }}>{label}</span>
+      <div style={{
+        flex: 1,
+        height: 3,
+        background: C.border,
+        borderRadius: 2,
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          height: '100%',
+          width: pct + '%',
+          background: accent || C.blue,
+          borderRadius: 2,
+          transition: 'width 0.6s cubic-bezier(0.4,0,0.2,1)',
+        }} />
       </div>
-      <span className="text-xs font-medium text-gray-700 w-6 text-right">{value}</span>
+      <span style={{
+        fontSize: 11,
+        fontFamily: F.mono,
+        color: C.white,
+        width: 32,
+        textAlign: 'right',
+        flexShrink: 0,
+      }}>{value}</span>
     </div>
   );
 }
+
+function SectionHeader({ title, sub }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <h2 style={{
+        color: C.white,
+        fontSize: 12,
+        fontFamily: F.mono,
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        margin: 0,
+      }}>{title}</h2>
+      {sub && <p style={{ color: C.slate, fontSize: 11, margin: '3px 0 0', fontFamily: F.mono }}>{sub}</p>}
+    </div>
+  );
+}
+
+// ── Main Component ─────────────────────────────────────────────────────────────
 
 export default function Analytics() {
-  const { user } = useAuth();
-  const [data, setData]       = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [data,     setData]     = useState(null);
+  const [tenants,  setTenants]  = useState([]);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState(null);
+  const [lastFetch, setLastFetch] = useState(null);
 
-  useEffect(() => { load(); }, []);
-
-  async function load() {
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      const token = localStorage.getItem('ci_token');
-      const res = await fetch(API_URL + '/api/analytics', {
-        credentials: 'include', headers: { Authorization: 'Bearer ' + token }
+      const [analyticsRes, tenantsRes] = await Promise.all([
+        fetch(API + '/api/analytics', {
+          credentials: 'include',
+          headers: { Authorization: 'Bearer ' + token() }
+        }),
+        fetch(API + '/api/tenants', {
+          credentials: 'include',
+          headers: { Authorization: 'Bearer ' + token() }
+        }),
+      ]);
+
+      const analyticsJson = await analyticsRes.json();
+      const tenantsJson   = await tenantsRes.json();
+
+      // analyticsJson is the raw API response: { success, data: { summary, ... }, latencyMs }
+      // api.js in some places unwraps .data, direct fetch does not
+      const raw     = analyticsJson?.data || analyticsJson;
+      const summary = raw?.summary || {};
+
+      setData({
+        totalAgents:        summary.totalAgents        || raw?.totalAgents       || 0,
+        activeAgents:       summary.activeDeployments  || raw?.activeAgents      || 0,
+        totalDeployments:   summary.totalDeployments   || raw?.totalDeployments  || 0,
+        activeDeployments:  summary.activeDeployments  || raw?.activeDeployments || 0,
+        totalExecutions:    summary.totalExecutions    || raw?.totalExecutions   || 0,
+        successRate:        summary.successRate        || raw?.successRate       || 0,
+        avgAgentRating:     summary.avgAgentRating     || raw?.avgAgentRating    || 0,
+        governedAgents:     summary.governedAgents     || raw?.governedAgents    || 0,
+        deploymentsByStatus:   raw?.deploymentsByStatus   || {},
+        deploymentsByCategory: raw?.deploymentsByCategory || {},
+        executionsByStatus:    raw?.executionsByStatus    || {},
+        executionsByType:      raw?.executionsByType      || {},
+        activityTimeline:      raw?.activityTimeline      || [],
+        recentDeployments:     raw?.recentDeployments     || [],
+        recentExecutions:      raw?.recentExecutions      || [],
       });
-      const json = await res.json();
-      // Normalize response — handle both direct and nested shapes
-      const normalized = {
-        ...json,
-        totalAgents:      json?.agents?.total        || json?.totalAgents        || 0,
-        activeAgents:     json?.agents?.active        || json?.activeAgents       || 0,
-        totalDeployments: json?.deployments?.total    || json?.totalDeployments   || 0,
-        activeDeployments:json?.deployments?.active   || json?.activeDeployments  || 0,
-        totalExecutions:  json?.executions?.total     || json?.totalExecutions    || 0,
-        successRate:      json?.executions?.successRate || json?.successRate      || 0,
-        avgGovernanceScore: json?.agents?.avgScore    || json?.avgGovernanceScore || 0,
-        byTier:           json?.agents?.byTier        || json?.byTier            || {},
-        byCategory:       json?.executions?.byType    || json?.byCategory        || {},
-        byDate:           json?.executions?.byDate    || json?.byDate            || [],
-      };
-      setData(normalized);
+
+      const tData = tenantsJson?.data || tenantsJson || [];
+      setTenants(Array.isArray(tData) ? tData : []);
+      setLastFetch(new Date().toISOString());
     } catch(e) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  // Derived metrics
+  const totalTenantExecs   = tenants.reduce((s, c) => s + (parseInt(c.totalExecutions) || 0), 0);
+  const totalTenantViolations = tenants.reduce((s, c) => s + (parseInt(c.totalViolations) || 0), 0);
+  const avgGovScore        = tenants.length > 0
+    ? (tenants.reduce((s, c) => s + (parseFloat(c.governanceScore) || 0), 0) / tenants.length).toFixed(1)
+    : '—';
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 300,
+      gap: 12,
+    }}>
+      <div style={{
+        width: 28,
+        height: 28,
+        border: '2px solid ' + C.border,
+        borderTop: '2px solid ' + C.blue,
+        borderRadius: '50%',
+        animation: 'cidg-spin 0.8s linear infinite',
+      }} />
+      <span style={{ color: C.slate, fontSize: 11, fontFamily: F.mono }}>LOADING ANALYTICS</span>
+      <style>{'@keyframes cidg-spin { to { transform: rotate(360deg); } }'}</style>
     </div>
   );
 
   if (error) return (
-    <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-      <p className="text-red-600 font-medium">Failed to load analytics</p>
-      <p className="text-red-400 text-sm mt-1">{error}</p>
-      <button onClick={load} className="mt-3 text-sm text-blue-600 underline">Retry</button>
+    <div style={{
+      background: 'rgba(239,68,68,0.05)',
+      border: '1px solid rgba(239,68,68,0.2)',
+      borderRadius: 6,
+      padding: 24,
+      margin: 24,
+      textAlign: 'center',
+    }}>
+      <AlertTriangle size={24} color="#ef4444" style={{ marginBottom: 8 }} />
+      <p style={{ color: '#ef4444', fontSize: 13, fontFamily: F.mono }}>{error}</p>
+      <button onClick={load} style={{
+        marginTop: 12, padding: '6px 16px', background: 'transparent',
+        border: '1px solid ' + C.border, borderRadius: 4,
+        color: C.slate, fontSize: 11, fontFamily: F.mono, cursor: 'pointer',
+      }}>RETRY</button>
     </div>
   );
 
-  const s   = data?.summary || {};
-  const cat = data?.deploymentsByCategory || {};
-  const est = data?.executionsByType || {};
-  const ess = data?.executionsByStatus || {};
-  const tl  = data?.activityTimeline || [];
-  const maxCat = Math.max(...Object.values(cat), 1);
+  const d = data || {};
+  const est = d.executionsByType || {};
+  const ess = d.executionsByStatus || {};
+  const cat = d.deploymentsByCategory || {};
   const maxEst = Math.max(...Object.values(est), 1);
+  const maxCat = Math.max(...Object.values(cat), 1);
+  const maxEss = Math.max(...Object.values(ess), 1);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
+    <div style={{
+      padding: '24px 20px',
+      fontFamily: F.body,
+      color: C.white,
+      maxWidth: 1200,
+      margin: '0 auto',
+    }}>
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Analytics</h1>
-          <p className="text-gray-500 text-sm mt-1">Platform performance · Live from DynamoDB</p>
+          <h1 style={{
+            fontSize: 22,
+            fontFamily: F.display,
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            color: C.white,
+            margin: 0,
+          }}>ANALYTICS</h1>
+          <p style={{ color: C.slate, fontSize: 11, fontFamily: F.mono, margin: '4px 0 0', letterSpacing: '0.05em' }}>
+            PLATFORM TELEMETRY · LIVE DATA
+            {lastFetch && ' · ' + new Date(lastFetch).toLocaleTimeString()}
+          </p>
         </div>
-        <button onClick={load} className="text-xs text-blue-600 underline mt-1">Refresh</button>
+        <button
+          onClick={load}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            background: 'transparent',
+            border: '1px solid ' + C.border,
+            borderRadius: 4, padding: '6px 12px',
+            color: C.slate, fontSize: 10,
+            fontFamily: F.mono, cursor: 'pointer',
+            letterSpacing: '0.08em',
+          }}
+        >
+          <RefreshCw size={11} />
+          <span>REFRESH</span>
+        </button>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Users}    label="AI Agents"         value={s.totalAgents}       sub="In SmartNation registry"  color="blue"   />
-        <StatCard icon={Activity} label="Deployments"       value={s.totalDeployments}  sub={s.activeDeployments + ' active'}        color="green"  />
-        <StatCard icon={Zap}      label="Executions"        value={s.totalExecutions}   sub={s.successRate + '% success rate'}       color="purple" />
-        <StatCard icon={Shield}   label="Governed Agents"   value={s.governedAgents}    sub="CoreIdentity governed"    color="orange" />
+      {/* Platform stats */}
+      <div style={{ marginBottom: 20 }}>
+        <SectionHeader title="Platform Overview" sub="Aggregate across all governed infrastructure" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
+          <TelemetryCard icon={Users}    label="AI Agents"       value={(d.totalAgents || 0).toLocaleString()}      accent={C.blue}   sub="SmartNation registry" />
+          <TelemetryCard icon={Shield}   label="Governed"        value={(d.governedAgents || 0).toLocaleString()}   accent={C.teal}   sub="Under CoreIdentity" />
+          <TelemetryCard icon={Zap}      label="Executions"      value={(d.totalExecutions || 0).toLocaleString()}  accent={C.purple} sub={(d.successRate || 0) + '% success'} mono />
+          <TelemetryCard icon={Activity} label="Deployments"     value={(d.totalDeployments || 0).toLocaleString()} accent={C.green}  sub={(d.activeDeployments || 0) + ' active'} mono />
+        </div>
       </div>
 
-      {/* Activity timeline */}
-      {tl.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Activity — Last 7 Days</h2>
-          <div className="flex items-end gap-2 h-24">
-            {tl.map((day, i) => {
-              const maxVal = Math.max(...tl.map(d => d.deployments + d.executions), 1);
-              const total  = day.deployments + day.executions;
-              const hPct   = Math.round((total / maxVal) * 100);
+      {/* Tenant simulation stats */}
+      {tenants.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <SectionHeader title="Simulation Engine" sub="Live autonomous execution across 5 governed companies" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
+            <TelemetryCard icon={Users}        label="Active Companies"  value={tenants.length}                              accent={C.gold}   />
+            <TelemetryCard icon={Zap}          label="Total Executions"  value={totalTenantExecs.toLocaleString()}            accent={C.blue}   mono />
+            <TelemetryCard icon={AlertTriangle} label="Violations"       value={totalTenantViolations.toLocaleString()}       accent="#ef4444"  mono />
+            <TelemetryCard icon={TrendingUp}   label="Avg Gov Score"     value={avgGovScore}                                  accent={C.teal}   />
+          </div>
+
+          {/* Tenant score table */}
+          <div style={{
+            marginTop: 12,
+            background: C.surface,
+            border: '1px solid ' + C.border,
+            borderRadius: 6,
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 100px 90px 90px 90px',
+              padding: '8px 16px',
+              borderBottom: '1px solid ' + C.border,
+              background: C.bg2,
+            }}>
+              {['Company', 'Vertical', 'Score', 'Executions', 'Violations'].map(h => (
+                <span key={h} style={{ fontSize: 10, fontFamily: F.mono, color: C.slate, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{h}</span>
+              ))}
+            </div>
+            {tenants.map((t, i) => {
+              const score = parseFloat(t.governanceScore) || 0;
+              const scoreColor = score >= 70 ? C.green : score >= 50 ? C.gold : '#ef4444';
               return (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full flex flex-col justify-end" style={{ height: 80 }}>
-                    <div className="w-full bg-blue-500 rounded-t" style={{ height: Math.max(hPct * 0.8, total > 0 ? 4 : 0) }} title={total + ' events'} />
-                  </div>
-                  <span className="text-xs text-gray-400 rotate-0">{day.date.slice(5)}</span>
+                <div key={t.clientId} style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 100px 90px 90px 90px',
+                  padding: '10px 16px',
+                  borderBottom: i < tenants.length - 1 ? '1px solid ' + C.border : 'none',
+                  alignItems: 'center',
+                }}>
+                  <span style={{ fontSize: 12, color: C.white, fontWeight: 500 }}>{t.companyName}</span>
+                  <span style={{ fontSize: 10, color: C.slate, fontFamily: F.mono }}>{(t.vertical || '').slice(0, 14)}</span>
+                  <span style={{ fontSize: 13, fontFamily: F.mono, color: scoreColor, fontWeight: 700 }}>{score.toFixed(1)}</span>
+                  <span style={{ fontSize: 11, fontFamily: F.mono, color: C.white }}>{(parseInt(t.totalExecutions) || 0).toLocaleString()}</span>
+                  <span style={{ fontSize: 11, fontFamily: F.mono, color: (parseInt(t.totalViolations) || 0) > 0 ? '#ef4444' : C.slate }}>
+                    {(parseInt(t.totalViolations) || 0).toLocaleString()}
+                  </span>
                 </div>
               );
             })}
           </div>
-          <div className="flex gap-4 mt-2">
-            <span className="text-xs text-gray-400 flex items-center gap-1"><span className="w-2 h-2 bg-blue-500 rounded inline-block"/> Events</span>
+        </div>
+      )}
+
+      {/* Activity timeline */}
+      {d.activityTimeline && d.activityTimeline.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <SectionHeader title="Activity — Last 7 Days" />
+          <div style={{
+            background: C.surface,
+            border: '1px solid ' + C.border,
+            borderRadius: 6,
+            padding: '16px 18px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 80 }}>
+              {d.activityTimeline.map((day, i) => {
+                const maxV = Math.max(...d.activityTimeline.map(d => (d.deployments || 0) + (d.executions || 0)), 1);
+                const total = (day.deployments || 0) + (day.executions || 0);
+                const hPct  = total > 0 ? Math.max(Math.round((total / maxV) * 100), 4) : 2;
+                return (
+                  <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                    <div style={{
+                      width: '100%',
+                      background: C.blue,
+                      borderRadius: '2px 2px 0 0',
+                      height: hPct * 0.72 + 'px',
+                      opacity: 0.85,
+                      transition: 'height 0.4s ease',
+                    }} title={total + ' events'} />
+                    <span style={{ fontSize: 9, fontFamily: F.mono, color: C.slate }}>{(day.date || '').slice(5)}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Breakdowns grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14, marginBottom: 20 }}>
+
         {/* Executions by type */}
-        <div className="bg-white rounded-xl shadow-sm p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Executions by Type</h2>
-          <div className="space-y-3">
-            {Object.entries(est).length === 0
-              ? <p className="text-gray-400 text-sm text-center py-4">No executions yet</p>
+        <div style={{ background: C.surface, border: '1px solid ' + C.border, borderRadius: 6, padding: '16px 18px' }}>
+          <SectionHeader title="Executions by Type" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {Object.keys(est).length === 0
+              ? <span style={{ color: C.slate, fontSize: 11, fontFamily: F.mono }}>No execution data</span>
               : Object.entries(est).map(([k, v]) => (
-                  <Bar key={k} label={k} value={v} max={maxEst} color="purple" />
+                  <BarRow key={k} label={k} value={v} max={maxEst} accent={C.purple} />
                 ))
+            }
+          </div>
+        </div>
+
+        {/* Executions by status */}
+        <div style={{ background: C.surface, border: '1px solid ' + C.border, borderRadius: 6, padding: '16px 18px' }}>
+          <SectionHeader title="Executions by Status" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {Object.keys(ess).length === 0
+              ? <span style={{ color: C.slate, fontSize: 11, fontFamily: F.mono }}>No status data</span>
+              : Object.entries(ess).map(([k, v]) => {
+                  const accent = k === 'OK' || k === 'completed' ? C.green : k === 'FAILED' ? '#ef4444' : C.gold;
+                  return <BarRow key={k} label={k} value={v} max={maxEss} accent={accent} />;
+                })
             }
           </div>
         </div>
 
         {/* Deployments by category */}
-        <div className="bg-white rounded-xl shadow-sm p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Deployments by Category</h2>
-          <div className="space-y-3">
-            {Object.entries(cat).length === 0
-              ? <p className="text-gray-400 text-sm text-center py-4">No deployments yet — hit Deploy on any agent</p>
-              : Object.entries(cat).map(([k, v]) => (
-                  <Bar key={k} label={k} value={v} max={maxCat} color="green" />
-                ))
-            }
+        {Object.keys(cat).length > 0 && (
+          <div style={{ background: C.surface, border: '1px solid ' + C.border, borderRadius: 6, padding: '16px 18px' }}>
+            <SectionHeader title="Deployments by Category" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {Object.entries(cat).map(([k, v]) => (
+                <BarRow key={k} label={k} value={v} max={maxCat} accent={C.teal} />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Recent executions */}
-      {data?.recentExecutions?.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Recent Executions</h2>
-          <div className="space-y-2">
-            {data.recentExecutions.map((e, i) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Zap className="h-4 w-4 text-purple-500 shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Agent {e.agentId} — {e.taskType}</p>
-                    <p className="text-xs text-gray-400">{e.startedAt ? new Date(e.startedAt).toLocaleString() : 'Unknown time'}</p>
+      {d.recentExecutions && d.recentExecutions.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <SectionHeader title="Recent Executions" />
+          <div style={{
+            background: C.surface,
+            border: '1px solid ' + C.border,
+            borderRadius: 6,
+            overflow: 'hidden',
+          }}>
+            {d.recentExecutions.slice(0, 8).map((e, i) => (
+              <div key={i} style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 16px',
+                borderBottom: i < 7 ? '1px solid ' + C.border : 'none',
+                gap: 12,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                  <Zap size={12} color={C.purple} style={{ flexShrink: 0 }} />
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{
+                      fontSize: 12, color: C.white, margin: 0,
+                      fontFamily: F.mono, overflow: 'hidden',
+                      textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {e.agentId} — {e.taskType}
+                    </p>
+                    <p style={{ fontSize: 10, color: C.slate, margin: '2px 0 0', fontFamily: F.mono }}>
+                      {e.startedAt ? new Date(e.startedAt).toLocaleString() : ''}
+                    </p>
                   </div>
                 </div>
-                <span className={'px-2 py-1 rounded-full text-xs font-medium ' + (e.status === 'OK' || e.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600')}>
-                  {e.status}
+                <span style={{
+                  padding: '3px 8px',
+                  borderRadius: 3,
+                  fontSize: 10,
+                  fontFamily: F.mono,
+                  letterSpacing: '0.05em',
+                  background: (e.status === 'OK' || e.status === 'completed') ? 'rgba(34,197,94,0.1)' : 'rgba(148,163,184,0.1)',
+                  color: (e.status === 'OK' || e.status === 'completed') ? C.green : C.slate,
+                  border: '1px solid ' + ((e.status === 'OK' || e.status === 'completed') ? 'rgba(34,197,94,0.2)' : C.border),
+                  flexShrink: 0,
+                }}>
+                  {e.status || 'PENDING'}
                 </span>
               </div>
             ))}
@@ -194,25 +457,6 @@ export default function Analytics() {
         </div>
       )}
 
-      {/* Recent deployments */}
-      {data?.recentDeployments?.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-5">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Recent Deployments</h2>
-          <div className="space-y-2">
-            {data.recentDeployments.map((d, i) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{d.agentName || 'Agent ' + d.agentId}</p>
-                  <p className="text-xs text-gray-400">{d.category} · {d.deployedAt ? new Date(d.deployedAt).toLocaleString() : ''}</p>
-                </div>
-                <span className={'px-2 py-1 rounded-full text-xs font-medium ' + (d.status === 'running' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600')}>
-                  {d.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

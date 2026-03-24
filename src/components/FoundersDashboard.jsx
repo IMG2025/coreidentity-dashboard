@@ -565,54 +565,65 @@ function CIAGView({vm}) {
 }
 
 function ClientPortfolioView() {
-  const CLIENTS = [
-    { name:'First National Virtual Bank', sector:'Financial Services', assets:'$95.1M', agents:23, score_from:65, score_to:94, mitigated:'$4.75M', fw:['GLBA','CCPA','FFIEC','SOX','PCI-DSS'], penalties:['CCPA: $2,500–$7,500/violation','GLBA: $1M/day exposure','FFIEC: Regulatory action risk'] },
-    { name:'Cascade Regional Health Network', sector:'Healthcare', assets:'$34.2M', agents:22, score_from:58, score_to:91, mitigated:'$6.2M', fw:['HIPAA','HITECH','CMS','FDA 21 CFR'], penalties:['HIPAA: $100–$1.9M/violation','HITECH: Criminal exposure','CMS: Audit trigger risk'] },
-    { name:'Summit Retail Group', sector:'Retail & Commerce', assets:'$82.5M', agents:20, score_from:61, score_to:89, mitigated:'$3.9M', fw:['PCI-DSS','CCPA','CPRA','FTC'], penalties:['PCI DSS: $5K–$100K/month','CCPA: $7,500/intentional','FTC: Injunctive action risk'] },
-    { name:'Meridian Legal Partners LLP', sector:'Legal Services', assets:'$18.7M', agents:1, score_from:72, score_to:96, mitigated:'$2.0M', fw:['ABA Rules','CCPA','GDPR','State Bar'], penalties:['State Bar: License suspension','GDPR: 4% global revenue','CCPA: $7,500/intentional'] },
-  ];
+  const [tenants, setTenants] = React.useState([]);
+  const [loadingT, setLoadingT] = React.useState(true);
+  React.useEffect(function() {
+    var tok = localStorage.getItem('ci_token') || localStorage.getItem('token') || '';
+    fetch('https://api.coreidentitygroup.com/api/tenants', { headers: {'Authorization':'Bearer '+tok} })
+      .then(function(r){return r.json();})
+      .then(function(d){ setTenants(Array.isArray(d)?d:(d&&d.data?d.data:[])); })
+      .catch(function(){setTenants([]);})
+      .finally(function(){setLoadingT(false);});
+  }, []);
+  var totalAgents = tenants.reduce(function(s,c){return s+(parseInt(c.activeAgents)||0);},0);
+  var totalExecs  = tenants.reduce(function(s,c){return s+(parseInt(c.totalExecutions)||0);},0);
+  var avgScore    = tenants.length>0 ? (tenants.reduce(function(s,c){return s+(parseFloat(c.governanceScore)||0);},0)/tenants.length).toFixed(1) : '---';
   return (
     <div>
       <div style={{display:'flex',gap:12,marginBottom:28,flexWrap:'wrap'}}>
-        <MetricCard label="Client Accounts"  value={CLIENTS.length}  sub="Active deployments"   accent={C.gold} />
-        <MetricCard label="Total Agents"     value={CLIENTS.reduce((s,c)=>s+c.agents,0)} sub="All governed (100%)" accent={C.blue} />
-        <MetricCard label="Total Mitigated"  value="$16.85M"         sub="Penalty exposure"      accent={C.green} />
-        <MetricCard label="Avg Compliance"   value="92.5%"           sub="Avg lift +28pts"       accent={C.teal} />
+        <MetricCard label="Client Accounts"  value={tenants.length}                sub="Active deployments"   accent={C.gold}  />
+        <MetricCard label="Active Agents"    value={totalAgents.toLocaleString()}  sub="Under governance"     accent={C.blue}  />
+        <MetricCard label="Total Executions" value={totalExecs.toLocaleString()}   sub="Production traffic"   accent={C.teal}  />
+        <MetricCard label="Avg Gov Score"    value={avgScore}                      sub="Across all tenants"   accent={C.green} />
       </div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:16}}>
-        {CLIENTS.map((cl,i)=>(
-          <div key={i} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:10,padding:'20px'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12}}>
-              <div>
-                <div style={{color:C.white,fontWeight:700,fontSize:14,marginBottom:2}}>{cl.name}</div>
-                <div style={{color:C.slate,fontSize:11}}>{cl.sector} · {cl.assets} AUM</div>
+      {loadingT ? (
+        <div style={{textAlign:'center',padding:40,color:C.slate,fontSize:12,fontFamily:'monospace',letterSpacing:'0.08em'}}>LOADING TENANT DATA...</div>
+      ) : (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:14}}>
+          {tenants.map(function(co,i) {
+            var score = parseFloat(co.governanceScore)||0;
+            var scoreColor = score>=70?C.green:score>=50?C.gold:C.red;
+            return (
+              <div key={co.clientId||i} style={{background:C.surface,border:'1px solid '+C.border,borderTop:'2px solid '+scoreColor,borderRadius:6,padding:'16px'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
+                  <div>
+                    <div style={{color:C.white,fontWeight:600,fontSize:13,marginBottom:2}}>{co.companyName}</div>
+                    <div style={{color:C.slate,fontSize:10,fontFamily:'monospace'}}>{co.vertical}</div>
+                  </div>
+                  <div style={{textAlign:'right'}}>
+                    <div style={{color:scoreColor,fontFamily:'monospace',fontWeight:700,fontSize:18,lineHeight:1}}>{score.toFixed(1)}</div>
+                    <div style={{color:C.slate,fontSize:9,fontFamily:'monospace',marginTop:2}}>GOV SCORE</div>
+                  </div>
+                </div>
+                <div style={{height:2,background:C.border,borderRadius:1,marginBottom:10}}>
+                  <div style={{height:'100%',width:Math.min(100,score)+'%',background:scoreColor,borderRadius:1}} />
+                </div>
+                <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:10}}>
+                  {(co.frameworks||[]).slice(0,4).map(function(fw){return(<span key={fw} style={{fontSize:9,padding:'2px 5px',borderRadius:3,background:'rgba(212,168,67,0.08)',color:C.gold,border:'1px solid rgba(212,168,67,0.15)',fontFamily:'monospace'}}>{fw}</span>);})}
+                </div>
+                <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:C.slate,fontFamily:'monospace'}}>
+                  <span>{(co.activeAgents||0).toLocaleString()} agents</span>
+                  <span>{(co.totalExecutions||0).toLocaleString()} execs</span>
+                  <span style={{color:C.red}}>{(co.totalViolations||0)} violations</span>
+                </div>
               </div>
-              <Pill label={`${cl.agents} agents`} color={C.blue}/>
-            </div>
-            <div style={{marginBottom:12}}>
-              <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
-                <span style={{color:C.slate,fontSize:11}}>Compliance Score</span>
-                <span style={{color:C.teal,fontWeight:700,letterSpacing:0}}>{cl.score_from}% → {cl.score_to}%</span>
-              </div>
-              <PBar value={cl.score_to} color={C.teal}/>
-            </div>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-              <span style={{color:C.slate,fontSize:11}}>Penalty Mitigated</span>
-              <span style={{color:C.green,fontFamily:'monospace',fontWeight:700,letterSpacing:0}}>{cl.mitigated}</span>
-            </div>
-            <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:12}}>
-              {cl.fw.map(f=><Pill key={f} label={f} color={C.gold}/>)}
-            </div>
-            <div style={{borderTop:'1px solid '+C.border,paddingTop:10}}>
-              {cl.penalties.map((p,j)=><div key={j} style={{color:C.slate,fontSize:10,marginBottom:3}}>⚠ {p}</div>)}
-            </div>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
-
 // ── GOVERNANCE VIEWS ───────────────────────────────────────
 
 function SentinelView() {
