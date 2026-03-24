@@ -1,4 +1,21 @@
 const { DynamoDB } = require('@aws-sdk/client-dynamodb');
+
+// In-memory cache for agent registry — 10 minute TTL
+// Prevents repeated 12-second full table scans on every request
+const _cache = { all: null, ts: 0 };
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+function cacheGet() {
+  if (_cache.all && (Date.now() - _cache.ts) < CACHE_TTL) return _cache.all;
+  return null;
+}
+function cacheSet(items) {
+  _cache.all = items;
+  _cache.ts = Date.now();
+}
+function cacheClear() {
+  _cache.all = null;
+  _cache.ts = 0;
+}
 const { DynamoDBDocument } = require('@aws-sdk/lib-dynamodb');
 
 const TABLE = 'smartnation-agents';
@@ -29,17 +46,35 @@ async function getAgent(agentId) {
 }
 
 async function listAgents({ category, search, limit, offset } = {}) {
+  // Use cache for unfiltered full scans — avoids 12s DynamoDB scan on every request
+  const isUnfiltered = (!category || category === 'all') && !search;
   const params = { TableName: TABLE };
   
-  // Paginate through all DynamoDB pages — table may exceed 1MB single scan
-  let items = [];
-  let lastKey = undefined;
-  do {
-    const scanParams = lastKey ? { ...params, ExclusiveStartKey: lastKey } : params;
-    const result = await client.scan(scanParams);
-    items = items.concat(result.Items || []);
-    lastKey = result.LastEvaluatedKey;
-  } while (lastKey);
+  // Paginate through all DynamoDB pages — use cache for unfiltered requests
+  let items;
+  if (isUnfiltered) {
+    items = cacheGet();
+      items = [];
+      let lastKey = undefined;
+      do {
+        const scanParams = lastKey ? { ...params, ExclusiveStartKey: lastKey } : params;
+        const result = await client.scan(scanParams);
+        items = items.concat(result.Items || []);
+        lastKey = result.LastEvaluatedKey;
+      } while (lastKey);
+      cacheSet(items);
+      console.log('[Registry] Cache populated:', items.length, 'agents');
+    }
+  } else {
+    items = [];
+    let lastKey = undefined;
+    do {
+      const scanParams = lastKey ? { ...params, ExclusiveStartKey: lastKey } : params;
+      const result = await client.scan(scanParams);
+      items = items.concat(result.Items || []);
+      lastKey = result.LastEvaluatedKey;
+    } while (lastKey);
+  }
 
   if (category && category !== 'all') {
     items = items.filter(function(a) { return a.category === category; });
@@ -146,4 +181,4 @@ async function getRegistrySummary() {
   };
 }
 
-module.exports = { getAgent, listAgents, upsertAgent, updateAgentMetrics, getRegistrySummary, calculateGovernanceScore };
+module.exports = { getAgent, listAgents, upsertAgent, updateAgentMetrics, getRegistrySummary, calculateGovernanceScore, cacheClear };
