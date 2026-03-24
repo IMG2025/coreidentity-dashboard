@@ -9,7 +9,7 @@ import { C, F, useWindowWidth } from '../chc-design.js';
 
 const NAV_ITEMS = [
   { path:'/#/dashboard',   icon:LayoutDashboard, label:'Founders',    adminOnly:true  },
-  { path:'/#/agents',      icon:Bot,             label:'Agents',      adminOnly:false },
+  { path:'/#/agents',      icon:Bot,             label:'Operations',      adminOnly:false },
   { path:'/#/sentinel',    icon:Shield,          label:'Sentinel OS', adminOnly:false },
   { path:'/#/nexus',       icon:Zap,             label:'Nexus OS',    adminOnly:false },
   { path:'/#/smartnation', icon:Globe,           label:'SmartNation', adminOnly:false },
