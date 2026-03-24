@@ -54,6 +54,7 @@ async function listAgents({ category, search, limit, offset } = {}) {
   let items;
   if (isUnfiltered) {
     items = cacheGet();
+    if (items === null || items === undefined) {
       items = [];
       let lastKey = undefined;
       do {
@@ -64,6 +65,8 @@ async function listAgents({ category, search, limit, offset } = {}) {
       } while (lastKey);
       cacheSet(items);
       console.log('[Registry] Cache populated:', items.length, 'agents');
+    } else {
+      console.log('[Registry] Cache hit:', items.length, 'agents');
     }
   } else {
     items = [];
