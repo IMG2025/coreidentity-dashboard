@@ -71,7 +71,7 @@ const DEMO_AGENTS = {
 };
 const CLIENT_COLORS = {bank:C.blue, health:C.green, retail:C.orange, legal:C.purple};
 const CLIENT_ICONS  = {bank:'🏦', health:'🏥', retail:'🛍️', legal:'⚖️'};
-const CLIENT_LABELS = {bank:'First National Virtual Bank', health:'Cascade Regional Health Network', retail:'Summit Retail Group', legal:'Meridian Legal Partners LLP'};
+const CLIENT_LABELS = {bank:'Meridian Financial Group', health:'Cascade Regional Health', retail:'Summit Retail Group', legal:'Meridian Legal Partners'};
 
 // ── SmartNation 108-agent registry ─────────────────────────
 const SN_DOMAINS = [
@@ -745,7 +745,7 @@ function SentinelView() {
 
 function NexusView() {
   const CIRCUITS = [
-    { domain:'Financial', client:'First National Virtual Bank', status:'CLOSED', trips:0, agents:24, avgLatency:156, throughput:'2.3K/hr', lastTrip:'Never' },
+    { domain:'Financial', client:'Meridian Financial Group', status:'CLOSED', trips:0, agents:24, avgLatency:156, throughput:'2.3K/hr', lastTrip:'Never' },
     { domain:'Healthcare', client:'Cascade Regional Health', status:'CLOSED',   trips:1, agents:22, avgLatency:184, throughput:'1.8K/hr', lastTrip:'4h ago' },
     { domain:'Retail',     client:'Summit Retail Group',      status:'CLOSED',   trips:0, agents:18, avgLatency:94,  throughput:'3.1K/hr', lastTrip:'Never' },
     { domain:'Legal',      client:'Meridian Legal Partners',  status:'CLOSED',   trips:0, agents:16, avgLatency:234, throughput:'890/hr',  lastTrip:'Never' },
@@ -976,7 +976,7 @@ function AuditTrailView() {
           <div>
             <div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:6}}>Client</div>
             <select value={demoClient} onChange={e=>{setDemoClient(e.target.value);setDemoAgent(DEMO_AGENTS[e.target.value][0].id);}} style={{background:C.surface,border:'1px solid '+C.border,color:C.white,borderRadius:6,padding:'8px 12px',fontSize:13,cursor:'pointer',minWidth:220}}>
-              <option value="bank">🏦 First National Virtual Bank</option>
+              <option value="bank">🏦 Meridian Financial Group</option>
               <option value="health">🏥 Cascade Regional Health</option>
               <option value="retail">🛍️ Summit Retail Group</option>
               <option value="legal">⚖️ Meridian Legal Partners</option>

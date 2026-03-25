@@ -54,7 +54,7 @@ export default function NexusOS() {
   }
 
   const stats = status ? (status.execution_stats || status.data?.execution_stats || {}) : {};
-  const safeNum = (v) => (v !== undefined && v !== null && !isNaN(v)) ? Number(v).toLocaleString() : '0';
+  const safeNum = (v) => (v !== undefined && v !== null && !isNaN(Number(v))) ? Number(v).toLocaleString() : '0';
 
   return (
     <div className='max-w-6xl mx-auto px-4 py-6'>

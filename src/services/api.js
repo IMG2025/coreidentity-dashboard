@@ -1,7 +1,7 @@
 export const API_URL = 'https://api.coreidentitygroup.com';
 
 export const api = async (endpoint, options = {}) => {
-  const token = localStorage.getItem('token') || localStorage.getItem('ci_token');
+  const token = localStorage.getItem('ci_token') || localStorage.getItem('token');
   const config = {
     ...options,
     mode: 'cors',
@@ -14,13 +14,11 @@ export const api = async (endpoint, options = {}) => {
       ...options.headers,
     },
   };
-
   const url = endpoint.startsWith('/') ? `${API_URL}${endpoint}` : `${API_URL}/${endpoint}`;
   try {
     const response = await fetch(url, config);
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
     const parsed = await response.json();
-// Emit degradation event for global notification banner
     if (parsed && parsed._meta) {
       window.dispatchEvent(new CustomEvent('chc-data-degraded', {
         detail: { degraded: parsed._meta.degraded || false, message: parsed._meta.message || '' }
@@ -61,16 +59,24 @@ api.executeAgent = (agentId, taskType, payload) => api('/api/agents/execute', {
 
 api.deployAgent = (agentId) => api('/api/deployed', { method: 'POST', body: JSON.stringify({ agentId }) });
 
-// Governance
+// Governance — correct endpoint is /api/governance (not /api/governance/stats)
 api.getGovernance       = () => api('/api/governance').then(r => r.data || r);
-api.getGovernanceStats  = () => api('/api/governance');
+api.getGovernanceStats  = () => api('/api/governance').then(r => r.data || r);
 api.getComplianceStatus = () => api('/api/compliance/status');
 
 // Sentinel
-api.getSentinelLogs = () => api('/api/sentinel/logs');
-// Sentinel — full method set
+api.getSentinelLogs      = () => api('/api/sentinel/logs');
 api.getSentinelStatus    = () => api('/api/sentinel/status').then(r => r.data || r);
-api.getSecurityEvents    = (limit = 30) => api('/api/sentinel/status').then(r => { const d = r.data || r; const s = d.security_summary || {}; const evts = []; if(s.violations_24h) evts.push({type:'violation',severity:'MEDIUM',count:s.violations_24h,description:'Policy violations in last 24h'}); if(s.policy_enforced_24h) evts.push({type:'enforcement',severity:'INFO',count:s.policy_enforced_24h,description:'Policy enforcements in last 24h'}); if(s.high_severity_24h) evts.push({type:'violation',severity:'HIGH',count:s.high_severity_24h,description:'High severity events in last 24h'}); return evts; });
+api.getSecurityEvents    = (limit = 30) => api('/api/sentinel/status').then(r => {
+  const d = r.data || r;
+  const s = d.security_summary || {};
+  const evts = [];
+  if (s.total_events_24h)    evts.push({ type:'summary',    severity:'INFO',   count:s.total_events_24h,    description:'Total events in last 24h' });
+  if (s.violations_24h)      evts.push({ type:'violation',  severity:'MEDIUM', count:s.violations_24h,      description:'Policy violations in last 24h' });
+  if (s.policy_enforced_24h) evts.push({ type:'enforcement',severity:'INFO',   count:s.policy_enforced_24h, description:'Policy enforcements in last 24h' });
+  if (s.high_severity_24h)   evts.push({ type:'violation',  severity:'HIGH',   count:s.high_severity_24h,   description:'High severity events in last 24h' });
+  return evts;
+});
 api.getKillSwitches      = () => api('/api/sentinel/kill-switches').then(r => Array.isArray(r) ? r : (r.data || r.killSwitches || []));
 api.getApprovals         = () => api('/api/sentinel/approvals').then(r => Array.isArray(r) ? r : (r.data || r.approvals || []));
 api.getRiskTiers         = () => api('/api/sentinel/risk-tiers').then(r => r.data || r || {});
@@ -78,9 +84,25 @@ api.activateKillSwitch   = (agentId, reason) => api('/api/sentinel/kill-switches
 api.deactivateKillSwitch = (agentId) => api(`/api/sentinel/kill-switches/${agentId}`, { method: 'DELETE', body: '{}' });
 api.approveRequest       = (approvalId) => api(`/api/sentinel/approvals/${approvalId}/approve`, { method: 'POST', body: '{}' });
 
-
-// Nexus
-api.getNexusStatus     = () => api('/api/nexus/status').then(r => r.data || r);
+// Nexus — derives from analytics since /api/nexus/status does not exist
+api.getNexusStatus = () => api('/api/analytics').then(r => {
+  const d = r.data || r;
+  const s = d.summary || {};
+  const total = s.totalExecutions || 0;
+  const rate  = s.successRate || 0;
+  return {
+    status: 'OPERATIONAL',
+    execution_stats: {
+      total,
+      completed: Math.round(total * rate / 100),
+      failed:    Math.round(total * (100 - rate) / 100),
+      successRate:   rate,
+      avgLatencyMs:  s.avgLatencyMs || 0,
+    },
+    runtime: { running: s.activeDeployments || 0, queued: 0 },
+    circuit_breakers: [],
+  };
+});
 api.getNexusExecutions = (limit = 20) => api(`/api/nexus/executions?limit=${limit}`);
 
 // Workflows
@@ -95,50 +117,21 @@ api.getSmartNationAgents  = (cat, q) => api.getAgents(cat, q);
 api.getIdentityProfiles = () => api('/api/identity/profiles');
 api.getSystemHealth     = () => api('/api/health');
 
-
-// ── Customer + Client + Billing — attached as api object methods ──────────────
-// SettingsPage imports { api } and calls api.createCustomer() — must be on object
-api.createCustomer = (data) =>
-  api('/api/users/create', { method: 'POST', body: JSON.stringify(data) });
-
-api.getUsers = () =>
-  api('/api/users');
-
-api.createClient = (data) =>
-  api('/api/clients', { method: 'POST', body: JSON.stringify(data) });
-
-api.getClients = () =>
-  api('/api/clients');
-
+// Customer + Client + Billing
+api.createCustomer = (data) => api('/api/users/create', { method: 'POST', body: JSON.stringify(data) });
+api.getUsers       = () => api('/api/users');
+api.createClient   = (data) => api('/api/clients', { method: 'POST', body: JSON.stringify(data) });
+api.getClients     = () => api('/api/clients');
 api.createBillingCheckout = (clientId, plan, email, companyName) =>
-  api('/api/billing/checkout', {
-    method: 'POST',
-    body: JSON.stringify({ clientId, plan, email, companyName })
-  });
+  api('/api/billing/checkout', { method: 'POST', body: JSON.stringify({ clientId, plan, email, companyName }) });
 
-
+// Auth
 api.getProfile = async function() {
-  const token = localStorage.getItem('ci_token');
-  const res = await fetch(BASE_URL + '/api/auth/profile', {
+  const token = localStorage.getItem('ci_token') || localStorage.getItem('token');
+  const res = await fetch(API_URL + '/api/auth/profile', {
     credentials: 'include', headers: { Authorization: 'Bearer ' + token }
   });
   return res.json();
 };
 
-api.getSentinelStatus = async function() {
-  const token = localStorage.getItem('ci_token');
-  const res = await fetch(BASE_URL + '/api/sentinel/status', {
-    credentials: 'include', headers: { Authorization: 'Bearer ' + token }
-  });
-  return res.json();
-};
-
-api.getSentinelLogs = async function() {
-  const token = localStorage.getItem('ci_token');
-  const res = await fetch(BASE_URL + '/api/sentinel/logs', {
-    credentials: 'include', headers: { Authorization: 'Bearer ' + token }
-  });
-  return res.json();
-};
 export default api;
-
