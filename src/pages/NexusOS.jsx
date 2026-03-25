@@ -79,10 +79,10 @@ export default function NexusOS() {
       </div>
 
       <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-6'>
-        <StatCard icon={Activity}      label='Total Executions' value={stats ? stats.total     : '--'} color='blue'   />
-        <StatCard icon={CheckCircle}   label='Completed'        value={stats ? stats.completed  : '--'} color='green'  />
-        <StatCard icon={XCircle}       label='Failed'           value={stats ? stats.failed     : '--'} color='orange' />
-        <StatCard icon={Zap}           label='Success Rate'     value={stats ? stats.successRate + '%' : '--'} color='teal' />
+        <StatCard icon={Activity}      label='Total Executions' value={stats ? (stats.total ?? 0) : '--'} color='blue'   />
+        <StatCard icon={CheckCircle}   label='Completed'        value={stats ? (stats.completed ?? 0) : '--'} color='green'  />
+        <StatCard icon={XCircle}       label='Failed'           value={stats ? (stats.failed ?? 0) : '--'} color='orange' />
+        <StatCard icon={Zap}           label='Success Rate'     value={stats ? (stats.successRate ?? 0) + '%' : '--'} color='teal' />
       </div>
 
       {stats && (
@@ -94,8 +94,8 @@ export default function NexusOS() {
             {[
               ['Running',      stats.running,             'text-blue-600'],
               ['Queued',       stats.queued,              'text-gray-600'],
-              ['Avg Duration', stats.avgDuration + 'ms',  'text-purple-600'],
-              ['Success Rate', stats.successRate + '%',   'text-green-600']
+              ['Avg Duration', (stats.avgDuration ?? 0) + 'ms',  'text-purple-600'],
+              ['Success Rate', ( stats.successRate ?? 0) + '%',   'text-green-600']
             ].map(function(row) {
               return (
                 <div key={row[0]} className='flex justify-between py-2 border-b border-gray-50 last:border-0'>
