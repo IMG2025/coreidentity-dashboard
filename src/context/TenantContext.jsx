@@ -10,7 +10,9 @@ export function TenantProvider({ children }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    api.get('/api/tenants')
+    const tok = localStorage.getItem('ci_token') || localStorage.getItem('token') || '';
+    fetch('https://api.coreidentitygroup.com/api/tenants', { headers: { 'Authorization': 'Bearer ' + tok } })
+      .then(r => r.json())
       .then(r => setCompanies(Array.isArray(r) ? r : (r && r.data ? r.data : [])))
       .catch(() => {});
   }, []);

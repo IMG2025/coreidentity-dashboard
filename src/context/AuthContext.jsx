@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState } from 'react';
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
 
-const API_URL = 'https://api.coreidentity.coreidentitygroup.com';
+const API_URL = 'https://api.coreidentitygroup.com';
 const TOKEN_KEY = 'ci_token';
 const USER_KEY  = 'ci_user';
 

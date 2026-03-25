@@ -1,4 +1,4 @@
-export const API_URL = 'https://api.coreidentity.coreidentitygroup.com';
+export const API_URL = 'https://api.coreidentitygroup.com';
 
 export const api = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token') || localStorage.getItem('ci_token');
@@ -62,15 +62,15 @@ api.executeAgent = (agentId, taskType, payload) => api('/api/agents/execute', {
 api.deployAgent = (agentId) => api('/api/deployed', { method: 'POST', body: JSON.stringify({ agentId }) });
 
 // Governance
-api.getGovernance       = () => api('/api/governance/stats').then(r => r.data || r);
-api.getGovernanceStats  = () => api('/api/governance/stats');
+api.getGovernance       = () => api('/api/governance').then(r => r.data || r);
+api.getGovernanceStats  = () => api('/api/governance');
 api.getComplianceStatus = () => api('/api/compliance/status');
 
 // Sentinel
 api.getSentinelLogs = () => api('/api/sentinel/logs');
 // Sentinel — full method set
 api.getSentinelStatus    = () => api('/api/sentinel/status').then(r => r.data || r);
-api.getSecurityEvents    = (limit = 30) => api(`/api/sentinel/events?limit=${limit}`).then(r => Array.isArray(r) ? r : (r.data || r.events || []));
+api.getSecurityEvents    = (limit = 30) => api('/api/sentinel/status').then(r => { const d = r.data || r; const s = d.security_summary || {}; const evts = []; if(s.violations_24h) evts.push({type:'violation',severity:'MEDIUM',count:s.violations_24h,description:'Policy violations in last 24h'}); if(s.policy_enforced_24h) evts.push({type:'enforcement',severity:'INFO',count:s.policy_enforced_24h,description:'Policy enforcements in last 24h'}); if(s.high_severity_24h) evts.push({type:'violation',severity:'HIGH',count:s.high_severity_24h,description:'High severity events in last 24h'}); return evts; });
 api.getKillSwitches      = () => api('/api/sentinel/kill-switches').then(r => Array.isArray(r) ? r : (r.data || r.killSwitches || []));
 api.getApprovals         = () => api('/api/sentinel/approvals').then(r => Array.isArray(r) ? r : (r.data || r.approvals || []));
 api.getRiskTiers         = () => api('/api/sentinel/risk-tiers').then(r => r.data || r || {});

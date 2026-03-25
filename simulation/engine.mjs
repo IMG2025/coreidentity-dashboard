@@ -77,8 +77,25 @@ async function record(companyId, agentId, agentName, taskType, result, riskTier)
       await db.put({TableName:'tenant-events',Item:{companyId,eventId:'EVT-'+randomBytes(4).toString('hex'),type:'violation',agentId,agentName:agentName||agentId,description:'Policy violation during '+taskType+' — governance threshold exceeded',severity:riskTier==='TIER_1'?'high':'medium',timestamp:now,resolved:false,executionId:execId}});
     }
 
-    const delta = result.success ? (Math.random()*0.3+0.05) : -(Math.random()*3.5+1.5);
-    state.score = Math.max(25, Math.min(98, state.score + delta));
+    // Balanced governance drift — realistic improvement with occasional setbacks
+    // Success: small positive drift (CoreIdentity improving posture over time)
+    // Violation: moderate setback, but not catastrophic
+    // Occasional remediation boost (5% chance)
+    let delta;
+    const rand = Math.random();
+    if (!result.success) {
+      delta = -(Math.random() * 1.2 + 0.3); // -0.3 to -1.5 per violation
+    } else if (rand < 0.05) {
+      delta = Math.random() * 2.0 + 0.5;    // 5% chance: remediation boost +0.5 to +2.5
+    } else {
+      delta = Math.random() * 0.4 + 0.1;    // normal pass: +0.1 to +0.5
+    }
+    // Each company has a soft target range — pull toward it gradually
+    const targetFloor = state.targetFloor || 45;
+    const targetCeil  = state.targetCeil  || 85;
+    if (state.score < targetFloor && delta < 0) delta = delta * 0.2; // dampen drops near floor
+    if (state.score > targetCeil  && delta > 0) delta = delta * 0.3; // dampen rises near ceiling
+    state.score = Math.max(35, Math.min(98, state.score + delta));
     states[companyId] = state;
 
     await db.put({TableName:'tenant-governance',Item:{companyId,timestamp:now,score:parseFloat(state.score.toFixed(2)),delta:parseFloat(delta.toFixed(2)),reason:result.success?'execution_pass':'violation'}});
@@ -112,15 +129,23 @@ async function loadAgents(companyId) {
 
 async function runCompany(company, agents) {
   const {clientId,execIntervalSec=150,governanceScore=60} = company;
-  states[clientId] = {score:parseFloat(governanceScore)||60};
+  const targets = {
+    'CI-HEALTH': {targetFloor:55, targetCeil:80},
+    'CI-BANK':   {targetFloor:60, targetCeil:85},
+    'CI-RETAIL': {targetFloor:50, targetCeil:75},
+    'CI-LEGAL':  {targetFloor:65, targetCeil:90},
+    'CI-CORP':   {targetFloor:58, targetCeil:82},
+  };
+  states[clientId] = {score:parseFloat(governanceScore)||60, ...(targets[clientId]||{targetFloor:50,targetCeil:82})};
   log(clientId,'Started | '+agents.length+' agents | '+execIntervalSec+'s interval');
-  const tasks = ['ANALYZE','ANALYZE','ANALYZE','EXECUTE','EXECUTE','ESCALATE'];
+  const getTasks = (tier) => tier === 'TIER_1' ? ['ANALYZE','ANALYZE','EXECUTE','ESCALATE'] : ['ANALYZE','ANALYZE','ANALYZE','EXECUTE','EXECUTE'];
 
   while (true) {
     try {
       const agent = agents[Math.floor(Math.random()*agents.length)];
       if (!agent) { await sleep(5000); continue; }
-      const task = tasks[Math.floor(Math.random()*tasks.length)];
+      const agentTasks = getTasks(agent.riskTier || 'TIER_2');
+      const task = agentTasks[Math.floor(Math.random()*agentTasks.length)];
       const useMCP = Math.random() < 0.40;
       const result = useMCP ? await execMCP(agent.agentId, task, clientId) : await execAPI(agent.agentId, task, clientId);
       if (result) {

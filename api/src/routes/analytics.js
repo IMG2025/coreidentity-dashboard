@@ -12,8 +12,16 @@ async function safeScan(TableName, FilterExpression, ExpressionAttributeValues) 
   try {
     const params = { TableName };
     if (FilterExpression) { params.FilterExpression = FilterExpression; params.ExpressionAttributeValues = ExpressionAttributeValues; }
-    const result = await ddb.send(new ScanCommand(params));
-    return result.Items || [];
+    // Paginate through all DynamoDB pages
+    let items = [];
+    let lastKey;
+    do {
+      if (lastKey) params.ExclusiveStartKey = lastKey;
+      const result = await ddb.send(new ScanCommand(params));
+      items = items.concat(result.Items || []);
+      lastKey = result.LastEvaluatedKey;
+    } while (lastKey);
+    return items;
   } catch(e) { console.warn('[Analytics] scan failed:', TableName, e.message); return []; }
 }
 

@@ -1,0 +1,7 @@
+steps:
+- name: gcr.io/cloud-builders/docker
+  args: [build, -t, '$_IMAGE', -f, Dockerfile.simulation, .]
+substitutions:
+  _IMAGE: placeholder
+images:
+- '$_IMAGE'

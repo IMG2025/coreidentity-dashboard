@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, CheckCircle, Loader, AlertCircle, ChevronDown, CreditCard } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const API = 'https://api.coreidentity.coreidentitygroup.com';
+const API = 'https://api.coreidentitygroup.com';
 
 export default function ClientOnboarding() {
   const { token } = useAuth();

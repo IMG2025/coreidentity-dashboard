@@ -170,7 +170,7 @@ export default function Governance() {
   );
 
   const scores = normalizeScores(data ? data.scores : null);
-  const frameworks = data?.frameworks || [];
+  const frameworks = data?.frameworks || data?.data?.frameworks || [];
   const alerts = data?.alerts || [];
 
   return (

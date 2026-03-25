@@ -110,11 +110,13 @@ export default function AgentCatalog() {
       });
       const data = await res.json();
       const body = data?.data || data;
+      const d = body.data || body;
       setResult({
         agentName: agent.name || agent.agentName || id,
-        status: body.policyBlocked ? 'BLOCKED' : body.success===false ? 'FAILED' : 'OK',
-        taskType, executionId: body.executionId || body.taskId || '—',
-        output: body.output || body.result || { message: body.message || 'Task dispatched' },
+        status: d.policyBlocked ? 'BLOCKED' : data.success===true ? 'OK' : 'FAILED',
+        taskType,
+        executionId: d.executionId || d.taskId || '—',
+        output: d.result || d.output || { message: d.message || body.message || 'Task dispatched' },
       });
       addNotification((agent.name||id)+' '+taskType+' complete', 'success');
     } catch(e) {
@@ -128,7 +130,7 @@ export default function AgentCatalog() {
     const id = agent.agentId || agent.id || '';
     setStopping(p => ({ ...p, [id]: true }));
     try {
-      const res = await fetch(API+'/api/sentinel/killswitches', {
+      const res = await fetch(API+'/api/sentinel/kill-switches', {
         method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+token() },
         body: JSON.stringify({ agentId:id, reason:'Manual stop via Operations Console', triggeredBy: user?.email || 'admin' }),
       });
@@ -155,6 +157,7 @@ export default function AgentCatalog() {
       if (!data.success && !data.deploymentId) throw new Error(data.error || 'Restart failed');
       addNotification((agent.name||id)+' restarted', 'success');
       setAgents(p => p.map(a => (a.agentId||a.id)===id ? {...a, status:'active'} : a));
+      if(filter==='suspended') setFilter('all');
     } catch(e) {
       addNotification('Restart failed: '+e.message, 'error');
     } finally {

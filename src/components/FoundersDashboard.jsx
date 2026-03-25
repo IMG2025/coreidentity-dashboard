@@ -569,30 +569,36 @@ function ClientPortfolioView() {
   const [loadingT, setLoadingT] = React.useState(true);
   React.useEffect(function() {
     var tok = localStorage.getItem('ci_token') || localStorage.getItem('token') || '';
-    fetch('https://api.coreidentitygroup.com/api/tenants', { headers: {'Authorization':'Bearer '+tok} })
-      .then(function(r){return r.json();})
-      .then(function(d){ setTenants(Array.isArray(d)?d:(d&&d.data?d.data:[])); })
-      .catch(function(){setTenants([]);})
-      .finally(function(){setLoadingT(false);});
+    fetch('https://api.coreidentitygroup.com/api/tenants', {
+      headers: { 'Authorization': 'Bearer ' + tok }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) { setTenants(Array.isArray(d) ? d : (d && d.data ? d.data : [])); })
+    .catch(function() { setTenants([]); })
+    .finally(function() { setLoadingT(false); });
   }, []);
-  var totalAgents = tenants.reduce(function(s,c){return s+(parseInt(c.activeAgents)||0);},0);
-  var totalExecs  = tenants.reduce(function(s,c){return s+(parseInt(c.totalExecutions)||0);},0);
-  var avgScore    = tenants.length>0 ? (tenants.reduce(function(s,c){return s+(parseFloat(c.governanceScore)||0);},0)/tenants.length).toFixed(1) : '---';
+  var totalAgents = tenants.reduce(function(s,co) { return s+(parseInt(co.activeAgents)||0); }, 0);
+  var totalExecs  = tenants.reduce(function(s,co) { return s+(parseInt(co.totalExecutions)||0); }, 0);
+  var avgScore    = tenants.length>0
+    ? (tenants.reduce(function(s,co) { return s+(parseFloat(co.governanceScore)||0); }, 0)/tenants.length).toFixed(1)
+    : '---';
   return (
     <div>
       <div style={{display:'flex',gap:12,marginBottom:28,flexWrap:'wrap'}}>
-        <MetricCard label="Client Accounts"  value={tenants.length}                sub="Active deployments"   accent={C.gold}  />
-        <MetricCard label="Active Agents"    value={totalAgents.toLocaleString()}  sub="Under governance"     accent={C.blue}  />
-        <MetricCard label="Total Executions" value={totalExecs.toLocaleString()}   sub="Production traffic"   accent={C.teal}  />
-        <MetricCard label="Avg Gov Score"    value={avgScore}                      sub="Across all tenants"   accent={C.green} />
+        <MetricCard label="Client Accounts"  value={tenants.length}                  sub="Active deployments"   accent={C.gold}  />
+        <MetricCard label="Active Agents"    value={totalAgents.toLocaleString()}     sub="Under governance"     accent={C.blue}  />
+        <MetricCard label="Total Executions" value={totalExecs.toLocaleString()}      sub="Production traffic"   accent={C.teal}  />
+        <MetricCard label="Avg Gov Score"    value={avgScore}                         sub="Across all tenants"   accent={C.green} />
       </div>
       {loadingT ? (
-        <div style={{textAlign:'center',padding:40,color:C.slate,fontSize:12,fontFamily:'monospace',letterSpacing:'0.08em'}}>LOADING TENANT DATA...</div>
+        <div style={{textAlign:'center',padding:40,color:C.slate,fontSize:12,fontFamily:'monospace'}}>LOADING CLIENT DATA...</div>
+      ) : tenants.length === 0 ? (
+        <div style={{textAlign:'center',padding:40,color:C.slate,fontSize:12}}>No tenant data. Deploy agents from SmartNation AI.</div>
       ) : (
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:14}}>
-          {tenants.map(function(co,i) {
-            var score = parseFloat(co.governanceScore)||0;
-            var scoreColor = score>=70?C.green:score>=50?C.gold:C.red;
+          {tenants.map(function(co, i) {
+            var score = parseFloat(co.governanceScore) || 0;
+            var scoreColor = score>=70 ? C.green : score>=50 ? C.gold : C.red;
             return (
               <div key={co.clientId||i} style={{background:C.surface,border:'1px solid '+C.border,borderTop:'2px solid '+scoreColor,borderRadius:6,padding:'16px'}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
@@ -609,7 +615,9 @@ function ClientPortfolioView() {
                   <div style={{height:'100%',width:Math.min(100,score)+'%',background:scoreColor,borderRadius:1}} />
                 </div>
                 <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:10}}>
-                  {(co.frameworks||[]).slice(0,4).map(function(fw){return(<span key={fw} style={{fontSize:9,padding:'2px 5px',borderRadius:3,background:'rgba(212,168,67,0.08)',color:C.gold,border:'1px solid rgba(212,168,67,0.15)',fontFamily:'monospace'}}>{fw}</span>);})}
+                  {(co.frameworks||[]).slice(0,4).map(function(fw) {
+                    return <span key={fw} style={{fontSize:9,padding:'2px 5px',borderRadius:3,background:'rgba(212,168,67,0.08)',color:C.gold,border:'1px solid rgba(212,168,67,0.15)',fontFamily:'monospace'}}>{fw}</span>;
+                  })}
                 </div>
                 <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:C.slate,fontFamily:'monospace'}}>
                   <span>{(co.activeAgents||0).toLocaleString()} agents</span>
@@ -624,8 +632,6 @@ function ClientPortfolioView() {
     </div>
   );
 }
-// ── GOVERNANCE VIEWS ───────────────────────────────────────
-
 function SentinelView() {
   const [killSwitches, setKillSwitches] = useState({
     global:false, financial:false, healthcare:false, retail:false, legal:false
@@ -894,8 +900,8 @@ function AuditTrailView() {
   const fetchAudit = useCallback(async () => {
     try {
       const [execRes, statsRes] = await Promise.all([
-        fetch('https://api.coreidentity.coreidentitygroup.com/api/telemetry/executions?limit=100'),
-        fetch('https://api.coreidentity.coreidentitygroup.com/api/telemetry/stats')
+        fetch('https://api.coreidentitygroup.com/api/telemetry/executions?limit=100'),
+        fetch('https://api.coreidentitygroup.com/api/telemetry/stats')
       ]);
       let execJson={}, statsJson={};
       try { execJson  = await execRes.json();  } catch(e) {}
@@ -907,7 +913,7 @@ function AuditTrailView() {
   }, []);
 
   useEffect(() => {
-    fetch('https://api.coreidentity.coreidentitygroup.com/api/telemetry/seed',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+    fetch('https://api.coreidentitygroup.com/api/telemetry/seed',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
       .then(()=>fetchAudit()).catch(()=>fetchAudit());
     const t = setInterval(fetchAudit, 10000);
     return () => clearInterval(t);
@@ -918,7 +924,7 @@ function AuditTrailView() {
     try {
       const agents = DEMO_AGENTS[demoClient];
       const agent  = agents.find(a=>a.id===demoAgent)||agents[0];
-      const res    = await fetch('https://api.coreidentity.coreidentitygroup.com/api/agents/execute',{
+      const res    = await fetch('https://api.coreidentitygroup.com/api/agents/execute',{
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({clientId:demoClient, agentId:agent.id, task:agent.task, payload:{demo:true}})
       });

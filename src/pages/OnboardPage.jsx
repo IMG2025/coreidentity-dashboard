@@ -15,7 +15,7 @@ export default function OnboardPage() {
 
   const assess = async () => {
     try {
-      const r    = await fetch('https://api.coreidentity.coreidentitygroup.com/api/commercial/assess',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:form.industry,agentCount:form.agentCount,currentScore:form.currentScore,company:form.company,email:form.email})});
+      const r    = await fetch('https://api.coreidentitygroup.com/api/commercial/assess',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:form.industry,agentCount:form.agentCount,currentScore:form.currentScore,company:form.company,email:form.email})});
       const json = await r.json();
       if (json.success) setResult(json.assessment);
     } catch(e) {

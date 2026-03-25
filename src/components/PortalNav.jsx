@@ -67,7 +67,7 @@ export default function PortalNav({ route, onNavigate, userEmail, onLogout, user
           background:'none', border:'none', cursor:'pointer',
           display:'flex', alignItems:'center', gap:10, flexShrink:0, padding:0,
         }}>
-          <img src="/logo-dark.png" alt="CoreIdentity" style={{height:30, width:'auto'}} />
+          <img src="/logo-dark.png" alt="CoreIdentity" style={{height:36, width:'auto'}} />
           {!isMobile && (
             <div>
               <div style={{color:C.white, fontFamily:F.display, fontSize:12, letterSpacing:'0.1em', lineHeight:1.1}}>
