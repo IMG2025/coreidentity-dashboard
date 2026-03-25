@@ -61,10 +61,10 @@ const DEMO_AGENTS = {
 };
 
 const CLIENT_LABELS = {
-  bank:   'First National Virtual Bank',
-  health: 'Cascade Regional Health Network',
+  bank:   'Meridian Financial Group',
+  health: 'Cascade Regional Health',
   retail: 'Summit Retail Group',
-  legal:  'Meridian Legal Partners LLP'
+  legal:  'Meridian Legal Partners'
 };
 
 const CLIENT_COLORS = { bank:C.blue, health:C.green, retail:C.orange, legal:C.purple, fnvb:C.blue, rhn:C.green, mrg:C.orange, lpg:C.purple };
@@ -432,10 +432,10 @@ function AuditTrailView() {
               onChange={e => { setDemoClient(e.target.value); setDemoAgent(DEMO_AGENTS[e.target.value][0].id); }}
               style={{background:C.surface, border:'1px solid '+C.border, color:C.white, borderRadius:6, padding:'8px 12px', fontSize:13, cursor:'pointer', minWidth:220}}
             >
-              <option value="bank">🏦 First National Virtual Bank</option>
-              <option value="health">🏥 Cascade Regional Health Network</option>
-              <option value="retail">🛍️ Summit Retail Group</option>
-              <option value="legal">⚖️ Meridian Legal Partners LLP</option>
+              <option value="bank">Meridian Financial Group</option>
+              <option value="health">Cascade Regional Health</option>
+              <option value="retail">Summit Retail Group</option>
+              <option value="legal">Meridian Legal Partners</option>
             </select>
           </div>
           <div>
