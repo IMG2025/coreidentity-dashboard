@@ -625,7 +625,7 @@ export default function FoundersDashboard() {
   ];
 
   return (
-    <div style={{background:C.bg, minHeight:'100vh', color:C.white, fontFamily:'-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'}}>
+    <div style={{background:C.bg, minHeight:'100vh', overflowX:'hidden', color:C.white, fontFamily:'-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'}}>
 
       {/* Header */}
       <div style={{borderBottom:'1px solid '+C.border, padding:'18px 32px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>

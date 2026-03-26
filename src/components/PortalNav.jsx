@@ -74,16 +74,17 @@ export default function PortalNav({ route, onNavigate, userEmail, onLogout, user
           display:'flex', alignItems:'center', gap:10, flexShrink:0, padding:0,
         }}>
           <img src="/logo-dark.png" alt="CoreIdentity" style={{height:36, width:'auto'}} />
-          {!isMobile && (
+          (
             <div>
-              <div style={{color:C.white, fontFamily:F.display, fontSize:12, letterSpacing:'0.1em', lineHeight:1.1}}>
+              <div style={{color:C.white, fontFamily:F.display, fontSize:isMobile?9:12, letterSpacing:'0.1em', lineHeight:1.1}}>
                 COREIDENTITY DEVELOPMENT GROUP
               </div>
-              <div style={{color:C.gold, fontSize:9, letterSpacing:'0.15em', textTransform:'uppercase', fontFamily:F.mono}}>
-                GOVERNANCE PORTAL
-              </div>
+                <div style={{color:C.gold, fontSize:9, letterSpacing:'0.15em', textTransform:'uppercase', fontFamily:F.mono}}>
+                  GOVERNANCE PORTAL
+                </div>
+              )}
             </div>
-          )}
+          )
         </button>
 
         {!isMobile && (
