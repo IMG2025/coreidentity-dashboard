@@ -158,7 +158,7 @@ export default function Governance() {
 
   useEffect(function() {
     api.getGovernance()
-      .then(function(d) { setData(d); })
+      .then(function(raw) { var d = (raw && raw.scores) ? raw : (raw && raw.data ? raw.data : raw || {}); setData(d); })
       .catch(function(e) { console.error(e); })
       .finally(function() { setLoading(false); });
   }, []);

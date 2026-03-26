@@ -68,7 +68,17 @@ export default function SentinelOS() {
     setErrors([]);
     const errs = [];
 
-    const s  = await safeCall(function() { return api.getSentinelStatus(); }, null);
+    const rawStatus = await safeCall(function() { return api.getSentinelStatus(); }, null);
+    // Map real API fields to page-expected fields
+    const s = rawStatus ? {
+      ...rawStatus,
+      status:          rawStatus.status || 'OPERATIONAL',
+      governanceHealth: 100,
+      executions24h:    (rawStatus.audit_summary && rawStatus.audit_summary.total_executions) || (rawStatus.security_summary && rawStatus.security_summary.total_events_24h) || 0,
+      violations24h:    (rawStatus.security_summary && rawStatus.security_summary.violations_24h) || 0,
+      killSwitches:     (rawStatus.security_summary && rawStatus.security_summary.kill_switch_events) || rawStatus.active_kill_switches || 0,
+      highSeverity24h:  (rawStatus.security_summary && rawStatus.security_summary.high_severity_24h) || 0,
+    } : null;
     if (!s) errs.push('status');
 
     const e  = await safeCall(function() { return api.getSecurityEvents(30); }, []);

@@ -53,7 +53,9 @@ export default function NexusOS() {
       .catch(function(e) { console.warn('Nexus executions:', e.message); });
   }
 
-  const stats = status ? (status.execution_stats || status.data?.execution_stats || {}) : {};
+  const execStats = status ? (status.execution_stats || status.data?.execution_stats || {}) : {};
+  const runtime  = status ? (status.runtime || {}) : {};
+  const stats    = { ...execStats, running: runtime.running || 0, queued: runtime.queued || 0 };
   const safeNum = (v) => (v !== undefined && v !== null && !isNaN(Number(v))) ? Number(v).toLocaleString() : '0';
 
   return (
