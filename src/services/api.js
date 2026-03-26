@@ -108,24 +108,7 @@ api.getNexusStatus = () => api('/api/tenants').then(function(r) {
   };
 });
 
-api.getNexusStatus = () => api('/api/analytics').then(r => {
-  const d = r.data || r;
-  const s = d.summary || {};
-  const total = s.totalExecutions || 0;
-  const rate  = s.successRate || 0;
-  return {
-    status: 'OPERATIONAL',
-    execution_stats: {
-      total,
-      completed: Math.round(total * rate / 100),
-      failed:    Math.round(total * (100 - rate) / 100),
-      successRate:   rate,
-      avgLatencyMs:  s.avgLatencyMs || 0,
-    },
-    runtime: { running: s.activeDeployments || 0, queued: 0 },
-    circuit_breakers: [],
-  };
-});
+
 api.getNexusExecutions = (limit = 20) => api(`/api/nexus/executions?limit=${limit}`);
 
 // Workflows
