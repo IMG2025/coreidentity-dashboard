@@ -615,7 +615,7 @@ export default function FoundersDashboard() {
     { id:'consolidated', label:'CIDG Consolidated' },
     { id:'coreidentity', label:'CoreIdentity' },
     { id:'ciag',         label:'CIAG' },
-    { id:'clients',      label:'Clients (4)' },
+    { id:'clients',      label:'Clients' },
     { id:'audit',        label:'⚡ Audit Trail' }
   ];
   const VIEWS = [
@@ -628,7 +628,7 @@ export default function FoundersDashboard() {
     <div style={{background:C.bg, minHeight:'100vh', overflowX:'hidden', color:C.white, fontFamily:'-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'}}>
 
       {/* Header */}
-      <div style={{borderBottom:'1px solid '+C.border, padding:'18px 32px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+      <div style={{borderBottom:'1px solid '+C.border, padding:'18px 16px', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12, overflowX:'hidden'}}>
         <div>
           <div style={{fontSize:10, color:C.slate, letterSpacing: '0', textTransform:'uppercase', marginBottom:4}}>CoreIdentity Development Group</div>
           <div style={{fontSize:20, fontWeight:600}}>Founders Dashboard</div>
@@ -645,7 +645,7 @@ export default function FoundersDashboard() {
       </div>
 
       {/* Status bar */}
-      <div style={{background:C.surface, borderBottom:'1px solid '+C.border, padding:'8px 32px', display:'flex', justifyContent:'space-between', fontSize:11}}>
+      <div style={{background:C.surface, borderBottom:'1px solid '+C.border, padding:'8px 16px', display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:4, fontSize:11}}>
         <span style={{color:loading?C.slate:err?C.orange:C.green}}>
           {loading ? '⏳ Loading 5 GCP sources…' : err ? '⚠ Partial data — some sources unavailable' : '● Live — 5 GCP services healthy'}
         </span>
@@ -653,7 +653,7 @@ export default function FoundersDashboard() {
       </div>
 
       {/* Tab bar */}
-      <div style={{borderBottom:'1px solid '+C.border, padding:'0 32px', display:'flex'}}>
+      <div style={{borderBottom:'1px solid '+C.border, padding:'0 32px', display:'flex', overflowX:'auto', WebkitOverflowScrolling:'touch', msOverflowStyle:'none'}}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             style={{background:'none', border:'none', cursor:'pointer', padding:'14px 20px', fontSize:13, fontWeight:500,
