@@ -87,8 +87,15 @@ export default function PortalNav({ route, onNavigate, userEmail, onLogout, user
         </button>
 
         {!isMobile && (
-          <div style={{display:'flex', alignItems:'center', gap:2, flex:1, justifyContent:'center', overflow:'hidden'}}>
-            {visible.map(({path, icon:Icon, label}) => navBtn(path, Icon, label))}
+          <div style={{display:'flex', flexDirection:'column', alignItems:'center', flex:1, overflow:'hidden', gap:2}}>
+            {selectedCompany && (
+              <div style={{fontSize:9, fontFamily:'monospace', color:'rgba(212,168,67,0.8)', letterSpacing:'0.12em', textTransform:'uppercase', lineHeight:1}}>
+                {selectedCompany}
+              </div>
+            )}
+            <div style={{display:'flex', alignItems:'center', gap:2, flexWrap:'nowrap', overflow:'hidden'}}>
+              {visible.map(({path, icon:Icon, label}) => navBtn(path, Icon, label))}
+            </div>
           </div>
         )}
 
