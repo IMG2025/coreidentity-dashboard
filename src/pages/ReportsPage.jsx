@@ -3,9 +3,9 @@ import { C, F } from '../chc-design.js';
 
 const CLIENT_OPTS = [
   { id:'bank',   name:'Meridian Financial Group',     icon:'🏦', color:C.blue   },
-  { id:'health', name:'Cascade Regional Health Network', icon:'🏥', color:C.green  },
-  { id:'retail', name:'Summit Retail Group',             icon:'🛍️', color:C.orange },
-  { id:'legal',  name:'Meridian Legal Partners LLP',     icon:'⚖️', color:C.purple },
+  { id:'health', name:'Cascade Regional Health', icon:'🏥', color:C.green  },
+  { id:'retail', name:'Summit Retail Group',             icon:'🛒', color:C.orange },
+  { id:'legal',  name:'Meridian Legal Partners',     icon:'⚖️', color:C.purple },
 ];
 
 function ScoreRing({ score, size = 80, color = C.green }) {
