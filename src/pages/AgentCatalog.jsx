@@ -135,7 +135,7 @@ export default function AgentCatalog() {
         body: JSON.stringify({ agentId:id, reason:'Manual stop via Operations Console', triggeredBy: user?.email || 'admin' }),
       });
       const data = await res.json();
-      if (!data.success && !data.killSwitchId) throw new Error(data.error || 'Stop failed');
+      if (!data.success && !data.killSwitchId && !data.id) throw new Error(data.error || data.message || 'Stop failed');
       addNotification((agent.name||id)+' stopped', 'warning');
       // Update local state
       setAgents(p => p.map(a => (a.agentId||a.id)===id ? {...a, status:'suspended'} : a));
