@@ -222,6 +222,13 @@ export default function TenantDashboard() {
 
   return (
     <div style={{ padding: '24px 20px', fontFamily: F.body, color: C.white, maxWidth: 1200, margin: '0 auto' }}>
+      <button onClick={() => setSelectedTenant('consolidated')}
+        style={{ display:'flex', alignItems:'center', gap:6, background:'transparent',
+          border:'1px solid rgba(148,163,184,0.3)', borderRadius:6, color:'#94a3b8',
+          padding:'6px 12px', cursor:'pointer', fontSize:12, fontFamily:'monospace',
+          marginBottom:16, letterSpacing:'0.05em' }}>
+        ← BACK TO PORTFOLIO
+      </button>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>

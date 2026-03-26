@@ -1,4 +1,5 @@
 import CompanySelector from './CompanySelector.jsx';
+import { useTenant } from '../context/TenantContext';
 import { useState } from 'react';
 import {
   LayoutDashboard, Bot, Shield, Zap, Globe, ClipboardList,
@@ -26,6 +27,11 @@ const NAV_ITEMS = [
 
 export default function PortalNav({ route, onNavigate, userEmail, onLogout, user }) {
   const w = useWindowWidth();
+  var tenantCtx = null;
+  try { tenantCtx = useTenant(); } catch(e) {}
+  var selectedCompany = tenantCtx && tenantCtx.selectedTenant !== 'consolidated' && tenantCtx.tenantData
+    ? tenantCtx.tenantData.companyName || tenantCtx.selectedTenant
+    : null;
   const isMobile = w < 1024;
   const [open, setOpen] = useState(false);
 
