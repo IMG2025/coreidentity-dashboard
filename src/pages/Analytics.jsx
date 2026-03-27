@@ -114,17 +114,24 @@ export default function Analytics() {
     setLoading(true);
     setError(null);
     try {
-      const [analyticsRes, tenantsRes] = await Promise.all([
-        fetch(API + '/api/analytics', {
-          credentials: 'include',
-          headers: { Authorization: 'Bearer ' + token() }
-        }),
-        fetch(API + '/api/tenants', {
-          credentials: 'include',
-          headers: { Authorization: 'Bearer ' + token() }
-        }),
-      ]);
+      // Fire both in parallel but process tenants immediately when ready
+      const analyticsPromise = fetch(API + '/api/analytics', {
+        credentials: 'include',
+        headers: { Authorization: 'Bearer ' + token() }
+      });
+      const tenantsPromise = fetch(API + '/api/tenants', {
+        credentials: 'include',
+        headers: { Authorization: 'Bearer ' + token() }
+      });
 
+      // Tenants resolve first — render immediately
+      tenantsPromise.then(r => r.json()).then(tenantsJson => {
+        const tData = tenantsJson?.data || tenantsJson || [];
+        setTenants(Array.isArray(tData) ? tData : []);
+        setLoading(false);
+      }).catch(() => {});
+
+      const [analyticsRes, tenantsRes] = await Promise.all([analyticsPromise, tenantsPromise]);
       const analyticsJson = await analyticsRes.json();
       const tenantsJson   = await tenantsRes.json();
 
