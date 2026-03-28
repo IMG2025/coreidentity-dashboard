@@ -92,6 +92,7 @@ export default function Sentinel() {
   const [refreshing, setRefreshing] = useState(false);
   const [killInput, setKillInput] = useState({ agentId: '', reason: '' });
   const [killLoading, setKillLoading] = useState(false);
+  const [sentinelStatus, setSentinelStatus] = useState(null);
 
   useEffect(function() {
     const saved = sessionStorage.getItem('sentinelTab');
