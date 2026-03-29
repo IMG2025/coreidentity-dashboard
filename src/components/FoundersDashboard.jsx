@@ -298,8 +298,8 @@ function ConsolidatedView({vm}) {
   return (
     <div>
       <div style={{display:'flex',gap:12,marginBottom:24,flexWrap:'wrap'}}>
-        <MetricCard label="Total MRR"  value={fmtK(curRev)}    sub={delta(curRev,CHC_REV[10])+'% MoM'}    trend={parseFloat(delta(curRev,CHC_REV[10]))} />
-        <MetricCard label="ARR"        value={fmtK(curRev*12)} sub="Annualized run rate"                   accent={C.blue} />
+        <MetricCard label="Total MRR"  value={curRev === 0 ? 'Pre-Revenue' : fmtK(curRev)}    sub={curRev === 0 ? 'Pre-Revenue - AGO billing Q4 2026' : delta(curRev,CHC_REV[10])+'% MoM'}    trend={parseFloat(delta(curRev,CHC_REV[10]))} />
+        <MetricCard label="ARR"        value={curRev === 0 ? 'Pre-Revenue' : fmtK(curRev*12)} sub={curRev === 0 ? 'Projected $875K in 2027' : 'Annualized run rate'}                   accent={C.blue} />
         <MetricCard label="Net Profit" value={fmtK(curProf)}   sub={delta(curProf,CHC_PROF[10])+'% MoM'}  trend={parseFloat(delta(curProf,CHC_PROF[10]))} accent={C.green} />
         <MetricCard label="Net Margin" value={curMgn+'%'}      sub="Blended margin"                   accent={C.teal} />
         <MetricCard label="Governed Agents" value={CI_AGENTS.length+CG_AGENTS.length} sub="All governed (100%)" accent={C.gold} />
@@ -399,8 +399,8 @@ function CoreIdentityView({vm}) {
   return (
     <div>
       <div style={{display:'flex',gap:12,marginBottom:24,flexWrap:'wrap'}}>
-        <MetricCard label="MRR"        value={fmtK(curRev)}  sub={delta(curRev,CI_REV[10])+'% MoM'}   trend={parseFloat(delta(curRev,CI_REV[10]))} />
-        <MetricCard label="ARR"        value={fmtK(curRev*12)} sub="Annualized"                        accent={C.blue} />
+        <MetricCard label="MRR"        value={curRev === 0 ? 'Pre-Revenue' : fmtK(curRev)}  sub={delta(curRev,CI_REV[10])+'% MoM'}   trend={parseFloat(delta(curRev,CI_REV[10]))} />
+        <MetricCard label="ARR"        value={curRev === 0 ? 'Pre-Revenue' : fmtK(curRev*12)} sub="Annualized"                        accent={C.blue} />
         <MetricCard label="Net Profit" value={fmtK(curProf)} sub={delta(curProf,CI_REV[10]-CI_COST[10])+'% MoM'} trend={1} accent={C.green} />
         <MetricCard label="NRR"        value="118%"           sub="Net Revenue Retention"              accent={C.teal} />
         <MetricCard label="Customers"  value="8"              sub="Enterprise accounts"                accent={C.gold} />
