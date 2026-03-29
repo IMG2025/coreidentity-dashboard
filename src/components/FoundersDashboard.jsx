@@ -23,9 +23,9 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 // ── Financial data ─────────────────────────────────────────
 const CI_REV = [];
 const CI_TGT  = [85000,90000,96000,102000,109000,116000,123000,130000,136000,142000,149000,156000];
-const CI_COST = [21000,21500,22000,22500,23000,23500,24000,24500,25000,25500,26000,26500];
-const CG_RET  = [48000,52000,54000,60000,66000,70000,72000,72000,78000,82000,85000,88000];
-const CG_PROJ = [15000,22000,35000,28000,42000,38000,55000,48000,62000,58000,72000,65000];
+const CI_COST = [0,0,0,0,0,0,0,0,0,0,0,0];
+const CG_RET  = [0,0,0,0,0,0,0,0,0,0,0,0];
+const CG_PROJ = [0,0,0,0,0,0,0,0,0,0,0,0];
 const CG_REV  = CG_RET.map((r,i) => r + CG_PROJ[i]);
 const CG_TGT  = [70000,78000,90000,92000,115000,112000,130000,125000,145000,145000,162000,158000];
 const CG_COST = [38000,39000,40000,41000,42000,43000,44000,45000,46000,47000,48000,49000];
@@ -298,8 +298,8 @@ function ConsolidatedView({vm}) {
   return (
     <div>
       <div style={{display:'flex',gap:12,marginBottom:24,flexWrap:'wrap'}}>
-        <MetricCard label="Total MRR"  value={curRev === 0 ? 'Pre-Revenue' : fmtK(curRev)}    sub={curRev === 0 ? 'Pre-Revenue - AGO billing Q4 2026' : delta(curRev,CHC_REV[10])+'% MoM'}    trend={parseFloat(delta(curRev,CHC_REV[10]))} />
-        <MetricCard label="ARR"        value={curRev === 0 ? 'Pre-Revenue' : fmtK(curRev*12)} sub={curRev === 0 ? 'Projected $875K in 2027' : 'Annualized run rate'}                   accent={C.blue} />
+        <MetricCard label="Total MRR"  value={!curRev ? 'Pre-Revenue' : fmtK(curRev)}    sub={!curRev ? 'Pre-Revenue - AGO billing Q4 2026' : delta(curRev,CHC_REV[10])+'% MoM'}    trend={parseFloat(delta(curRev,CHC_REV[10]))} />
+        <MetricCard label="ARR"        value={!curRev ? 'Pre-Revenue' : fmtK(curRev*12)} sub={!curRev ? 'Projected $875K in 2027' : 'Annualized run rate'}                   accent={C.blue} />
         <MetricCard label="Net Profit" value={fmtK(curProf)}   sub={delta(curProf,CHC_PROF[10])+'% MoM'}  trend={parseFloat(delta(curProf,CHC_PROF[10]))} accent={C.green} />
         <MetricCard label="Net Margin" value={curMgn+'%'}      sub="Blended margin"                   accent={C.teal} />
         <MetricCard label="Governed Agents" value={CI_AGENTS.length+CG_AGENTS.length} sub="All governed (100%)" accent={C.gold} />
@@ -399,8 +399,8 @@ function CoreIdentityView({vm}) {
   return (
     <div>
       <div style={{display:'flex',gap:12,marginBottom:24,flexWrap:'wrap'}}>
-        <MetricCard label="MRR"        value={curRev === 0 ? 'Pre-Revenue' : fmtK(curRev)}  sub={delta(curRev,CI_REV[10])+'% MoM'}   trend={parseFloat(delta(curRev,CI_REV[10]))} />
-        <MetricCard label="ARR"        value={curRev === 0 ? 'Pre-Revenue' : fmtK(curRev*12)} sub="Annualized"                        accent={C.blue} />
+        <MetricCard label="MRR"        value={!curRev ? 'Pre-Revenue' : fmtK(curRev)}  sub={delta(curRev,CI_REV[10])+'% MoM'}   trend={parseFloat(delta(curRev,CI_REV[10]))} />
+        <MetricCard label="ARR"        value={!curRev ? 'Pre-Revenue' : fmtK(curRev*12)} sub="Annualized"                        accent={C.blue} />
         <MetricCard label="Net Profit" value={fmtK(curProf)} sub={delta(curProf,CI_REV[10]-CI_COST[10])+'% MoM'} trend={1} accent={C.green} />
         <MetricCard label="NRR"        value="118%"           sub="Net Revenue Retention"              accent={C.teal} />
         <MetricCard label="Customers"  value="8"              sub="Enterprise accounts"                accent={C.gold} />
