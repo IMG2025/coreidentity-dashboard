@@ -566,25 +566,6 @@ function CIAGView({vm}) {
 
 function ClientPortfolioView() {
   const [tenants, setTenants] = React.useState([]);
-
-  // Live operational stats derived from real API data
-  // Revenue is pre-revenue until AGO billing goes live Q4 2026
-  const liveStats = React.useMemo(function() {
-    var tenantArr = Array.isArray(tenants) ? tenants : [];
-    var totalAgents = tenantArr.reduce(function(s,t){ return s+(t.agentCount||t.agents||0); }, 0);
-    var totalExec = tenantArr.reduce(function(s,t){ return s+(t.executionCount||t.executions||0); }, 0);
-    var scoreSum = tenantArr.reduce(function(s,t){ return s+(t.governanceScore||t.score||0); }, 0);
-    var avgScore = tenantArr.length ? Math.round(scoreSum/tenantArr.length) : 0;
-    return {
-      clientCount: tenantArr.length,
-      agentCount: totalAgents,
-      executions: totalExec,
-      avgGovernanceScore: avgScore,
-      mrr: 0,
-      arr: 0,
-      revenueStage: 'Pre-Revenue',
-    };
-  }, [tenants]);
   const [loadingT, setLoadingT] = React.useState(true);
   React.useEffect(function() {
     var tok = localStorage.getItem('ci_token') || localStorage.getItem('token') || '';
