@@ -21,7 +21,7 @@ const C = {
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // ── Financial data ─────────────────────────────────────────
-const CI_REV  = [78000,82000,88000,92000,98000,105000,112000,118000,122000,128000,135000,142000];
+const CI_REV = [];
 const CI_TGT  = [85000,90000,96000,102000,109000,116000,123000,130000,136000,142000,149000,156000];
 const CI_COST = [21000,21500,22000,22500,23000,23500,24000,24500,25000,25500,26000,26500];
 const CG_RET  = [48000,52000,54000,60000,66000,70000,72000,72000,78000,82000,85000,88000];
@@ -566,6 +566,25 @@ function CIAGView({vm}) {
 
 function ClientPortfolioView() {
   const [tenants, setTenants] = React.useState([]);
+
+  // Live operational stats derived from real API data
+  // Revenue is pre-revenue until AGO billing goes live Q4 2026
+  const liveStats = React.useMemo(function() {
+    var tenantArr = Array.isArray(tenants) ? tenants : [];
+    var totalAgents = tenantArr.reduce(function(s,t){ return s+(t.agentCount||t.agents||0); }, 0);
+    var totalExec = tenantArr.reduce(function(s,t){ return s+(t.executionCount||t.executions||0); }, 0);
+    var scoreSum = tenantArr.reduce(function(s,t){ return s+(t.governanceScore||t.score||0); }, 0);
+    var avgScore = tenantArr.length ? Math.round(scoreSum/tenantArr.length) : 0;
+    return {
+      clientCount: tenantArr.length,
+      agentCount: totalAgents,
+      executions: totalExec,
+      avgGovernanceScore: avgScore,
+      mrr: 0,
+      arr: 0,
+      revenueStage: 'Pre-Revenue',
+    };
+  }, [tenants]);
   const [loadingT, setLoadingT] = React.useState(true);
   React.useEffect(function() {
     var tok = localStorage.getItem('ci_token') || localStorage.getItem('token') || '';
