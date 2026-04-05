@@ -6,11 +6,11 @@
 # =============================================================================
 set -euo pipefail
 
-GCP_PROJECT="${GCP_PROJECT:-coreidentity-prod}"
+GCP_PROJECT="${GCP_PROJECT:-project-6894307a-4c69-4e0b-9ae}"
 SITE_SRC="${HOME}/coreidentity/integrations/coreholdingcorp-site-v2/src"
 DASHBOARD_SRC="${HOME}/coreidentity/dashboard/src"
-STRIPE_SECRET_NAME="cidg/stripe-live-secret-key"
-SM_PREFIX="cidg/stripe"
+STRIPE_SECRET_NAME="STRIPE_LIVE_SECRET_KEY"
+SM_PREFIX=""
 
 log() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [PRICING-01] $*"; }
 
@@ -101,15 +101,15 @@ log "Tier product archival and price deactivation complete."
 # ---------------------------------------------------------------------------
 log "Creating CIAG Phase 0, 1, 2 products..."
 
-# Helper: create-or-version a GCP Secret Manager secret
+# Helper: create-or-version a GCP Secret Manager secret (flat namespace, no prefix)
 sm_store() {
   local secret_name="$1"
   local value="$2"
-  echo -n "${value}" | gcloud secrets create "${SM_PREFIX}/${secret_name}" \
+  echo -n "${value}" | gcloud secrets create "${secret_name}" \
     --data-file=- \
     --project="${GCP_PROJECT}" \
     --replication-policy="automatic" 2>/dev/null || \
-  echo -n "${value}" | gcloud secrets versions add "${SM_PREFIX}/${secret_name}" \
+  echo -n "${value}" | gcloud secrets versions add "${secret_name}" \
     --data-file=- \
     --project="${GCP_PROJECT}"
 }

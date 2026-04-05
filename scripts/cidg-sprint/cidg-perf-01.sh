@@ -7,12 +7,12 @@
 # =============================================================================
 set -euo pipefail
 
-GCP_PROJECT="${GCP_PROJECT:-coreidentity-prod}"
+GCP_PROJECT="${GCP_PROJECT:-project-6894307a-4c69-4e0b-9ae}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
 
 STAGING_API="${STAGING_API:-https://staging.api.coreidentity.io}"
 ANALYTICS_ENDPOINT="${STAGING_API}/api/analytics"
-STAGING_API_KEY_SECRET="cidg/staging-api-key"
+STAGING_API_KEY_SECRET="cidg-staging-api-key"
 
 COREIDENTITY_ROOT="${HOME}/coreidentity"
 SITE_ROOT="${HOME}/coreidentity/integrations/coreholdingcorp-site-v2"

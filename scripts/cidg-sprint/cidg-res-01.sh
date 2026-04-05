@@ -8,7 +8,7 @@
 # =============================================================================
 set -euo pipefail
 
-GCP_PROJECT="${GCP_PROJECT:-coreidentity-prod}"
+GCP_PROJECT="${GCP_PROJECT:-project-6894307a-4c69-4e0b-9ae}"
 GKE_CLUSTER="${GKE_CLUSTER:-coreidentity-platform}"
 GKE_REGION="${GKE_REGION:-us-central1}"
 

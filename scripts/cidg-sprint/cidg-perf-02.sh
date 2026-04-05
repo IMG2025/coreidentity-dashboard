@@ -7,7 +7,7 @@
 # =============================================================================
 set -euo pipefail
 
-GCP_PROJECT="${GCP_PROJECT:-coreidentity-prod}"
+GCP_PROJECT="${GCP_PROJECT:-project-6894307a-4c69-4e0b-9ae}"
 COREIDENTITY_ROOT="${HOME}/coreidentity"
 SITE_ROOT="${HOME}/coreidentity/integrations/coreholdingcorp-site-v2"
 

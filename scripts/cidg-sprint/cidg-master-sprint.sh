@@ -19,10 +19,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Zoho SMTP config — credentials fetched from Secret Manager at runtime
 ZOHO_SMTP_HOST="smtp.zoho.com"
 ZOHO_SMTP_PORT="587"
-ZOHO_FROM_EMAIL="${ZOHO_FROM_EMAIL:-noreply@coreidentity.io}"
-ZOHO_TO_EMAIL="${ZOHO_TO_EMAIL:-ops@coreidentity.io}"
-ZOHO_SECRET_NAME="${ZOHO_SECRET_NAME:-cidg/zoho-smtp-credentials}"
-GCP_PROJECT="${GCP_PROJECT:-coreidentity-prod}"
+ZOHO_FROM_EMAIL="${ZOHO_FROM_EMAIL:-info@coreholdingcorp.com}"
+ZOHO_TO_EMAIL="${ZOHO_TO_EMAIL:-tmorgan@coreidentitygroup.com}"
+GCP_PROJECT="${GCP_PROJECT:-project-6894307a-4c69-4e0b-9ae}"
 
 # Sprint gate thresholds
 GATE_TIMEOUT_SECONDS=120
@@ -150,13 +149,16 @@ PYEOF
 # ---------------------------------------------------------------------------
 fetch_zoho_credentials() {
   log_info "Fetching Zoho SMTP credentials from Secret Manager..."
-  local secret_json
-  secret_json="$(gcloud secrets versions access latest \
-    --secret="${ZOHO_SECRET_NAME}" \
-    --project="${GCP_PROJECT}" 2>/dev/null)"
-  ZOHO_USERNAME="$(echo "${secret_json}" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['username'])")"
-  ZOHO_PASSWORD="$(echo "${secret_json}" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['password'])")"
-  log_info "Zoho credentials loaded."
+  ZOHO_USERNAME="$(gcloud secrets versions access latest \
+    --secret="ZOHO_SMTP_USER" \
+    --project="${GCP_PROJECT}")"
+  ZOHO_PASSWORD="$(gcloud secrets versions access latest \
+    --secret="ZOHO_SMTP_PASS" \
+    --project="${GCP_PROJECT}")"
+  ZOHO_FROM_EMAIL="$(gcloud secrets versions access latest \
+    --secret="ZOHO_SMTP_FROM" \
+    --project="${GCP_PROJECT}")"
+  log_info "Zoho credentials loaded (user: ${ZOHO_USERNAME})."
 }
 
 send_zoho_notification() {

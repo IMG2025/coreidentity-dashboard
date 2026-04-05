@@ -6,14 +6,14 @@
 # =============================================================================
 set -euo pipefail
 
-GCP_PROJECT="${GCP_PROJECT:-coreidentity-prod}"
+GCP_PROJECT="${GCP_PROJECT:-project-6894307a-4c69-4e0b-9ae}"
 AWS_ACCOUNT_ID="${AWS_ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text)}"
 IAM_USER="${IAM_USER:-github-actions-deploy}"
 POLICY_NAME="CoreIdentityDeployLeastPrivilege"
 GITHUB_OWNER="${GITHUB_OWNER:-coreidentity-io}"
 GITHUB_REPO="${GITHUB_REPO:-coreidentity-platform}"
-GITHUB_TOKEN_SECRET="cidg/github-actions-token"
-SM_AWS_KEY_SECRET="cidg/aws-deploy-credentials"
+GITHUB_TOKEN_SECRET="GITHUB_TOKEN"
+SM_AWS_KEY_SECRET="cidg-aws-deploy-credentials"
 
 log() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [SEC-01] $*"; }
 

@@ -7,7 +7,7 @@
 # =============================================================================
 set -euo pipefail
 
-GCP_PROJECT="${GCP_PROJECT:-coreidentity-prod}"
+GCP_PROJECT="${GCP_PROJECT:-project-6894307a-4c69-4e0b-9ae}"
 GKE_CLUSTER="${GKE_CLUSTER:-coreidentity-platform}"
 GKE_REGION="${GKE_REGION:-us-central1}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
@@ -18,7 +18,7 @@ PROXY_MCP_DEPLOYMENT="proxy-mcp"
 ECS_CLUSTER="${ECS_CLUSTER:-coreidentity-staging}"
 ECS_SERVICE="${ECS_SERVICE:-coreidentity-api}"
 
-CF_API_TOKEN_SECRET="cidg/cloudflare-api-token"
+CF_API_TOKEN_SECRET="CF_API_TOKEN"
 CF_ACCOUNT_ID="${CF_ACCOUNT_ID:-}"
 CF_PROJECT_NAME="${CF_PROJECT_NAME:-coreidentity-portal}"
 

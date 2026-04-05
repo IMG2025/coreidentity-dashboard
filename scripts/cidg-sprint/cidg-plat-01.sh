@@ -10,7 +10,7 @@
 # =============================================================================
 set -euo pipefail
 
-GCP_PROJECT="${GCP_PROJECT:-coreidentity-prod}"
+GCP_PROJECT="${GCP_PROJECT:-project-6894307a-4c69-4e0b-9ae}"
 GKE_CLUSTER="${GKE_CLUSTER:-coreidentity-platform}"
 GKE_REGION="${GKE_REGION:-us-central1}"
 
@@ -30,7 +30,7 @@ ROLLOUT_TIMEOUT="300s"
 STAGING_API="${STAGING_API:-https://staging.api.coreidentity.io}"
 GITHUB_OWNER="${GITHUB_OWNER:-coreidentity-io}"
 GITHUB_REPO="${GITHUB_REPO:-sal-kernel}"
-GITHUB_TOKEN_SECRET="cidg/github-actions-token"
+GITHUB_TOKEN_SECRET="GITHUB_TOKEN"
 
 REPORT_FILE="${DOCS_DIR}/platform-integrity-$(date +%Y%m%d-%H%M%S).md"
 
@@ -390,7 +390,7 @@ log "Validating full chain via POST /api/governance/execute on staging..."
 STAGING_API_KEY="${STAGING_API_KEY:-}"
 if [[ -z "${STAGING_API_KEY}" ]]; then
   STAGING_API_KEY="$(gcloud secrets versions access latest \
-    --secret="cidg/staging-api-key" \
+    --secret="cidg-staging-api-key" \
     --project="${GCP_PROJECT}" 2>/dev/null || echo "")"
 fi
 
