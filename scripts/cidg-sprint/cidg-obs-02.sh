@@ -45,6 +45,8 @@ log "GKE configured."
 # ---------------------------------------------------------------------------
 # 2. Enumerate ALB rules — flag path-only rules without host-header condition
 # ---------------------------------------------------------------------------
+log "Ensuring boto3 is installed..."
+pip3 install boto3 --quiet 2>&1 | tail -3 || true
 log "Enumerating ALB listener rules for: ${ALB_NAME}..."
 
 python3 - <<PYEOF

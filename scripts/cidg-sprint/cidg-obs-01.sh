@@ -42,6 +42,8 @@ log "Cluster connection verified."
 # ---------------------------------------------------------------------------
 # 2. Query nexus-executions DynamoDB — 30-day window, paginated scan
 # ---------------------------------------------------------------------------
+log "Ensuring boto3 is installed..."
+pip3 install boto3 --quiet 2>&1 | tail -3 || true
 log "Querying nexus-executions DynamoDB (30-day window)..."
 
 WINDOW_START="$(python3 -c "

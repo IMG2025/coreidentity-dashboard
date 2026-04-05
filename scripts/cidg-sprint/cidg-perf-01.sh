@@ -107,6 +107,8 @@ log "Baseline: p95=${BASELINE_P95}ms, mean=${BASELINE_MEAN}ms"
 # ---------------------------------------------------------------------------
 # 3. Profile DynamoDB analytics tables for GSI gaps
 # ---------------------------------------------------------------------------
+log "Ensuring boto3 is installed..."
+pip3 install boto3 --quiet 2>&1 | tail -3 || true
 log "Profiling DynamoDB analytics tables for GSI coverage..."
 
 GSI_REPORT="$(python3 - <<PYEOF
