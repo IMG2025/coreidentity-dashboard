@@ -99,8 +99,7 @@ elif "${status}" == "failed":
 else:
     d["metrics"]["skipped"] += 1
 d["metrics"]["total_duration_seconds"] += ${duration}
-with open("${RESULTS_FILE}", "w") as f:
-    json.dump(d, f, indent=2)
+print(json.dumps(d, indent=2))
 PYEOF
   mv "${tmp}" "${RESULTS_FILE}"
 }
@@ -122,8 +121,7 @@ d["gates"].append({
     "checks": "${checks}",
     "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 })
-with open("${RESULTS_FILE}", "w") as f:
-    json.dump(d, f, indent=2)
+print(json.dumps(d, indent=2))
 PYEOF
   mv "${tmp}" "${RESULTS_FILE}"
 }
@@ -138,8 +136,7 @@ with open("${RESULTS_FILE}") as f:
     d = json.load(f)
 d["completed_at"] = "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 d["overall_status"] = "${overall_status}"
-with open("${RESULTS_FILE}", "w") as f:
-    json.dump(d, f, indent=2)
+print(json.dumps(d, indent=2))
 PYEOF
   mv "${tmp}" "${RESULTS_FILE}"
 }
