@@ -35,6 +35,9 @@ while IFS= read -r -d $'\0' f; do
 done < <(find "${COREIDENTITY_ROOT}" \
   -not -path "*/node_modules/*" \
   -not -path "*/.git/*" \
+  -not -name "*.log" \
+  -not -name "*.jsonl" \
+  -not -name "*.json" \
   \( -name "ci-loop*" -o -name "ci_loop*" -o -name "ciloop*" \) \
   -print0 2>/dev/null)
 
@@ -117,12 +120,12 @@ fi
 # ---------------------------------------------------------------------------
 log "Patching ci-loop script..."
 
-python3 - <<PYEOF
+CI_LOOP_SCRIPT="${CI_LOOP_SCRIPT}" STAGING_URL="${STAGING_URL}" PRODUCTION_DOMAIN="${PRODUCTION_DOMAIN}" python3 <<'PYEOF'
 import re, sys, os
 
-fpath = "${CI_LOOP_SCRIPT}"
-staging_default = "${STAGING_URL}"
-production_domain = "${PRODUCTION_DOMAIN}"
+fpath = os.environ["CI_LOOP_SCRIPT"]
+staging_default = os.environ["STAGING_URL"]
+production_domain = os.environ["PRODUCTION_DOMAIN"]
 
 with open(fpath, "r") as f:
     content = f.read()
@@ -255,30 +258,25 @@ else
       if echo "${CONTENT}" | grep -q "ci.loop\|ci_loop\|ciloop\|ci-loop"; then
         log "  Updating workflow: ${wf_file}"
 
-        python3 - <<PYEOF
-import re, yaml, sys
+        WF_FILE="${wf_file}" python3 <<'PYEOF'
+import re, sys, os
 
-with open("${wf_file}", "r") as f:
+wf_file = os.environ["WF_FILE"]
+
+with open(wf_file, "r") as f:
     content = f.read()
 
-# Add CI_ENV: staging to env blocks that contain ci-loop steps
-# Strategy: find steps that reference ci-loop and ensure CI_ENV is set
 modified = content
 
-# Look for env blocks
 if "CI_ENV" not in content:
-    # Add CI_ENV to global env or inject into relevant step
     env_block_pattern = r'(env:\s*\n(?:\s+\w+:.*\n)*)'
     def add_ci_env(m):
         block = m.group(1)
         if "CI_ENV" not in block:
-            # Add CI_ENV: staging after the last line in the env block
             return block.rstrip() + "\n      CI_ENV: staging\n"
         return block
-
     modified = re.sub(env_block_pattern, add_ci_env, modified)
 
-    # If no env block found, add one
     if "CI_ENV" not in modified:
         step_pattern = r'(- name:.*ci.loop.*\n(?:.*\n)*?)(  run:)'
         def add_env_to_step(m):
@@ -286,11 +284,11 @@ if "CI_ENV" not in content:
         modified = re.sub(step_pattern, add_env_to_step, modified, flags=re.IGNORECASE)
 
 if modified != content:
-    with open("${wf_file}", "w") as f:
+    with open(wf_file, "w") as f:
         f.write(modified)
-    print(f"Updated workflow: ${wf_file}")
+    print(f"Updated workflow: {wf_file}")
 else:
-    print(f"No changes needed in workflow: ${wf_file}")
+    print(f"No changes needed in workflow: {wf_file}")
 PYEOF
       fi
     fi
