@@ -255,7 +255,7 @@ aws iam attach-user-policy \
 log "Least-privilege policy attached."
 
 # ---------------------------------------------------------------------------
-# 6. Rotate access keys — create new, push to GitHub, delete old
+# 6. Rotate access keys — delete old first (AWS max=2), then create new
 # ---------------------------------------------------------------------------
 log "Listing existing access keys for ${IAM_USER}..."
 OLD_KEYS="$(aws iam list-access-keys --user-name "${IAM_USER}" --output json)"
@@ -264,6 +264,20 @@ import sys, json
 keys = json.load(sys.stdin)['AccessKeyMetadata']
 print('\n'.join(k['AccessKeyId'] for k in keys))
 ")"
+
+# Delete all existing keys BEFORE creating — AWS hard limit is 2 per user.
+# Re-running this script on the same user would hit LimitExceeded otherwise.
+if [[ -n "${OLD_KEY_IDS}" ]]; then
+  log "Deleting existing access keys before rotation (AWS limit: 2/user)..."
+  while IFS= read -r old_key_id; do
+    if [[ -n "${old_key_id}" ]]; then
+      aws iam delete-access-key \
+        --user-name "${IAM_USER}" \
+        --access-key-id "${old_key_id}"
+      log "  Deleted old key: ${old_key_id}"
+    fi
+  done <<< "${OLD_KEY_IDS}"
+fi
 
 log "Creating new access key..."
 NEW_KEY_RESPONSE="$(aws iam create-access-key --user-name "${IAM_USER}" --output json)"
@@ -348,19 +362,6 @@ printf '{"access_key_id":"%s","secret_access_key":"%s"}' \
     --data-file=- \
     --project="${GCP_PROJECT}"
 log "Credentials stored in Secret Manager."
-
-# ---------------------------------------------------------------------------
-# 8. Delete old access keys
-# ---------------------------------------------------------------------------
-log "Deleting old access keys..."
-while IFS= read -r old_key_id; do
-  if [[ -n "${old_key_id}" && "${old_key_id}" != "${NEW_ACCESS_KEY_ID}" ]]; then
-    aws iam delete-access-key \
-      --user-name "${IAM_USER}" \
-      --access-key-id "${old_key_id}"
-    log "  Deleted old key: ${old_key_id}"
-  fi
-done <<< "${OLD_KEY_IDS}"
 
 # ---------------------------------------------------------------------------
 # 9. Validate new credentials with STS
