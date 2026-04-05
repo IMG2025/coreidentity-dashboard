@@ -28,7 +28,8 @@ log "Stripe key loaded (sk_...${STRIPE_LIVE_SECRET_KEY: -4})."
 # 2. Helper: Stripe API call
 # ---------------------------------------------------------------------------
 stripe_get()  { curl -sf -u "${STRIPE_LIVE_SECRET_KEY}:" "$@"; }
-stripe_post() { curl -sf -u "${STRIPE_LIVE_SECRET_KEY}:" -X POST "$@"; }
+stripe_post() { curl -sf -u "${STRIPE_LIVE_SECRET_KEY}:" -X POST \
+                  -H "Content-Type: application/x-www-form-urlencoded" "$@"; }
 
 # ---------------------------------------------------------------------------
 # 3. Archive retired T1/T2/T3 products and deactivate their prices
@@ -37,13 +38,23 @@ log "Scanning for retired T1/T2/T3 Stripe products to archive + price deactivati
 
 PRODUCTS_JSON="$(stripe_get "https://api.stripe.com/v1/products?limit=100&active=true")"
 
+# Defensive check: ensure the response is non-empty and looks like JSON
+if [[ -z "${PRODUCTS_JSON}" ]] || \
+   [[ "${PRODUCTS_JSON:0:1}" != "{" && "${PRODUCTS_JSON:0:1}" != "[" ]]; then
+  log "ERROR: Stripe products API returned empty or non-JSON response."
+  log "Raw response: ${PRODUCTS_JSON}"
+  exit 1
+fi
+
 echo "${PRODUCTS_JSON}" | python3 - <<'PYEOF'
 import sys, json, subprocess, os
 
 sk = os.environ['STRIPE_LIVE_SECRET_KEY']
 
 def stripe_post(path, params):
-    args = ["curl", "-sf", "-u", f"{sk}:", "-X", "POST",
+    args = ["curl", "-sf",
+            "-H", "Content-Type: application/x-www-form-urlencoded",
+            "-u", f"{sk}:", "-X", "POST",
             f"https://api.stripe.com{path}"]
     for k, v in params.items():
         args += ["-d", f"{k}={v}"]
@@ -55,43 +66,65 @@ def stripe_get(path):
         ["curl", "-sf", "-u", f"{sk}:", f"https://api.stripe.com{path}"],
         capture_output=True, text=True
     )
-    return json.loads(r.stdout) if r.returncode == 0 else {}
+    if r.returncode != 0:
+        return {}
+    raw = r.stdout.strip()
+    if not raw or raw[0] not in ('{', '['):
+        print(f"WARNING: stripe_get({path}) returned non-JSON: {raw!r}", file=sys.stderr)
+        return {}
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as e:
+        print(f"WARNING: JSONDecodeError in stripe_get({path}): {e}\nRaw: {raw!r}", file=sys.stderr)
+        return {}
 
-data = json.loads(sys.stdin.read())
+raw_stdin = sys.stdin.read()
+raw_stripped = raw_stdin.strip()
+if not raw_stripped or raw_stripped[0] not in ('{', '['):
+    print(f"ERROR: Stripe products API returned empty or non-JSON response.\nRaw: {raw_stdin!r}", file=sys.stderr)
+    sys.exit(1)
+try:
+    data = json.loads(raw_stdin)
+except json.JSONDecodeError as e:
+    print(f"ERROR: JSONDecodeError parsing Stripe products response: {e}\nRaw: {raw_stdin!r}", file=sys.stderr)
+    sys.exit(1)
+
 products = data.get("data", [])
 tier_keywords = ["T1", "T2", "T3", "Tier 1", "Tier 2", "Tier 3",
                  "tier-1", "tier-2", "tier-3", "TIER1", "TIER2", "TIER3"]
 
-archived_products = []
-deactivated_prices = []
+tier_products = [p for p in products if any(kw in p.get("name", "") for kw in tier_keywords)]
 
-for p in products:
-    name = p.get("name", "")
-    if not any(kw in name for kw in tier_keywords):
-        continue
+if not tier_products:
+    print("No retired T1/T2/T3 products found — nothing to archive.")
+else:
+    archived_products = []
+    deactivated_prices = []
 
-    print(f"Processing retired product: {p['id']} — {name}")
+    for p in tier_products:
+        name = p.get("name", "")
+        print(f"Processing retired product: {p['id']} — {name}")
 
-    # Step 1: Deactivate all active prices on this product
-    prices_data = stripe_get(f"/v1/prices?product={p['id']}&active=true&limit=100")
-    for price in prices_data.get("data", []):
-        price_id = price["id"]
-        rc, out, err = stripe_post(f"/v1/prices/{price_id}", {"active": "false"})
+        # Step 1: Deactivate all active prices on this product
+        prices_data = stripe_get(f"/v1/prices?product={p['id']}&active=true&limit=100")
+        for price in prices_data.get("data", []):
+            price_id = price["id"]
+            rc, out, err = stripe_post(f"/v1/prices/{price_id}", {"active": "false"})
+            if rc == 0:
+                deactivated_prices.append(price_id)
+                print(f"  -> Deactivated price: {price_id}")
+            else:
+                print(f"  -> WARNING: failed to deactivate price {price_id}: {err}", file=sys.stderr)
+
+        # Step 2: Archive the product (set active=false)
+        rc, out, err = stripe_post(f"/v1/products/{p['id']}", {"active": "false"})
         if rc == 0:
-            deactivated_prices.append(price_id)
-            print(f"  -> Deactivated price: {price_id}")
+            archived_products.append(p["id"])
+            print(f"  -> Archived product: {p['id']}")
         else:
-            print(f"  -> WARNING: failed to deactivate price {price_id}: {err}", file=sys.stderr)
+            print(f"  -> WARNING: failed to archive product {p['id']}: {err}", file=sys.stderr)
 
-    # Step 2: Archive the product (set active=false)
-    rc, out, err = stripe_post(f"/v1/products/{p['id']}", {"active": "false"})
-    if rc == 0:
-        archived_products.append(p["id"])
-        print(f"  -> Archived product: {p['id']}")
-    else:
-        print(f"  -> WARNING: failed to archive product {p['id']}: {err}", file=sys.stderr)
-
-print(f"Archived {len(archived_products)} retired tier products, deactivated {len(deactivated_prices)} prices.")
+    print(f"Archived {len(archived_products)} retired tier products, deactivated {len(deactivated_prices)} prices.")
 PYEOF
 
 log "Tier product archival and price deactivation complete."
@@ -129,7 +162,20 @@ create_product_with_price() {
     -d "metadata[ceiling_cents]=${ceiling_cents}")"
 
   local product_id
-  product_id="$(echo "${product_response}" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")"
+  product_id="$(echo "${product_response}" | python3 - <<'_PY'
+import sys, json
+raw = sys.stdin.read()
+raw_stripped = raw.strip()
+if not raw_stripped or raw_stripped[0] not in ('{', '['):
+    print(f"ERROR: Stripe create-product returned empty or non-JSON.\nRaw: {raw!r}", file=sys.stderr)
+    sys.exit(1)
+try:
+    print(json.loads(raw)['id'])
+except (json.JSONDecodeError, KeyError) as e:
+    print(f"ERROR: Failed to parse product response: {e}\nRaw: {raw!r}", file=sys.stderr)
+    sys.exit(1)
+_PY
+)"
   log "  Created product: ${product_id} — ${product_name}"
 
   # Create price at floor amount (one-time, manual collection for enterprise)
@@ -144,7 +190,20 @@ create_product_with_price() {
     -d "metadata[sprint]=cidg")"
 
   local price_id
-  price_id="$(echo "${price_response}" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")"
+  price_id="$(echo "${price_response}" | python3 - <<'_PY'
+import sys, json
+raw = sys.stdin.read()
+raw_stripped = raw.strip()
+if not raw_stripped or raw_stripped[0] not in ('{', '['):
+    print(f"ERROR: Stripe create-price returned empty or non-JSON.\nRaw: {raw!r}", file=sys.stderr)
+    sys.exit(1)
+try:
+    print(json.loads(raw)['id'])
+except (json.JSONDecodeError, KeyError) as e:
+    print(f"ERROR: Failed to parse price response: {e}\nRaw: {raw!r}", file=sys.stderr)
+    sys.exit(1)
+_PY
+)"
   log "  Created price: ${price_id} (floor: \$$(( floor_cents / 100 )))"
 
   echo "${price_id}"
