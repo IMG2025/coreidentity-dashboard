@@ -38,6 +38,7 @@ done < <(find "${COREIDENTITY_ROOT}" \
   -not -name "*.log" \
   -not -name "*.jsonl" \
   -not -name "*.json" \
+  -type f \
   \( -name "ci-loop*" -o -name "ci_loop*" -o -name "ciloop*" \) \
   -print0 2>/dev/null)
 
