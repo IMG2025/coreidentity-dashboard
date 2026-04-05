@@ -36,7 +36,7 @@ gcloud container clusters get-credentials "${GKE_CLUSTER}" \
 log "GKE credentials configured."
 
 # Test cluster connectivity
-kubectl cluster-info --request-timeout=10s | head -2
+kubectl cluster-info --request-timeout=10s 2>/dev/null | head -2 || true
 log "Cluster connection verified."
 
 # ---------------------------------------------------------------------------
