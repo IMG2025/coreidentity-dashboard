@@ -10,3 +10,24 @@ frontend.backup/
 .DS_Store
 infrastructure_audit_report_*.md
 dist
+# Credential and secret files (CIDG hardened)
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.staging
+.env.staging.local
+.env.*.local
+*.pfx
+secrets.json
+secrets.yaml
+secrets.yml
+service-account*.json
+gcp-credentials*.json
+*-credentials.json
+credentials.json
+.aws/credentials
+.netrc
