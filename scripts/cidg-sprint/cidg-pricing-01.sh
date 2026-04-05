@@ -26,10 +26,13 @@ log "Stripe key loaded (sk_...${STRIPE_LIVE_SECRET_KEY: -4})."
 
 # ---------------------------------------------------------------------------
 # 2. Helper: Stripe API call
+# NOTE: Use -s (silent) only, not -sf. -f suppresses the response body on
+# HTTP errors, leaving us with an empty string and no diagnostic info.
 # ---------------------------------------------------------------------------
 stripe_get()  { curl -s -u "${STRIPE_LIVE_SECRET_KEY}:" "$@"; }
 stripe_post() { curl -s -u "${STRIPE_LIVE_SECRET_KEY}:" -X POST \
                   -H "Content-Type: application/x-www-form-urlencoded" "$@"; }
+
 
 # ---------------------------------------------------------------------------
 # 3. Archive retired T1/T2/T3 products and deactivate their prices
@@ -38,12 +41,12 @@ log "Scanning for retired T1/T2/T3 Stripe products to archive + price deactivati
 
 PRODUCTS_JSON="$(stripe_get "https://api.stripe.com/v1/products?limit=100&active=true")"
 
-# Defensive check: ensure the response is non-empty and looks like JSON
-if [[ -z "${PRODUCTS_JSON}" ]] || \
-   [[ "${PRODUCTS_JSON:0:1}" != "{" && "${PRODUCTS_JSON:0:1}" != "[" ]]; then
+# Defensive check: non-empty, valid JSON start
+_pj_stripped="${PRODUCTS_JSON#"${PRODUCTS_JSON%%[! ]*}"}"  # ltrim
+if [[ -z "${_pj_stripped}" ]] || \
+   [[ "${_pj_stripped:0:1}" != "{" && "${_pj_stripped:0:1}" != "[" ]]; then
   log "ERROR: Stripe products API returned empty or non-JSON response."
   log "Raw response: ${PRODUCTS_JSON}"
-  # Probe for HTTP status to aid debugging
   HTTP_STATUS="$(curl -s -o /dev/null -w "%{http_code}" \
     -u "${STRIPE_LIVE_SECRET_KEY}:" \
     "https://api.stripe.com/v1/products?limit=1&active=true")" || true
@@ -51,13 +54,18 @@ if [[ -z "${PRODUCTS_JSON}" ]] || \
   exit 1
 fi
 
-echo "${PRODUCTS_JSON}" | python3 - <<'PYEOF'
-import sys, json, subprocess, os
+# NOTE: Do NOT use  echo "${PRODUCTS_JSON}" | python3 - <<'PYEOF'
+# In bash, <<HEREDOC overrides the pipe for python's stdin, making
+# sys.stdin.read() return empty string. Pass data via env var instead.
+export PRODUCTS_JSON
+python3 <<'PYEOF'
+import json, subprocess, os, sys
 
 sk = os.environ['STRIPE_LIVE_SECRET_KEY']
+raw = os.environ.get('PRODUCTS_JSON', '')
 
-def stripe_post(path, params):
-    args = ["curl", "-sf",
+def stripe_post_py(path, params):
+    args = ["curl", "-s",
             "-H", "Content-Type: application/x-www-form-urlencoded",
             "-u", f"{sk}:", "-X", "POST",
             f"https://api.stripe.com{path}"]
@@ -66,37 +74,38 @@ def stripe_post(path, params):
     r = subprocess.run(args, capture_output=True, text=True)
     return r.returncode, r.stdout, r.stderr
 
-def stripe_get(path):
+def stripe_get_py(path):
     r = subprocess.run(
         ["curl", "-s", "-u", f"{sk}:", f"https://api.stripe.com{path}"],
         capture_output=True, text=True
     )
-    raw = r.stdout.strip()
-    if not raw or raw[0] not in ('{', '['):
-        print(f"WARNING: stripe_get({path}) returned non-JSON (curl rc={r.returncode}): {raw!r}", file=sys.stderr)
+    body = r.stdout.strip()
+    if not body or body[0] not in ('{', '['):
+        print(f"WARNING: stripe_get({path}) returned non-JSON (curl rc={r.returncode}): {body!r}",
+              file=sys.stderr)
         return {}
     try:
-        parsed = json.loads(raw)
+        parsed = json.loads(body)
     except json.JSONDecodeError as e:
-        print(f"WARNING: JSONDecodeError in stripe_get({path}): {e}\nRaw: {raw!r}", file=sys.stderr)
+        print(f"WARNING: JSONDecodeError in stripe_get({path}): {e}\nRaw: {body!r}", file=sys.stderr)
         return {}
     if "error" in parsed:
         print(f"WARNING: Stripe error in stripe_get({path}): {parsed['error']}", file=sys.stderr)
         return {}
     return parsed
 
-raw_stdin = sys.stdin.read()
-raw_stripped = raw_stdin.strip()
+# Parse the products list
+raw_stripped = raw.strip()
 if not raw_stripped or raw_stripped[0] not in ('{', '['):
-    print(f"ERROR: Stripe products API returned empty or non-JSON response.\nRaw: {raw_stdin!r}", file=sys.stderr)
+    print(f"ERROR: PRODUCTS_JSON is empty or non-JSON.\nRaw: {raw!r}", file=sys.stderr)
     sys.exit(1)
 try:
-    data = json.loads(raw_stdin)
+    data = json.loads(raw)
 except json.JSONDecodeError as e:
-    print(f"ERROR: JSONDecodeError parsing Stripe products response: {e}\nRaw: {raw_stdin!r}", file=sys.stderr)
+    print(f"ERROR: JSONDecodeError parsing PRODUCTS_JSON: {e}\nRaw: {raw!r}", file=sys.stderr)
     sys.exit(1)
 if "error" in data:
-    print(f"ERROR: Stripe API returned error: {data['error']}", file=sys.stderr)
+    print(f"ERROR: Stripe products API error: {data['error']}", file=sys.stderr)
     sys.exit(1)
 
 products = data.get("data", [])
@@ -116,10 +125,10 @@ else:
         print(f"Processing retired product: {p['id']} — {name}")
 
         # Step 1: Deactivate all active prices on this product
-        prices_data = stripe_get(f"/v1/prices?product={p['id']}&active=true&limit=100")
+        prices_data = stripe_get_py(f"/v1/prices?product={p['id']}&active=true&limit=100")
         for price in prices_data.get("data", []):
             price_id = price["id"]
-            rc, out, err = stripe_post(f"/v1/prices/{price_id}", {"active": "false"})
+            rc, out, err = stripe_post_py(f"/v1/prices/{price_id}", {"active": "false"})
             if rc == 0:
                 deactivated_prices.append(price_id)
                 print(f"  -> Deactivated price: {price_id}")
@@ -127,14 +136,15 @@ else:
                 print(f"  -> WARNING: failed to deactivate price {price_id}: {err}", file=sys.stderr)
 
         # Step 2: Archive the product (set active=false)
-        rc, out, err = stripe_post(f"/v1/products/{p['id']}", {"active": "false"})
+        rc, out, err = stripe_post_py(f"/v1/products/{p['id']}", {"active": "false"})
         if rc == 0:
             archived_products.append(p["id"])
             print(f"  -> Archived product: {p['id']}")
         else:
             print(f"  -> WARNING: failed to archive product {p['id']}: {err}", file=sys.stderr)
 
-    print(f"Archived {len(archived_products)} retired tier products, deactivated {len(deactivated_prices)} prices.")
+    print(f"Archived {len(archived_products)} retired tier products, "
+          f"deactivated {len(deactivated_prices)} prices.")
 PYEOF
 
 log "Tier product archival and price deactivation complete."
@@ -163,6 +173,8 @@ create_product_with_price() {
   local ceiling_cents="$3"
 
   # Create product
+  # NOTE: stripe_parse_id reads STRIPE_RESPONSE from env — avoids the
+  # pipe+heredoc stdin conflict that makes sys.stdin.read() return empty.
   local product_response
   product_response="$(stripe_post "https://api.stripe.com/v1/products" \
     --data-urlencode "name=${product_name}" \
@@ -172,21 +184,23 @@ create_product_with_price() {
     -d "metadata[ceiling_cents]=${ceiling_cents}")"
 
   local product_id
-  product_id="$(echo "${product_response}" | python3 - <<'_PY'
-import sys, json
-raw = sys.stdin.read()
-raw_stripped = raw.strip()
-if not raw_stripped or raw_stripped[0] not in ('{', '['):
-    print(f"ERROR: Stripe create-product returned empty or non-JSON.\nRaw: {raw!r}", file=sys.stderr)
-    sys.exit(1)
+  product_id="$(STRIPE_RESPONSE="${product_response}" \
+    python3 <<'_PY'
+import os, json, sys
+raw = os.environ.get('STRIPE_RESPONSE', '')
+raw_s = raw.strip()
+if not raw_s or raw_s[0] not in ('{', '['):
+    print(f"ERROR: create-product returned empty/non-JSON.\nRaw: {raw!r}", file=sys.stderr); sys.exit(1)
 try:
-    print(json.loads(raw)['id'])
-except (json.JSONDecodeError, KeyError) as e:
-    print(f"ERROR: Failed to parse product response: {e}\nRaw: {raw!r}", file=sys.stderr)
-    sys.exit(1)
+    d = json.loads(raw)
+except json.JSONDecodeError as e:
+    print(f"ERROR: JSONDecodeError create-product: {e}\nRaw: {raw!r}", file=sys.stderr); sys.exit(1)
+if "error" in d:
+    print(f"ERROR: Stripe create-product error: {d['error']}", file=sys.stderr); sys.exit(1)
+print(d['id'])
 _PY
 )"
-  log "  Created product: ${product_id} — ${product_name}"
+  log "  Created product: ${product_id} — ${product_name}" >&2
 
   # Create price at floor amount (one-time, manual collection for enterprise)
   local price_response
@@ -200,21 +214,23 @@ _PY
     -d "metadata[sprint]=cidg")"
 
   local price_id
-  price_id="$(echo "${price_response}" | python3 - <<'_PY'
-import sys, json
-raw = sys.stdin.read()
-raw_stripped = raw.strip()
-if not raw_stripped or raw_stripped[0] not in ('{', '['):
-    print(f"ERROR: Stripe create-price returned empty or non-JSON.\nRaw: {raw!r}", file=sys.stderr)
-    sys.exit(1)
+  price_id="$(STRIPE_RESPONSE="${price_response}" \
+    python3 <<'_PY'
+import os, json, sys
+raw = os.environ.get('STRIPE_RESPONSE', '')
+raw_s = raw.strip()
+if not raw_s or raw_s[0] not in ('{', '['):
+    print(f"ERROR: create-price returned empty/non-JSON.\nRaw: {raw!r}", file=sys.stderr); sys.exit(1)
 try:
-    print(json.loads(raw)['id'])
-except (json.JSONDecodeError, KeyError) as e:
-    print(f"ERROR: Failed to parse price response: {e}\nRaw: {raw!r}", file=sys.stderr)
-    sys.exit(1)
+    d = json.loads(raw)
+except json.JSONDecodeError as e:
+    print(f"ERROR: JSONDecodeError create-price: {e}\nRaw: {raw!r}", file=sys.stderr); sys.exit(1)
+if "error" in d:
+    print(f"ERROR: Stripe create-price error: {d['error']}", file=sys.stderr); sys.exit(1)
+print(d['id'])
 _PY
 )"
-  log "  Created price: ${price_id} (floor: \$$(( floor_cents / 100 )))"
+  log "  Created price: ${price_id} (floor: \$$(( floor_cents / 100 )))" >&2
 
   echo "${price_id}"
 }
@@ -263,6 +279,9 @@ log "All price IDs stored. Legacy code referencing STRIPE_LIVE_T1/T2/T3_PRICE_ID
 
 # ---------------------------------------------------------------------------
 # 5. Patch site source — replace T1/T2/T3 references
+# NOTE: python3 <<PYEOF here has no pipe, so stdin = heredoc is correct.
+# The Python code does not call sys.stdin.read(); values come from
+# bash variable interpolation into the (unquoted) heredoc.
 # ---------------------------------------------------------------------------
 patch_source_directory() {
   local src_dir="$1"
