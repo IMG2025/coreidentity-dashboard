@@ -83,10 +83,10 @@ log "Working with ci-loop script: ${CI_LOOP_SCRIPT}"
 log "Auditing PORTAL_URL references in ${CI_LOOP_SCRIPT}..."
 
 ORIGINAL_CONTENT="$(cat "${CI_LOOP_SCRIPT}")"
-HARDCODED_URLS="$(echo "${ORIGINAL_CONTENT}" | python3 - <<PYEOF
-import re, sys
+HARDCODED_URLS="$(ORIGINAL_CONTENT="${ORIGINAL_CONTENT}" python3 <<'PYEOF'
+import re, os
 
-content = sys.stdin.read()
+content = os.environ.get('ORIGINAL_CONTENT', '')
 prod_patterns = [
     r'PORTAL_URL\s*=\s*["\x27]?(https?://[^"\x27\s;]+)',
     r'https?://(?:portal|app|api)\.coreidentity\.io[^\s"\']*',

@@ -275,6 +275,8 @@ log "New access key created: ${NEW_ACCESS_KEY_ID}"
 # 7. Push new credentials to GitHub Actions secrets via PyNaCl
 # ---------------------------------------------------------------------------
 log "Pushing new credentials to GitHub Actions secrets..."
+log "Ensuring pynacl is installed..."
+pip3 install pynacl --quiet 2>&1 | tail -3 || true
 
 python3 - <<PYEOF
 import base64, json, sys

@@ -140,10 +140,10 @@ if [[ -n "${SAL_PODS}" ]]; then
       2>/dev/null || echo "")"
 
     if [[ -n "${POD_LOGS}" ]]; then
-      COUNTS="$(echo "${POD_LOGS}" | python3 - <<'INNERPY'
-import sys, re, json
+      COUNTS="$(POD_LOGS="${POD_LOGS}" python3 <<'INNERPY'
+import os, re, json
 
-log_text = sys.stdin.read()
+log_text = os.environ.get('POD_LOGS', '')
 
 intercept = len(re.findall(r'"action"\s*:\s*"intercept"', log_text, re.IGNORECASE))
 intercept += len(re.findall(r'SAL_INTERCEPT', log_text))

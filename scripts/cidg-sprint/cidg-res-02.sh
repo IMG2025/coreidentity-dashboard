@@ -188,10 +188,15 @@ if aws ecs describe-services \
     RUNNING_COUNT="$(echo "${SERVICE_INFO}" | \
       python3 -c "import sys,json; print(json.load(sys.stdin)['services'][0]['runningCount'])" 2>/dev/null || echo 0)"
 
-    PRIMARY_RUNNING="$(echo "${SERVICE_INFO}" | python3 - <<'PYEOF' 2>/dev/null || echo 0
-import sys, json
-d = json.load(sys.stdin)
-svc = d['services'][0]
+    PRIMARY_RUNNING="$(SERVICE_INFO="${SERVICE_INFO}" python3 <<'PYEOF' 2>/dev/null || echo 0
+import os, json
+raw = os.environ.get('SERVICE_INFO', '{}')
+try:
+    d = json.loads(raw)
+except Exception:
+    print(0)
+    raise SystemExit(0)
+svc = d.get('services', [{}])[0]
 deployments = svc.get('deployments', [])
 primary = next((dep for dep in deployments if dep['status'] == 'PRIMARY'), None)
 if primary:
