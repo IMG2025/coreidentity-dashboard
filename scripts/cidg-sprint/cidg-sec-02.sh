@@ -2,7 +2,7 @@
 # =============================================================================
 # cidg-sec-02.sh — Credential Purge
 # Scans all repos under ~/coreidentity for plaintext credential patterns,
-# extracts hardcoded COREIDENTITY_API_PASSWORD from swap-ecs-image.py,
+# extracts hardcoded coreidentity-api-password from swap-ecs-image.py,
 # stores it in GCP Secret Manager, patches the file to fetch at runtime,
 # hardens .gitignore, commits and pushes.
 # =============================================================================
@@ -49,7 +49,7 @@ extensions = ${SCAN_EXTENSIONS[@]@Q}
 findings = []
 
 patterns = [
-    (r'COREIDENTITY_API_PASSWORD\s*=\s*["\x27][^"\x27]{8,}', 'COREIDENTITY_API_PASSWORD'),
+    (r'COREIDENTITY_API_PASSWORD\s*=\s*["\x27][^"\x27]{8,}', 'coreidentity-api-password'),
     (r'API_KEY\s*=\s*["\x27][A-Za-z0-9+/]{20,}', 'API_KEY'),
     (r'SECRET_KEY\s*=\s*["\x27][A-Za-z0-9+/]{20,}', 'SECRET_KEY'),
     (r'AWS_SECRET_ACCESS_KEY\s*=\s*["\x27][A-Za-z0-9+/]{40}', 'AWS_SECRET_ACCESS_KEY'),
@@ -105,7 +105,7 @@ PYEOF
 log "Scan complete. Results: ${FINDINGS_FILE}"
 
 # ---------------------------------------------------------------------------
-# 2. Locate swap-ecs-image.py and extract hardcoded COREIDENTITY_API_PASSWORD
+# 2. Locate swap-ecs-image.py and extract hardcoded coreidentity-api-password
 # ---------------------------------------------------------------------------
 log "Searching for swap-ecs-image.py..."
 SWAP_SCRIPT=""
@@ -123,7 +123,7 @@ fi
 
 if [[ -n "${SWAP_SCRIPT}" ]]; then
   # Extract the hardcoded password value
-  log "Extracting hardcoded COREIDENTITY_API_PASSWORD..."
+  log "Extracting hardcoded coreidentity-api-password..."
   EXTRACTED_PASSWORD="$(python3 - <<PYEOF
 import re, sys
 
@@ -165,7 +165,7 @@ PYEOF
     log "Password stored at: projects/${GCP_PROJECT}/secrets/${SECRET_NAME}"
 
     # Patch swap-ecs-image.py to fetch from Secret Manager at runtime
-    log "Patching swap-ecs-image.py to fetch COREIDENTITY_API_PASSWORD from Secret Manager..."
+    log "Patching swap-ecs-image.py to fetch coreidentity-api-password from Secret Manager..."
 
     python3 - <<PYEOF
 import re
@@ -221,7 +221,7 @@ print("swap-ecs-image.py patched successfully.")
 PYEOF
     log "swap-ecs-image.py patched."
   else
-    log "No hardcoded COREIDENTITY_API_PASSWORD found in swap-ecs-image.py — skipping patch."
+    log "No hardcoded coreidentity-api-password found in swap-ecs-image.py — skipping patch."
   fi
 fi
 
@@ -300,7 +300,7 @@ commit_repo() {
     git add -A
     git commit -m "security(sec-02): credential purge — move hardcoded secrets to Secret Manager, harden .gitignore
 
-- Extracted COREIDENTITY_API_PASSWORD to GCP Secret Manager (${SECRET_NAME})
+- Extracted coreidentity-api-password to GCP Secret Manager (${SECRET_NAME})
 - Patched swap-ecs-image.py to fetch at runtime via gcloud CLI
 - Hardened .gitignore for .env variants and credential file patterns
 Sprint: cidg-sec-02"

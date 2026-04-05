@@ -9,7 +9,7 @@ set -euo pipefail
 GCP_PROJECT="${GCP_PROJECT:-coreidentity-prod}"
 SITE_SRC="${HOME}/coreidentity/integrations/coreholdingcorp-site-v2/src"
 DASHBOARD_SRC="${HOME}/coreidentity/dashboard/src"
-STRIPE_SECRET_NAME="cidg/stripe-secret-key"
+STRIPE_SECRET_NAME="cidg/stripe-live-secret-key"
 SM_PREFIX="cidg/stripe"
 
 log() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [PRICING-01] $*"; }
@@ -17,67 +17,107 @@ log() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [PRICING-01] $*"; }
 # ---------------------------------------------------------------------------
 # 1. Fetch Stripe secret key from GCP Secret Manager
 # ---------------------------------------------------------------------------
-log "Fetching STRIPE_SECRET_KEY from Secret Manager..."
-STRIPE_SECRET_KEY="$(gcloud secrets versions access latest \
+log "Fetching STRIPE_LIVE_SECRET_KEY from Secret Manager..."
+STRIPE_LIVE_SECRET_KEY="$(gcloud secrets versions access latest \
   --secret="${STRIPE_SECRET_NAME}" \
   --project="${GCP_PROJECT}")"
-export STRIPE_SECRET_KEY
-log "Stripe key loaded (sk_...${STRIPE_SECRET_KEY: -4})."
+export STRIPE_LIVE_SECRET_KEY
+log "Stripe key loaded (sk_...${STRIPE_LIVE_SECRET_KEY: -4})."
 
 # ---------------------------------------------------------------------------
 # 2. Helper: Stripe API call
 # ---------------------------------------------------------------------------
-stripe_get()  { curl -sf -u "${STRIPE_SECRET_KEY}:" "$@"; }
-stripe_post() { curl -sf -u "${STRIPE_SECRET_KEY}:" -X POST "$@"; }
+stripe_get()  { curl -sf -u "${STRIPE_LIVE_SECRET_KEY}:" "$@"; }
+stripe_post() { curl -sf -u "${STRIPE_LIVE_SECRET_KEY}:" -X POST "$@"; }
 
 # ---------------------------------------------------------------------------
-# 3. Archive retired T1/T2/T3 products
+# 3. Archive retired T1/T2/T3 products and deactivate their prices
 # ---------------------------------------------------------------------------
-log "Scanning for retired T1/T2/T3 Stripe products to archive..."
+log "Scanning for retired T1/T2/T3 Stripe products to archive + price deactivation..."
 
 PRODUCTS_JSON="$(stripe_get "https://api.stripe.com/v1/products?limit=100&active=true")"
 
 echo "${PRODUCTS_JSON}" | python3 - <<'PYEOF'
 import sys, json, subprocess, os
 
+sk = os.environ['STRIPE_LIVE_SECRET_KEY']
+
+def stripe_post(path, params):
+    args = ["curl", "-sf", "-u", f"{sk}:", "-X", "POST",
+            f"https://api.stripe.com{path}"]
+    for k, v in params.items():
+        args += ["-d", f"{k}={v}"]
+    r = subprocess.run(args, capture_output=True, text=True)
+    return r.returncode, r.stdout, r.stderr
+
+def stripe_get(path):
+    r = subprocess.run(
+        ["curl", "-sf", "-u", f"{sk}:", f"https://api.stripe.com{path}"],
+        capture_output=True, text=True
+    )
+    return json.loads(r.stdout) if r.returncode == 0 else {}
+
 data = json.loads(sys.stdin.read())
 products = data.get("data", [])
 tier_keywords = ["T1", "T2", "T3", "Tier 1", "Tier 2", "Tier 3",
                  "tier-1", "tier-2", "tier-3", "TIER1", "TIER2", "TIER3"]
 
-archived = []
+archived_products = []
+deactivated_prices = []
+
 for p in products:
     name = p.get("name", "")
-    if any(kw in name for kw in tier_keywords):
-        print(f"Archiving product: {p['id']} — {name}")
-        result = subprocess.run(
-            ["curl", "-sf", "-u", f"{os.environ['STRIPE_SECRET_KEY']}:",
-             "-X", "POST",
-             f"https://api.stripe.com/v1/products/{p['id']}",
-             "-d", "active=false"],
-            capture_output=True, text=True
-        )
-        if result.returncode == 0:
-            archived.append(p["id"])
-            print(f"  -> Archived: {p['id']}")
-        else:
-            print(f"  -> WARNING: failed to archive {p['id']}: {result.stderr}", file=sys.stderr)
+    if not any(kw in name for kw in tier_keywords):
+        continue
 
-print(f"Archived {len(archived)} retired tier products.")
+    print(f"Processing retired product: {p['id']} — {name}")
+
+    # Step 1: Deactivate all active prices on this product
+    prices_data = stripe_get(f"/v1/prices?product={p['id']}&active=true&limit=100")
+    for price in prices_data.get("data", []):
+        price_id = price["id"]
+        rc, out, err = stripe_post(f"/v1/prices/{price_id}", {"active": "false"})
+        if rc == 0:
+            deactivated_prices.append(price_id)
+            print(f"  -> Deactivated price: {price_id}")
+        else:
+            print(f"  -> WARNING: failed to deactivate price {price_id}: {err}", file=sys.stderr)
+
+    # Step 2: Archive the product (set active=false)
+    rc, out, err = stripe_post(f"/v1/products/{p['id']}", {"active": "false"})
+    if rc == 0:
+        archived_products.append(p["id"])
+        print(f"  -> Archived product: {p['id']}")
+    else:
+        print(f"  -> WARNING: failed to archive product {p['id']}: {err}", file=sys.stderr)
+
+print(f"Archived {len(archived_products)} retired tier products, deactivated {len(deactivated_prices)} prices.")
 PYEOF
 
-log "Tier product archival complete."
+log "Tier product archival and price deactivation complete."
 
 # ---------------------------------------------------------------------------
 # 4. Create CIAG Phase products and prices
 # ---------------------------------------------------------------------------
 log "Creating CIAG Phase 0, 1, 2 products..."
 
+# Helper: create-or-version a GCP Secret Manager secret
+sm_store() {
+  local secret_name="$1"
+  local value="$2"
+  echo -n "${value}" | gcloud secrets create "${SM_PREFIX}/${secret_name}" \
+    --data-file=- \
+    --project="${GCP_PROJECT}" \
+    --replication-policy="automatic" 2>/dev/null || \
+  echo -n "${value}" | gcloud secrets versions add "${SM_PREFIX}/${secret_name}" \
+    --data-file=- \
+    --project="${GCP_PROJECT}"
+}
+
 create_product_with_price() {
   local product_name="$1"
   local floor_cents="$2"
   local ceiling_cents="$3"
-  local secret_key_name="$4"
 
   # Create product
   local product_response
@@ -107,38 +147,50 @@ create_product_with_price() {
   price_id="$(echo "${price_response}" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")"
   log "  Created price: ${price_id} (floor: \$$(( floor_cents / 100 )))"
 
-  # Store price ID in Secret Manager
-  log "  Storing ${secret_key_name} = ${price_id} in Secret Manager..."
-  echo -n "${price_id}" | gcloud secrets create "${SM_PREFIX}/${secret_key_name}" \
-    --data-file=- \
-    --project="${GCP_PROJECT}" \
-    --replication-policy="automatic" 2>/dev/null || \
-  echo -n "${price_id}" | gcloud secrets versions add "${SM_PREFIX}/${secret_key_name}" \
-    --data-file=- \
-    --project="${GCP_PROJECT}"
-
   echo "${price_id}"
 }
 
 PHASE0_PRICE_ID="$(create_product_with_price \
   "CIAG Phase 0 — Governance Diagnostic" \
-  7500000 15000000 \
-  "CIAG_PHASE0_PRICE_ID")"
+  7500000 15000000)"
 
 PHASE1_PRICE_ID="$(create_product_with_price \
   "CIAG Phase 1 — Remediation Blueprint" \
-  15000000 30000000 \
-  "CIAG_PHASE1_PRICE_ID")"
+  15000000 30000000)"
 
 PHASE2_PRICE_ID="$(create_product_with_price \
   "CIAG Phase 2 — Guided Implementation" \
-  25000000 50000000 \
-  "CIAG_PHASE2_PRICE_ID")"
+  25000000 50000000)"
 
 log "All CIAG phase products and prices created."
 log "  PHASE0: ${PHASE0_PRICE_ID}"
 log "  PHASE1: ${PHASE1_PRICE_ID}"
 log "  PHASE2: ${PHASE2_PRICE_ID}"
+
+# ---------------------------------------------------------------------------
+# 4a. Store price IDs in Secret Manager — new canonical names + legacy aliases
+# ---------------------------------------------------------------------------
+log "Storing price IDs in Secret Manager (new names + legacy aliases)..."
+
+# Phase 0 — new canonical + legacy T1 alias
+log "  Storing STRIPE_LIVE_PHASE0_PRICE_ID..."
+sm_store "STRIPE_LIVE_PHASE0_PRICE_ID" "${PHASE0_PRICE_ID}"
+log "  Storing STRIPE_LIVE_T1_PRICE_ID (legacy alias → Phase 0)..."
+sm_store "STRIPE_LIVE_T1_PRICE_ID" "${PHASE0_PRICE_ID}"
+
+# Phase 1 — new canonical + legacy T2 alias
+log "  Storing STRIPE_LIVE_PHASE1_PRICE_ID..."
+sm_store "STRIPE_LIVE_PHASE1_PRICE_ID" "${PHASE1_PRICE_ID}"
+log "  Storing STRIPE_LIVE_T2_PRICE_ID (legacy alias → Phase 1)..."
+sm_store "STRIPE_LIVE_T2_PRICE_ID" "${PHASE1_PRICE_ID}"
+
+# Phase 2 — new canonical + legacy T3 alias
+log "  Storing STRIPE_LIVE_PHASE2_PRICE_ID..."
+sm_store "STRIPE_LIVE_PHASE2_PRICE_ID" "${PHASE2_PRICE_ID}"
+log "  Storing STRIPE_LIVE_T3_PRICE_ID (legacy alias → Phase 2)..."
+sm_store "STRIPE_LIVE_T3_PRICE_ID" "${PHASE2_PRICE_ID}"
+
+log "All price IDs stored. Legacy code referencing STRIPE_LIVE_T1/T2/T3_PRICE_ID will now receive new CIAG phase prices."
 
 # ---------------------------------------------------------------------------
 # 5. Patch site source — replace T1/T2/T3 references
