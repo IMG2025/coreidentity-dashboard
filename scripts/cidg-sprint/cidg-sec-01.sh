@@ -366,11 +366,22 @@ log "Credentials stored in Secret Manager."
 # ---------------------------------------------------------------------------
 # 9. Validate new credentials with STS
 # ---------------------------------------------------------------------------
-log "Validating new credentials with STS..."
-AWS_ACCESS_KEY_ID="${NEW_ACCESS_KEY_ID}" \
-AWS_SECRET_ACCESS_KEY="${NEW_SECRET_ACCESS_KEY}" \
-  aws sts get-caller-identity --output json
-
+log "Validating new credentials with STS (waiting for key propagation)..."
+_sts_ok=false
+for _attempt in 1 2 3 4 5; do
+  sleep 10
+  if AWS_ACCESS_KEY_ID="${NEW_ACCESS_KEY_ID}" \
+     AWS_SECRET_ACCESS_KEY="${NEW_SECRET_ACCESS_KEY}" \
+     aws sts get-caller-identity --output json 2>/dev/null; then
+    _sts_ok=true
+    break
+  fi
+  log "  STS attempt ${_attempt}/5 failed — key still propagating, retrying..."
+done
+if [[ "${_sts_ok}" != "true" ]]; then
+  log "ERROR: New IAM key failed STS validation after 5 attempts (50s)."
+  exit 1
+fi
 log "STS validation passed — new credentials are functional."
 
 # ---------------------------------------------------------------------------
