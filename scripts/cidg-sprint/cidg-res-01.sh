@@ -192,7 +192,7 @@ fi
 log "Waiting for SAL Kernel pod recovery in ${STAGING_NS}..."
 kubectl rollout status deployment/"${SAL_DEPLOYMENT}" \
   -n "${STAGING_NS}" \
-  --timeout="${ROLLOUT_TIMEOUT}" || {
+  --timeout=60s || {
   log "WARNING: Recovery rollout timed out in ${STAGING_NS} — health probes may be failing (expected in staging). Continuing."
 }
 
