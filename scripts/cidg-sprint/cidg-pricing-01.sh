@@ -27,8 +27,8 @@ log "Stripe key loaded (sk_...${STRIPE_LIVE_SECRET_KEY: -4})."
 # ---------------------------------------------------------------------------
 # 2. Helper: Stripe API call
 # ---------------------------------------------------------------------------
-stripe_get()  { curl -sf -u "${STRIPE_LIVE_SECRET_KEY}:" "$@"; }
-stripe_post() { curl -sf -u "${STRIPE_LIVE_SECRET_KEY}:" -X POST \
+stripe_get()  { curl -s -u "${STRIPE_LIVE_SECRET_KEY}:" "$@"; }
+stripe_post() { curl -s -u "${STRIPE_LIVE_SECRET_KEY}:" -X POST \
                   -H "Content-Type: application/x-www-form-urlencoded" "$@"; }
 
 # ---------------------------------------------------------------------------
@@ -43,6 +43,11 @@ if [[ -z "${PRODUCTS_JSON}" ]] || \
    [[ "${PRODUCTS_JSON:0:1}" != "{" && "${PRODUCTS_JSON:0:1}" != "[" ]]; then
   log "ERROR: Stripe products API returned empty or non-JSON response."
   log "Raw response: ${PRODUCTS_JSON}"
+  # Probe for HTTP status to aid debugging
+  HTTP_STATUS="$(curl -s -o /dev/null -w "%{http_code}" \
+    -u "${STRIPE_LIVE_SECRET_KEY}:" \
+    "https://api.stripe.com/v1/products?limit=1&active=true")" || true
+  log "Stripe API HTTP status probe: ${HTTP_STATUS}"
   exit 1
 fi
 
@@ -63,20 +68,22 @@ def stripe_post(path, params):
 
 def stripe_get(path):
     r = subprocess.run(
-        ["curl", "-sf", "-u", f"{sk}:", f"https://api.stripe.com{path}"],
+        ["curl", "-s", "-u", f"{sk}:", f"https://api.stripe.com{path}"],
         capture_output=True, text=True
     )
-    if r.returncode != 0:
-        return {}
     raw = r.stdout.strip()
     if not raw or raw[0] not in ('{', '['):
-        print(f"WARNING: stripe_get({path}) returned non-JSON: {raw!r}", file=sys.stderr)
+        print(f"WARNING: stripe_get({path}) returned non-JSON (curl rc={r.returncode}): {raw!r}", file=sys.stderr)
         return {}
     try:
-        return json.loads(raw)
+        parsed = json.loads(raw)
     except json.JSONDecodeError as e:
         print(f"WARNING: JSONDecodeError in stripe_get({path}): {e}\nRaw: {raw!r}", file=sys.stderr)
         return {}
+    if "error" in parsed:
+        print(f"WARNING: Stripe error in stripe_get({path}): {parsed['error']}", file=sys.stderr)
+        return {}
+    return parsed
 
 raw_stdin = sys.stdin.read()
 raw_stripped = raw_stdin.strip()
@@ -87,6 +94,9 @@ try:
     data = json.loads(raw_stdin)
 except json.JSONDecodeError as e:
     print(f"ERROR: JSONDecodeError parsing Stripe products response: {e}\nRaw: {raw_stdin!r}", file=sys.stderr)
+    sys.exit(1)
+if "error" in data:
+    print(f"ERROR: Stripe API returned error: {data['error']}", file=sys.stderr)
     sys.exit(1)
 
 products = data.get("data", [])
