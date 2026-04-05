@@ -315,7 +315,8 @@ def gh_api(method, path, data=None):
     body = json.dumps(data).encode() if data else None
     req = urllib.request.Request(url, data=body, headers=headers, method=method)
     with urllib.request.urlopen(req) as resp:
-        return json.loads(resp.read())
+        raw = resp.read()
+        return json.loads(raw) if raw.strip() else {}
 
 # Get repo public key for secret encryption
 pub_key_data = gh_api("GET", f"/repos/{owner}/{repo}/actions/secrets/public-key")
