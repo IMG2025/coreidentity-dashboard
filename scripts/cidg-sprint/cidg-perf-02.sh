@@ -158,10 +158,10 @@ if is_bash:
         content = "\n".join(lines)
         print(f"Injected PORTAL_URL env var at line {insert_pos}.")
 
-    # Replace all remaining hardcoded production URLs
+    # Replace all remaining hardcoded production URLs (PORTAL_URL assignment already handled above)
     prod_url_patterns = [
-        r'(?<!PORTAL_URL=.{0,50})"https?://(?:portal|app|api)\.coreidentity\.io[^"]*"',
-        r"(?<!PORTAL_URL=.{0,50})'https?://(?:portal|app|api)\.coreidentity\.io[^']*'",
+        r'"https?://(?:portal|app|api)\.coreidentity\.io[^"]*"',
+        r"'https?://(?:portal|app|api)\.coreidentity\.io[^']*'",
     ]
     for p in prod_url_patterns:
         content = re.sub(p, '"${PORTAL_URL}"', content)
