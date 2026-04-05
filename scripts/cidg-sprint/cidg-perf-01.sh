@@ -111,13 +111,15 @@ log "Ensuring boto3 is installed..."
 pip3 install boto3 --quiet 2>&1 | tail -3 || true
 log "Profiling DynamoDB analytics tables for GSI coverage..."
 
-GSI_REPORT="$(python3 - <<PYEOF
-import boto3, json, sys
+ANALYTICS_TABLES_JSON="$(python3 -c "import json,sys; print(json.dumps(sys.argv[1:]))" "${ANALYTICS_TABLES[@]}")"
 
-dynamodb = boto3.client("dynamodb", region_name="${AWS_REGION}")
+GSI_REPORT="$(ANALYTICS_TABLES_JSON="${ANALYTICS_TABLES_JSON}" AWS_REGION="${AWS_REGION}" python3 <<'PYEOF'
+import boto3, json, sys, os
+
+dynamodb = boto3.client("dynamodb", region_name=os.environ["AWS_REGION"])
 report = []
 
-for table_name in ${ANALYTICS_TABLES[@]@Q}:
+for table_name in json.loads(os.environ["ANALYTICS_TABLES_JSON"]):
     try:
         desc = dynamodb.describe_table(TableName=table_name)["Table"]
         gsis = desc.get("GlobalSecondaryIndexes", [])
@@ -162,9 +164,10 @@ for table_name in ${ANALYTICS_TABLES[@]@Q}:
         for gap in table_report["gaps"]:
             print(f"    GAP: {gap['description']}")
 
-    except dynamodb.exceptions.ResourceNotFoundException:
-        print(f"  {table_name}: TABLE NOT FOUND")
-        report.append({"table": table_name, "error": "not_found", "gsi_count": 0, "gaps": []})
+    except Exception as e:
+        err_code = getattr(e, 'response', {}).get('Error', {}).get('Code', str(e))
+        print(f"  {table_name}: {err_code}")
+        report.append({"table": table_name, "error": err_code, "gsi_count": 0, "gaps": []})
 
 print(json.dumps(report))
 PYEOF
