@@ -401,9 +401,10 @@ commit_and_push "${SITE_REPO_ROOT}" "coreholdingcorp-site-v2"
 # ---------------------------------------------------------------------------
 # 7. npm run build
 # ---------------------------------------------------------------------------
-log "Running npm run build for site..."
+log "Running npm install + build for site..."
 if [[ -f "${SITE_REPO_ROOT}/package.json" ]]; then
   cd "${SITE_REPO_ROOT}"
+  npm install --prefer-offline 2>&1 | tail -5
   npm run build
   cd - > /dev/null
   log "Site build complete."
