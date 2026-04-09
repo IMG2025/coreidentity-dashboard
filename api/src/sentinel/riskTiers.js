@@ -80,17 +80,17 @@ const TASK_TIER_ESCALATION = {
 
 
 // ─── In-memory analytics cache (CIDG perf-01, TTL: 60s) ──────────────────
-const _analyticsCache = new Map<string, { data: unknown; expires: number }>();
+const _analyticsCache = new Map();
 const _ANALYTICS_CACHE_TTL_MS = 60_000; // 60 seconds
 
-function _getCachedAnalytics(key: string): unknown | null {
+function _getCachedAnalytics(key) {
   const entry = _analyticsCache.get(key);
   if (entry && Date.now() < entry.expires) return entry.data;
   _analyticsCache.delete(key);
   return null;
 }
 
-function _setCachedAnalytics(key: string, data: unknown): void {
+function _setCachedAnalytics(key, data) {
   _analyticsCache.set(key, { data, expires: Date.now() + _ANALYTICS_CACHE_TTL_MS });
 }
 // ──────────────────────────────────────────────────────────────────────────
