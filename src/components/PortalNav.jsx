@@ -4,25 +4,19 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Bot, Shield, Zap, Globe, ClipboardList,
   Workflow, Terminal, Play, BarChart3, Lock, Settings,
-  LogOut, Menu, X, ChevronRight, Activity, Users
+  LogOut, Menu, X, ChevronRight, Activity, Users,
+  Command, Eye, CheckSquare, TrendingUp
 } from 'lucide-react';
 import { C, F, useWindowWidth } from '../chc-design.js';
 
 const NAV_ITEMS = [
-  { path:'/#/dashboard',   icon:LayoutDashboard, label:'Founders',    adminOnly:true  },
-  { path:'/#/agents',      icon:Bot,             label:'Operations',      adminOnly:false },
-  { path:'/#/sentinel',    icon:Shield,          label:'Sentinel OS', adminOnly:false },
-  { path:'/#/nexus',       icon:Zap,             label:'Nexus OS',    adminOnly:false },
+  { path:'/#/command',     icon:Command,         label:'Command',     adminOnly:false },
+  { path:'/#/identity',    icon:Eye,             label:'Identity',    adminOnly:false },
+  { path:'/#/compliance',  icon:CheckSquare,     label:'Compliance',  adminOnly:false },
+  { path:'/#/pipeline',    icon:TrendingUp,      label:'Pipeline',    adminOnly:true  },
   { path:'/#/smartnation', icon:Globe,           label:'SmartNation', adminOnly:false },
-  { path:'/#/governance',  icon:ClipboardList,   label:'Governance',  adminOnly:false },
-  { path:'/#/workflows',   icon:Workflow,        label:'Workflows',   adminOnly:false },
-  { path:'/#/mcp-demo',    icon:Terminal,        label:'MCP Demo',    adminOnly:false },
-  { path:'/#/live-demo',   icon:Play,            label:'Live Demo',   adminOnly:false },
-  { path:'/#/ciag',        icon:Activity,        label:'CIAG',        adminOnly:true  },
-  { path:'/#/tenants',     icon:Users,           label:'Companies',   adminOnly:true  },
-  { path:'/#/analytics',   icon:BarChart3,       label:'Analytics',   adminOnly:true  },
-  { path:'/#/ciso',        icon:Lock,            label:'CISO',        adminOnly:true  },
   { path:'/#/settings',    icon:Settings,        label:'Settings',    adminOnly:true  },
+  { path:'/#/dashboard',   icon:LayoutDashboard, label:'Founders',    adminOnly:true  },
 ];
 
 export default function PortalNav({ route, onNavigate, userEmail, onLogout, user }) {

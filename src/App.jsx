@@ -31,6 +31,10 @@ import PricingPage       from './pages/PricingPage.jsx';
 import ReportsPage       from './pages/ReportsPage.jsx';
 import DocsPage          from './pages/DocsPage.jsx';
 import CISODashboard from './pages/CISODashboard.jsx';
+import CommandCenter     from './pages/CommandCenter.jsx';
+import IdentityGovernance from './pages/IdentityGovernance.jsx';
+import CompliancePage    from './pages/CompliancePage.jsx';
+import PipelinePage      from './pages/PipelinePage.jsx';
 
 // ── Notifications context ─────────────────────────────────────
 /* patch-33 */
@@ -39,6 +43,10 @@ export const useNotifications = () => useContext(NotificationContext);
 
 // ── Route maps ────────────────────────────────────────────────
 const PORTAL_PAGES = {
+  '/#/command':     CommandCenter,
+  '/#/identity':    IdentityGovernance,
+  '/#/compliance':  CompliancePage,
+  '/#/pipeline':    PipelinePage,
   '/#/dashboard':   FoundersDashboard,
   '/#/agents':      AgentCatalog,
   '/#/sentinel':    Sentinel,
