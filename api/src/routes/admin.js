@@ -55,6 +55,7 @@ router.post('/users', async (req, res) => {
       Item: {
         userId, email: email.toLowerCase(), passwordHash,
         firstName, lastName, role: 'CUSTOMER',
+        tenantId: userId,
         status: 'active', createdAt: now, updatedAt: now,
         createdBy: req.user.userId
       }
