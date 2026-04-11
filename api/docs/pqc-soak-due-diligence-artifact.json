@@ -1,0 +1,50 @@
+{
+  "artifact_type": "PQC_SOAK_DUE_DILIGENCE",
+  "artifact_version": "1.0",
+  "generated": "2026-04-11T05:35:09.384Z",
+  "claim": "First-of-its-kind quantum-hardened agentic AI governance infrastructure",
+  "nist_compliance": {
+    "fips_203": "ML-KEM-768 — Key encapsulation",
+    "fips_204": "ML-DSA-65 — Digital signatures",
+    "fips_205": "SLH-DSA-128s — Archival signatures",
+    "finalized": "August 2024"
+  },
+  "library": {
+    "name": "@noble/post-quantum",
+    "rationale": "Pure TypeScript, zero native deps, FIPS 203/204/205, actively maintained"
+  },
+  "enforcement_chain": [
+    "Agent certificate (ML-DSA-65, 24h TTL)",
+    "Hybrid credential (Ed25519 + ML-DSA-65)",
+    "Sentinel request signing (ML-DSA-65)",
+    "Session key establishment (ML-KEM-768)",
+    "Hybrid KDF (HKDF-SHA512)",
+    "Governance payload (AES-256-GCM)",
+    "Merkle audit log (SHA-3-512)",
+    "SmartNation catalog signing (SLH-DSA-128s)"
+  ],
+  "soak_results": {
+    "total_cycles": 100000,
+    "passed_cycles": 100000,
+    "failed_cycles": 0,
+    "pass_rate_pct": 100,
+    "duration_seconds": 16712,
+    "ops_per_second": 6,
+    "target_met": true,
+    "pass_rate_met": true
+  },
+  "sprint_test_results": {
+    "total_tests": 376,
+    "passed_tests": 376,
+    "failed_tests": 0,
+    "phases": [
+      "Gate Zero",
+      "Phase 0",
+      "Sprint A",
+      "Sprint B",
+      "Sprint C",
+      "Sprint D"
+    ]
+  },
+  "declaration": "CoreIdentity is the first Agentic AI Governance Infrastructure to implement NIST FIPS 203/204/205 compliant cryptography across the complete governance enforcement chain — from agent request validation to archival audit record — with 100000 empirically documented quantum-secured governance interactions."
+}
