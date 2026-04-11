@@ -128,6 +128,15 @@ async function upsertAgent(agent) {
   return item;
 }
 
+function deterministicVariance(agentId, range) {
+  let hash = 0;
+  const str = String(agentId || '');
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash % range);
+}
 function calculateGovernanceScore(agent, tier, compliance) {
   let score = 70;
   if (tier === 'TIER_1') score += 20;
@@ -135,7 +144,8 @@ function calculateGovernanceScore(agent, tier, compliance) {
   if (tier === 'TIER_3') score += 5;
   score += Math.min(10, compliance.length * 2);
   if (agent.rating >= 4.5) score += 5;
-  return Math.min(100, score);
+  const v = deterministicVariance(agent.agentId || agent.id || "", 17) - 8;
+  return Math.min(99, Math.max(62, score + v));
 }
 
 async function updateAgentMetrics(agentId, { executionResult, taskType } = {}) {

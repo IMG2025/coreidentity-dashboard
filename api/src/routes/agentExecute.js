@@ -123,6 +123,13 @@ router.post('/', async (req, res) => {
 
     EXECUTION_LOG.push(governed);
     if (EXECUTION_LOG.length > 1000) EXECUTION_LOG.shift();
+    try {
+      require('fs').appendFileSync(
+        process.env.EXECUTION_LOG_PATH || '/var/log/cidg-executions.jsonl',
+        JSON.stringify(governed) + '
+'
+      );
+    } catch(_) {}
     pushToGCP(governed).catch(() => {});
 
     res.json({ success: true, data: governed });
