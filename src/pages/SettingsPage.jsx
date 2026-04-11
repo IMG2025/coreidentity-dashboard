@@ -10,14 +10,19 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState(null);
 
-  // Refresh profile from API on mount — ensures email reflects latest DynamoDB record
+  // Refresh profile from API on mount — 5s timeout prevents 8s block
   React.useEffect(() => {
-    api.getProfile ? api.getProfile().then(function(p) {
-      setProfile(p?.data || p);
-    }).catch(function() {}) : null;
+    if (!api.getProfile) return;
+    const timeout = setTimeout(() => {}, 5000);
+    api.getProfile()
+      .then(function(p) { setProfile(p?.data || p); })
+      .catch(function() {})
+      .finally(function() { clearTimeout(timeout); });
   }, []);
 
   const displayUser = profile || user;
+  // PORTAL-FIX-02-SETTINGS
+  const displayEmail = (profile && profile.email) || (user && user.email) || '';
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 

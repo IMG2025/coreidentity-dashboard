@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Bot, Shield, Zap, Globe, ClipboardList,
   Workflow, Terminal, Play, BarChart3, Lock, Settings,
-  LogOut, Menu, X, ChevronRight, Activity, Users
+  LogOut, Menu, X, ChevronRight, ChevronLeft, Activity, Users
 } from 'lucide-react';
 import { C, F, useWindowWidth } from '../chc-design.js';
 
@@ -74,17 +74,15 @@ export default function PortalNav({ route, onNavigate, userEmail, onLogout, user
           display:'flex', alignItems:'center', gap:10, flexShrink:0, padding:0,
         }}>
           <img src="/logo-dark.png" alt="CoreIdentity" style={{height:36, width:'auto'}} />
-          (
-            <div>
-              <div style={{color:C.white, fontFamily:F.display, fontSize:isMobile?9:12, letterSpacing:'0.1em', lineHeight:1.1}}>
-                COREIDENTITY DEVELOPMENT GROUP
-              </div>
-                <div style={{color:C.gold, fontSize:9, letterSpacing:'0.15em', textTransform:'uppercase', fontFamily:F.mono}}>
-                  GOVERNANCE PORTAL
-                </div>
-              )}
+          <div style={{display:'flex', flexDirection:'column'}}>
+            <div style={{color:C.white, fontFamily:F.display, fontSize:isMobile?9:12, letterSpacing:'0.1em', lineHeight:1.1}}>
+              COREIDENTITY DEVELOPMENT GROUP
             </div>
-          )
+            <div style={{color:C.gold, fontSize:9, letterSpacing:'0.15em', textTransform:'uppercase', fontFamily:F.mono}}>
+              GOVERNANCE PORTAL
+            </div>
+          </div>
+          {/* PORTAL-FIX-02 */}
         </button>
 
         {!isMobile && (
@@ -102,6 +100,19 @@ export default function PortalNav({ route, onNavigate, userEmail, onLogout, user
 
         <div style={{display:'flex', alignItems:'center', gap:8, flexShrink:0}}>
           {!isMobile && <CompanySelector />}
+          {window.history.length > 1 && (
+            <button
+              onClick={() => window.history.back()}
+              title="Go back"
+              style={{
+                background:'transparent', border:'1px solid rgba(212,168,67,0.3)',
+                color:C.gold, borderRadius:5, padding:'4px 8px', cursor:'pointer',
+                display:'flex', alignItems:'center', gap:4, fontSize:11,
+                fontFamily:F.body, flexShrink:0,
+              }}>
+              <ChevronLeft size={12}/><span style={{display: isMobile ? 'none' : 'inline'}}>Back</span>
+            </button>
+          )}
           <div style={{
             display:'flex', alignItems:'center', gap:5, padding:'4px 8px',
             border:'1px solid rgba(34,197,94,0.2)', borderRadius:4,

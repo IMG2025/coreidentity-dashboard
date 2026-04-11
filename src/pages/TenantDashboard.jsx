@@ -94,23 +94,25 @@ export default function TenantDashboard() {
   useEffect(() => {
     if (selectedTenant === 'consolidated' || !selectedTenant) return;
     setDataLoading(true);
+    // PORTAL-FIX-02-TENANT — 8s timeout + graceful fallback
+    const withTimeout = (promise, ms) => Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+    ]);
     Promise.all([
-      fetch(API + '/api/tenants/' + selectedTenant + '/activity?limit=20', {
+      withTimeout(fetch(API + '/api/tenants/' + selectedTenant + '/activity?limit=20', {
         headers: { Authorization: 'Bearer ' + token() }
-      }).then(r => r.json()),
-      fetch(API + '/api/tenants/' + selectedTenant + '/governance', {
+      }).then(r => r.ok ? r.json() : []), 8000).catch(() => []),
+      withTimeout(fetch(API + '/api/tenants/' + selectedTenant + '/governance', {
         headers: { Authorization: 'Bearer ' + token() }
-      }).then(r => r.json()),
-      fetch(API + '/api/tenants/' + selectedTenant + '/agents?limit=20', {
+      }).then(r => r.ok ? r.json() : []), 8000).catch(() => []),
+      withTimeout(fetch(API + '/api/tenants/' + selectedTenant + '/agents?limit=20', {
         headers: { Authorization: 'Bearer ' + token() }
-      }).then(r => r.json()),
+      }).then(r => r.ok ? r.json() : []), 8000).catch(() => []),
     ]).then(([act, gov, agt]) => {
-      const actData = Array.isArray(act) ? act : (act?.data || []);
-      const govData = Array.isArray(gov) ? gov : (gov?.data || []);
-      const agtData = Array.isArray(agt) ? agt : (agt?.data || []);
-      setActivity(actData);
-      setGovHistory(govData);
-      setAgents(agtData);
+      setActivity(Array.isArray(act) ? act : (act?.data || []));
+      setGovHistory(Array.isArray(gov) ? gov : (gov?.data || []));
+      setAgents(Array.isArray(agt) ? agt : (agt?.data || []));
     }).catch(() => {}).finally(() => setDataLoading(false));
   }, [selectedTenant]);
 
