@@ -90,6 +90,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/financials', financialsRouter);
 
 // ── Protected routes (JWT required) ─────────────────────────────────────
+app.use('/api/events', require('./middleware/auth').authenticate, require('./routes/events'));
 app.use('/api/platform-overview', require('./routes/platformOverview'));
 app.use('/api/agents',     authenticate, agentsRouter);
 app.use('/api/deployed',   authenticate, deployedRouter);
