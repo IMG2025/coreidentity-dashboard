@@ -22,7 +22,7 @@ PERSISTENT = [
     {'name': 'AWS_REGION',        'value': 'us-east-2'},
     {'name': 'JWT_EXPIRES_IN',    'value': '24h'},
     {'name': 'ALLOWED_ORIGINS',   'value': 'https://portal.coreidentitygroup.com,https://coreidentity.coreidentitygroup.com,https://coreidentity-dashboard.pages.dev'},
-    {'name': 'MCP_SERVER_URL',    'value': 'https://chc-mcp-server-lvuq2yqbma-ue.a.run.app'},
+    {'name': 'MCP_SERVER_URL',    'value': 'https://chc-mcp-server-554248182051.us-east1.run.app'},
     {'name': 'CIAG_NOTIFY_EMAIL', 'value': 'tmorgan@coreidentitygroup.com'},
     {'name': 'CIAG_SENDER_EMAIL', 'value': 'tmorgan@coreidentitygroup.com'},
     {'name': 'PORTAL_URL',        'value': 'https://portal.coreidentitygroup.com'},
@@ -31,7 +31,7 @@ PERSISTENT = [
     {'name': 'SAL_DEV_MODE',      'value': 'false'},
     {'name': 'COREIDENTITY_API_EMAIL',    'value': 'tmorgan@coreidentitygroup.com'},
     {'name': 'COREIDENTITY_API_PASSWORD', 'value': 'CoreIdentity2026!'},
-    {'name': 'MCP_SERVER_URL',    'value': 'https://chc-mcp-server-lvuq2yqbma-ue.a.run.app'},
+    {'name': 'MCP_SERVER_URL',    'value': 'https://chc-mcp-server-554248182051.us-east1.run.app'},
     {'name': 'MCP_API_KEY',       'value': 'ci-mcp-0fd7c746897385efff1aac560d0157d9'},
 ]
 
