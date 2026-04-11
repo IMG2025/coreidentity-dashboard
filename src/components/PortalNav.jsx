@@ -67,7 +67,7 @@ export default function PortalNav({ route, onNavigate, userEmail, onLogout, user
         borderBottom:'1px solid rgba(212,168,67,0.15)',
         padding: isMobile ? '0 16px' : '0 24px',
         display:'flex', alignItems:'center', justifyContent:'space-between',
-        height:56, position:'sticky', top:0, zIndex:100, fontFamily:F.body, gap:12,
+        height:56, position:'sticky', top:0, zIndex:100, fontFamily:F.body, gap:12, overflow:'hidden', /* FIX03-NAV-OVERFLOW */
       }}>
         <button onClick={() => navigate('/#/dashboard')} style={{
           background:'none', border:'none', cursor:'pointer',

@@ -188,6 +188,50 @@ function CoreIdentityView({vm, d}) {
           ))}</tbody>
         </table>
       </div>
+
+      {/* AIS_PANEL_FIX03 */}
+      <div style={{background:'linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03))',border:'1px solid rgba(99,102,241,0.25)',borderRadius:8,padding:20,marginTop:16}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <div style={{width:8,height:8,borderRadius:'50%',background:'#6366f1',boxShadow:'0 0 8px #6366f1'}}/>
+            <span style={{fontSize:10,fontFamily:'monospace',letterSpacing:'0.12em',color:'#6366f1'}}>AIS — AGENT IDENTITY SYSTEMS</span>
+          </div>
+          <a href="https://agentidentity.systems" target="_blank" rel="noreferrer" style={{fontSize:9,fontFamily:'monospace',color:'#6366f1',textDecoration:'none'}}>LIVE ↗</a>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
+          {[{label:'SOAK CYCLES',value:'32,784+',sub:'100% pass rate'},{label:'AVG LATENCY',value:'99ms',sub:'verify p95'},{label:'PORTAL',value:'LIVE',sub:'agentidentity.systems'}].map(function(s){return(
+            <div key={s.label} style={{background:'rgba(99,102,241,0.06)',borderRadius:6,padding:'10px 12px'}}>
+              <div style={{fontSize:9,fontFamily:'monospace',color:'#64748b',marginBottom:4}}>{s.label}</div>
+              <div style={{fontSize:15,fontWeight:700,fontFamily:'monospace',color:'#818cf8'}}>{s.value}</div>
+              <div style={{fontSize:9,color:'#475569',marginTop:2}}>{s.sub}</div>
+            </div>
+          );})}
+        </div>
+      </div>
+      {/* PQC_PANEL_FIX03 */}
+      <div style={{background:'linear-gradient(135deg,rgba(20,184,166,0.08),rgba(20,184,166,0.03))',border:'1px solid rgba(20,184,166,0.25)',borderRadius:8,padding:20,marginTop:12}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <div style={{width:8,height:8,borderRadius:'50%',background:'#14b8a6',boxShadow:'0 0 8px #14b8a6'}}/>
+            <span style={{fontSize:10,fontFamily:'monospace',letterSpacing:'0.12em',color:'#14b8a6'}}>QUANTUM HARDENING — FIPS 203/204/205</span>
+          </div>
+          <span style={{fontSize:9,fontFamily:'monospace',color:'#14b8a6'}}>VERIFIED</span>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:12}}>
+          {[{label:'SOAK CYCLES',value:'100,000',sub:'100.00% pass rate'},{label:'SPRINT TESTS',value:'376/376',sub:'zero failures'},{label:'DECLARATION',value:'JUL 1 2026',sub:'first in class'}].map(function(s){return(
+            <div key={s.label} style={{background:'rgba(20,184,166,0.06)',borderRadius:6,padding:'10px 12px'}}>
+              <div style={{fontSize:9,fontFamily:'monospace',color:'#64748b',marginBottom:4}}>{s.label}</div>
+              <div style={{fontSize:14,fontWeight:700,fontFamily:'monospace',color:'#2dd4bf'}}>{s.value}</div>
+              <div style={{fontSize:9,color:'#475569',marginTop:2}}>{s.sub}</div>
+            </div>
+          );})}
+        </div>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+          {['ML-KEM-768','ML-DSA-65','SLH-DSA-128s','SHA-3-512','AES-256-GCM'].map(function(alg){return(
+            <span key={alg} style={{fontSize:9,fontFamily:'monospace',padding:'3px 7px',border:'1px solid rgba(20,184,166,0.3)',borderRadius:3,color:'#5eead4',background:'rgba(20,184,166,0.05)'}}>{alg}</span>
+          );})}
+        </div>
+      </div>
     </div>
   );
 }

@@ -124,7 +124,7 @@ api.getIdentityProfiles = () => api('/api/identity/profiles');
 api.getSystemHealth     = () => api('/api/health');
 
 // Customer + Client + Billing
-api.createCustomer = (data) => api('/api/users/create', { method: 'POST', body: JSON.stringify(data) });
+api.createCustomer = (data) => api('/api/admin/users', { method: 'POST', body: JSON.stringify(data) });
 api.getUsers       = () => api('/api/users');
 api.createClient   = (data) => api('/api/clients', { method: 'POST', body: JSON.stringify(data) });
 api.getClients     = () => api('/api/clients');

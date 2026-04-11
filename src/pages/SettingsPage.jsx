@@ -8,7 +8,7 @@ export default function SettingsPage() {
   const [form, setForm] = useState({ email: '', password: '', firstName: '', lastName: '' });
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState(user || null); /* FIX03-SETTINGS */
 
   // Refresh profile from API on mount — 5s timeout prevents 8s block
   React.useEffect(() => {

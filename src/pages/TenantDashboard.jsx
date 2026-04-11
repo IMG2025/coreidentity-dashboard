@@ -91,6 +91,11 @@ export default function TenantDashboard() {
   const [agents,     setAgents]     = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
 
+  // FIX03-TENANT: pre-populate from companies list so detail renders immediately
+  const immediateCompany = companies && selectedTenant && selectedTenant !== 'consolidated'
+    ? companies.find(c => c.clientId === selectedTenant)
+    : null;
+
   useEffect(() => {
     if (selectedTenant === 'consolidated' || !selectedTenant) return;
     setDataLoading(true);
@@ -207,16 +212,17 @@ export default function TenantDashboard() {
     </div>
   );
 
-  if (!tenantData) return (
+  const resolvedTenantData = tenantData || immediateCompany;
+  if (!resolvedTenantData) return (
     <div style={{ textAlign: 'center', padding: 60 }}>
       <Building2 size={32} color={C.slate} style={{ marginBottom: 12, opacity: 0.3 }} />
       <p style={{ color: C.slate, fontSize: 12, fontFamily: F.mono }}>No tenant data available</p>
     </div>
   );
 
-  const score = parseFloat(tenantData.governanceScore) || 0;
+  const score = parseFloat(resolvedTenantData.governanceScore || resolvedTenantData.score) || 0;
   const scoreColor = score >= 70 ? C.green : score >= 50 ? C.gold : '#ef4444';
-  const violations = (tenantData.openEvents || []).filter(e => e.type === 'violation');
+  const violations = (resolvedTenantData.openEvents || []).filter(e => e.type === 'violation');
   const govChartData = govHistory.slice(-60).map(g => ({
     time: (g.timestamp || '').slice(11, 16),
     score: parseFloat(g.score) || 0,
