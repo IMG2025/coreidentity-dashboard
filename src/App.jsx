@@ -173,7 +173,7 @@ function DegradedBanner() {
 }
 
 export default function App() {
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
   const [route, setRoute] = useState(() => getRoute(null));
 
   useEffect(() => {
@@ -227,7 +227,7 @@ export default function App() {
             onLogout={logout} user={user}
           />
           <div style={{ padding:'0' }}>
-            <Page />
+            <Page token={token} user={user} />
           </div>
         </div>
       </NotificationContextWrapper>
