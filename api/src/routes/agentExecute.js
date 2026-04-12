@@ -126,8 +126,7 @@ router.post('/', async (req, res) => {
     try {
       require('fs').appendFileSync(
         process.env.EXECUTION_LOG_PATH || '/var/log/cidg-executions.jsonl',
-        JSON.stringify(governed) + '
-'
+        JSON.stringify(governed) + '\n'
       );
     } catch(_) {}
     pushToGCP(governed).catch(() => {});
