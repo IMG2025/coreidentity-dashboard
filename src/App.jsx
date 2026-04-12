@@ -25,6 +25,7 @@ import Analytics  from './pages/Analytics.jsx';
 import SettingsPage      from './pages/SettingsPage.jsx';
 import MarketingPage     from './pages/MarketingPage.jsx';
 import DemoPage          from './pages/DemoPage.jsx';
+import DemoNarrative    from './pages/DemoNarrative.jsx';
 import OnboardPage       from './pages/OnboardPage.jsx';
 import InvestorPage      from './pages/InvestorPage.jsx';
 import PricingPage       from './pages/PricingPage.jsx';
@@ -68,6 +69,7 @@ const PORTAL_PAGES = {
 const PUBLIC_PAGES = {
   '/':           MarketingPage,
   '/#/demo':     DemoPage,
+  '/#/demo-live': DemoNarrative,
   '/#/onboard':  OnboardPage,
   '/#/investor': InvestorPage,
   '/#/pricing':  PricingPage,
