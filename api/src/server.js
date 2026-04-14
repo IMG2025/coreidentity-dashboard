@@ -117,7 +117,7 @@ app.use('/api/pricing',        pricingRouter);
 app.use('/api/reports',        reportsRouter);
 app.use('/api/market',         marketRouter);
 app.use('/api/commercial',     commercialRouter);
-app.use('/api/demo', authenticate, demoOnboardRouter);
+app.use('/api/demo/onboard', authenticate, demoOnboardRouter);
 app.use('/api/ago/dpo', authenticate, dpoRouter);
 
 // ── 404 catch-all (MUST be after all routes) ─────────────────────────────────
