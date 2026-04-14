@@ -30,6 +30,8 @@ const pricingRouter = require('./routes/pricing');
 const reportsRouter = require('./routes/reports');
 const marketRouter = require('./routes/market');
 const commercialRouter = require('./routes/commercial');
+const demoOnboardRouter = require('./routes/demoOnboard');
+const dpoRouter         = require('./routes/dpo');
 
 const app = express();
 app.set('trust proxy', 1); // Trust ELB/ALB proxy headers
@@ -115,6 +117,8 @@ app.use('/api/pricing',        pricingRouter);
 app.use('/api/reports',        reportsRouter);
 app.use('/api/market',         marketRouter);
 app.use('/api/commercial',     commercialRouter);
+app.use('/api/demo', authenticate, demoOnboardRouter);
+app.use('/api/ago/dpo', authenticate, dpoRouter);
 
 // ── 404 catch-all (MUST be after all routes) ─────────────────────────────────
 app.use((req, res) => {
