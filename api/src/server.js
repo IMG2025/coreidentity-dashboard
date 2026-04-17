@@ -131,6 +131,10 @@ app.use(errorHandler);
 const missingRouter = require('./routes/missing');
 app.use('/api', missingRouter);
 
+demoOnboardRouter.ensureGovernanceProfilesTable().catch(err =>
+  logger.warn('ensureGovernanceProfilesTable failed', { err: err.message })
+);
+
 app.listen(PORT, '0.0.0.0', () => {
   logger.info('server_started', { port: PORT, env: process.env.NODE_ENV || 'development' });
 });

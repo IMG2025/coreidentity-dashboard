@@ -11,12 +11,28 @@
 
 const express  = require('express');
 const { v4: uuidv4 } = require('uuid');
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBClient, DescribeTableCommand, CreateTableCommand } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand, GetCommand } = require('@aws-sdk/lib-dynamodb');
 const Sentinel = require('../sentinel');
 
 const router = express.Router();
-const db = DynamoDBDocumentClient.from(new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-2' }));
+const rawDynamo = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-2' });
+const db = DynamoDBDocumentClient.from(rawDynamo);
+
+async function ensureGovernanceProfilesTable() {
+  try {
+    await rawDynamo.send(new DescribeTableCommand({ TableName: GOVERNANCE_TABLE }));
+  } catch (e) {
+    if (e.name === 'ResourceNotFoundException') {
+      await rawDynamo.send(new CreateTableCommand({
+        TableName: GOVERNANCE_TABLE,
+        AttributeDefinitions: [{ AttributeName: 'profileId', AttributeType: 'S' }],
+        KeySchema: [{ AttributeName: 'profileId', KeyType: 'HASH' }],
+        BillingMode: 'PAY_PER_REQUEST',
+      }));
+    }
+  }
+}
 
 const CLIENTS_TABLE    = 'client-accounts';
 const CIAG_TABLE       = 'ciag-intake';
@@ -257,3 +273,4 @@ router.post('/', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.ensureGovernanceProfilesTable = ensureGovernanceProfilesTable;
