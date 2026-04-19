@@ -25,7 +25,8 @@ function FrameworkCard({ fw }) {
 
   return (
     <div className='border border-gray-100 rounded-xl overflow-hidden'>
-      <button onClick={function() { setExpanded(function(p) { return !p; }); }}
+      {/* GOVERNANCE_FRAMEWORK_EXPAND_ARIA */}
+      <button onClick={function() { setExpanded(function(p) { return !p; }); }} aria-label={'Expand ' + name}
         className='w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors text-left'>
         <div className={'flex-shrink-0 ' + (compliant ? 'text-green-500' : 'text-yellow-500')}>
           {compliant ? <CheckCircle size={22} /> : <AlertTriangle size={22} />}

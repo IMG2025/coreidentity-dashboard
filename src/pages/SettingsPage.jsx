@@ -10,15 +10,19 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState(user || null); /* FIX03-SETTINGS */
 
-  // FIX07_PROFILE_TIMEOUT: Promise.race ensures profile fetch settles within 5s
+  // FIX10_PROFILE_ABORT: explicit /api/auth/profile fetch with AbortController
   React.useEffect(() => {
-    if (!api.getProfile) return;
-    const timeout = new Promise(function(_, reject) {
-      setTimeout(function() { reject(new Error('profile-timeout')); }, 5000);
-    });
-    Promise.race([api.getProfile(), timeout])
-      .then(function(p) { setProfile(p?.data || p); })
-      .catch(function() {});
+    const _ctrl = new AbortController();
+    const _timer = setTimeout(function() { _ctrl.abort(); }, 8000);
+    fetch('https://api.coreidentitygroup.com/api/auth/profile', {
+      headers: { Authorization: 'Bearer ' + (localStorage.getItem('ci_token') || localStorage.getItem('token') || '') },
+      signal: _ctrl.signal,
+    })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) { if (d) setProfile(d.data || d); })
+      .catch(function() {})
+      .finally(function() { clearTimeout(_timer); });
+    return function() { _ctrl.abort(); clearTimeout(_timer); };
   }, []);
 
   const displayUser = profile || user;

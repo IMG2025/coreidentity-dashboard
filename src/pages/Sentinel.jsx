@@ -38,7 +38,7 @@ function FrameworkCard({ fw, isAdmin }) {
   const hasIssues = details.issues && details.issues.length > 0;
   return (
     <div className='border border-gray-100 rounded-xl overflow-hidden'>
-      <button onClick={function() { setExpanded(function(p) { return !p; }); }}
+      <button onClick={function() { setExpanded(function(p) { return !p; }); }} aria-label={'Expand ' + fw.name}
         className='w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors text-left'>
         <div className={'flex-shrink-0 ' + (fw.status === 'compliant' ? 'text-green-500' : 'text-yellow-500')}>
           {fw.status === 'compliant' ? <CheckCircle size={22} /> : <AlertTriangle size={22} />}
@@ -211,7 +211,7 @@ export default function Sentinel() {
         {['overview','security-events','kill-switches','frameworks'].map(function(t) {
           const labels = { 'overview':'Overview', 'security-events':'Security Events', 'kill-switches':'Kill Switches', 'frameworks':'Frameworks' };
           return (
-            <button key={t} onClick={function() { setTab(t); }}
+            <button key={t} onClick={function() { setTab(t); }} data-testid={'tab-' + t}
               className={'px-4 py-2 rounded-lg text-sm font-medium transition-colors ' + (tab === t ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900')}>
               {labels[t]}
             </button>

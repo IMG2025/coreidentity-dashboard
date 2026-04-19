@@ -27,8 +27,8 @@ function PolicyTrace({ trace }) {
   );
 }
 
-function AgentCard({ agent, token }) {
-  const [expanded, setExpanded] = useState(false);
+function AgentCard({ agent, token, defaultExpanded }) { // IG_DEFAULT_EXPANDED_FIX
+  const [expanded, setExpanded] = useState(defaultExpanded || false);
   const [executing, setExecuting] = useState({});
   const [trace, setTrace] = useState(null);
   const API = 'https://api.coreidentitygroup.com';
@@ -200,7 +200,7 @@ export default function IdentityGovernance({ token }) {
       {loading ? (
         <div style={{ textAlign: 'center', padding: 40, color: C.slate, fontFamily: F.mono, fontSize: 11 }}>LOADING GOVERNED IDENTITIES...</div>
       ) : (
-        filtered.map(a => <AgentCard key={a.agentId} agent={a} token={token} />)
+        filtered.map((a, i) => <AgentCard key={a.agentId} agent={a} token={token} defaultExpanded={i === 0} />)
       )}
     </div>
   );

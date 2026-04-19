@@ -150,6 +150,9 @@ export default function TenantDashboard() {
             return (
               <div
                 key={co.clientId}
+                role="button" /* TENANT_COMPANY_CARD_ROLE_BUTTON */
+                tabIndex={0}
+                onKeyDown={function(e) { if (e.key === 'Enter' || e.key === ' ') setSelectedTenant(co.clientId); }}
                 onClick={() => setSelectedTenant(co.clientId)}
                 style={{
                   background: C.surface,
