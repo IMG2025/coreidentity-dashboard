@@ -212,7 +212,7 @@ export default function TenantDashboard() {
     </div>
   );
 
-  const resolvedTenantData = tenantData || immediateCompany;
+  const resolvedTenantData = tenantData || immediateCompany; // TENANTDASH_NULL_GUARD_FIX
   if (!resolvedTenantData) return (
     <div style={{ textAlign: 'center', padding: 60 }}>
       <Building2 size={32} color={C.slate} style={{ marginBottom: 12, opacity: 0.3 }} />
@@ -242,10 +242,10 @@ export default function TenantDashboard() {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <h1 style={{ fontSize: 22, fontFamily: F.display, letterSpacing: '0.08em', color: C.white, margin: 0, fontWeight: 700 }}>
-            {(tenantData.companyName || '').toUpperCase()}
+            {(resolvedTenantData.companyName || '').toUpperCase()}
           </h1>
           <p style={{ color: C.slate, fontSize: 11, fontFamily: F.mono, margin: '4px 0 0', letterSpacing: '0.05em' }}>
-            {tenantData.vertical} · {tenantData.size}
+            {resolvedTenantData.vertical} · {resolvedTenantData.size}
           </p>
         </div>
         <ScoreGauge score={score} />
@@ -253,10 +253,10 @@ export default function TenantDashboard() {
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 20 }}>
-        <TelemetryCard icon={Users}         label="Active Agents"    value={(tenantData.activeAgents || 0).toLocaleString()} accent={C.blue} />
-        <TelemetryCard icon={Zap}           label="Total Executions" value={(tenantData.totalExecutions || 0).toLocaleString()} accent={C.purple} mono />
-        <TelemetryCard icon={AlertTriangle} label="Violations"       value={(tenantData.totalViolations || 0).toLocaleString()} accent="#ef4444" mono />
-        <TelemetryCard icon={CheckCircle}   label="Success Rate"     value={(tenantData.successRate || 0) + '%'} accent={C.green} />
+        <TelemetryCard icon={Users}         label="Active Agents"    value={(resolvedTenantData.activeAgents || 0).toLocaleString()} accent={C.blue} />
+        <TelemetryCard icon={Zap}           label="Total Executions" value={(resolvedTenantData.totalExecutions || 0).toLocaleString()} accent={C.purple} mono />
+        <TelemetryCard icon={AlertTriangle} label="Violations"       value={(resolvedTenantData.totalViolations || 0).toLocaleString()} accent="#ef4444" mono />
+        <TelemetryCard icon={CheckCircle}   label="Success Rate"     value={(resolvedTenantData.successRate || 0) + '%'} accent={C.green} />
       </div>
 
       {/* Governance trend */}

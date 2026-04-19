@@ -10,14 +10,15 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState(user || null); /* FIX03-SETTINGS */
 
-  // Refresh profile from API on mount — 5s timeout prevents 8s block
+  // FIX07_PROFILE_TIMEOUT: Promise.race ensures profile fetch settles within 5s
   React.useEffect(() => {
     if (!api.getProfile) return;
-    const timeout = setTimeout(() => {}, 5000);
-    api.getProfile()
+    const timeout = new Promise(function(_, reject) {
+      setTimeout(function() { reject(new Error('profile-timeout')); }, 5000);
+    });
+    Promise.race([api.getProfile(), timeout])
       .then(function(p) { setProfile(p?.data || p); })
-      .catch(function() {})
-      .finally(function() { clearTimeout(timeout); });
+      .catch(function() {});
   }, []);
 
   const displayUser = profile || user;

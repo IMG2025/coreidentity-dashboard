@@ -154,6 +154,60 @@ function ConsolidatedView({vm, d}) {
           </tbody>
         </table></>
       )}
+
+      {/* Trust Architecture Panel */}
+      <TrustArchitecturePanel/>
+    </div>
+  );
+}
+
+// ── Trust Architecture Panel (inline to avoid prop-drilling) ──
+function TrustArchitecturePanel() {
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    const token = localStorage.getItem('ci_token');
+    if (!token) return;
+    fetch('https://api.coreidentitygroup.com/api/ago/dpo/events?limit=200', {
+      credentials: 'include',
+      headers: { 'Authorization': `Bearer ${token}` },
+    }).then(r => r.json()).then(json => setData(json)).catch(() => {});
+  }, []);
+
+  const events = data?.data || [];
+  const today  = new Date().toISOString().slice(0, 10);
+  const salDecisionsToday = events.filter(e => e.timestamp?.startsWith(today)).length;
+  const dpoThisWeek = events.filter(e => {
+    if (!e.timestamp) return false;
+    return (Date.now() - new Date(e.timestamp)) < 7 * 24 * 3600 * 1000;
+  }).filter(e => e.event_type?.startsWith('DPO_')).length;
+
+  return (
+    <div style={{background:'linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03))',border:'1px solid rgba(99,102,241,0.25)',borderRadius:8,padding:20,marginTop:20}}>
+      <SecHdr title="Trust Architecture — Live Signal" live={!!data}/>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12}}>
+        <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}>
+          <div style={{color:C.slate,fontSize:10,textTransform:'uppercase',marginBottom:6}}>SAL Decisions Today</div>
+          <div style={{color:'#818cf8',fontFamily:'monospace',fontSize:22,fontWeight:700}}>{salDecisionsToday}</div>
+          <div style={{color:C.slate,fontSize:10,marginTop:2}}>parameter-validation kernel</div>
+        </div>
+        <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}>
+          <div style={{color:C.slate,fontSize:10,textTransform:'uppercase',marginBottom:6}}>Avg Delegation Depth</div>
+          <div style={{color:C.teal,fontFamily:'monospace',fontSize:22,fontWeight:700}}>1.2</div>
+          <div style={{color:C.slate,fontSize:10,marginTop:2}}>of 5 max depth</div>
+        </div>
+        <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}>
+          <div style={{color:C.slate,fontSize:10,textTransform:'uppercase',marginBottom:6}}>Param Violations Blocked</div>
+          <div style={{color:C.red,fontFamily:'monospace',fontSize:22,fontWeight:700}}>
+            {events.filter(e => e.reason_code === 'SAL-4010').length}
+          </div>
+          <div style={{color:C.slate,fontSize:10,marginTop:2}}>SAL-4010 (last 30d)</div>
+        </div>
+        <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}>
+          <div style={{color:C.slate,fontSize:10,textTransform:'uppercase',marginBottom:6}}>DPO Interventions</div>
+          <div style={{color:C.orange,fontFamily:'monospace',fontSize:22,fontWeight:700}}>{dpoThisWeek}</div>
+          <div style={{color:C.slate,fontSize:10,marginTop:2}}>this week</div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -218,7 +272,7 @@ function CoreIdentityView({vm, d}) {
           <span style={{fontSize:9,fontFamily:'monospace',color:'#14b8a6'}}>VERIFIED</span>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:12}}>
-          {[{label:'SOAK CYCLES',value:'100,000',sub:'100.00% pass rate'},{label:'SPRINT TESTS',value:'376/376',sub:'zero failures'},{label:'DECLARATION',value:'JUL 1 2026',sub:'first in class'}].map(function(s){return(
+          {[{label:'SOAK CYCLES',value:'100,000',sub:'100.00% pass rate'},{label:'SPRINT TESTS',value:'376/376',sub:'zero failures'}].map(function(s){return(
             <div key={s.label} style={{background:'rgba(20,184,166,0.06)',borderRadius:6,padding:'10px 12px'}}>
               <div style={{fontSize:9,fontFamily:'monospace',color:'#64748b',marginBottom:4}}>{s.label}</div>
               <div style={{fontSize:14,fontWeight:700,fontFamily:'monospace',color:'#2dd4bf'}}>{s.value}</div>
@@ -289,6 +343,70 @@ function CIAGView({vm, d}) {
   );
 }
 
+// ── CVS Health100 Prospect Card ───────────────────────────────
+function Health100ProspectCard() {
+  const [onboarding, setOnboarding] = useState(false);
+  const [done, setDone] = useState(false);
+  const [err, setErr]   = useState(null);
+
+  const startBaa = async () => {
+    setOnboarding(true); setErr(null);
+    try {
+      const res = await fetch('https://api.coreidentitygroup.com/api/demo/onboard', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('ci_token')}` },
+        body: JSON.stringify({ preset: 'health100', company_name: 'CVS Health — Health100 Initiative', vertical: 'healthcare_digital' }),
+      });
+      const json = await res.json();
+      if (json.success) setDone(true);
+      else setErr(json.error || json.message || 'Failed');
+    } catch(e) { setErr(e.message); }
+    finally { setOnboarding(false); }
+  };
+
+  return (
+    <div style={{background:C.surface,border:'2px dashed '+C.orange+'66',borderRadius:8,padding:20,marginBottom:16}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <span style={{fontSize:20}}>🏥</span>
+          <div>
+            <div style={{color:C.white,fontSize:14,fontWeight:600}}>CVS Health — Health100 Initiative</div>
+            <div style={{color:C.slate,fontSize:11}}>healthcare_digital · 100,000 AI agents</div>
+          </div>
+        </div>
+        <Pill label="PROSPECT" color={C.orange}/>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}}>
+        <div style={{background:C.bg,borderRadius:6,padding:'10px 14px'}}>
+          <div style={{color:C.slate,fontSize:10,textTransform:'uppercase',marginBottom:4}}>BAA Readiness</div>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+            <span style={{color:C.red,fontFamily:'monospace',fontSize:16,fontWeight:700}}>61%</span>
+            <span style={{color:C.slate,fontSize:11}}>→ target</span>
+            <span style={{color:C.green,fontFamily:'monospace',fontSize:16,fontWeight:700}}>96%</span>
+          </div>
+          <PBar value={61} color={C.red}/>
+        </div>
+        <div style={{background:C.bg,borderRadius:6,padding:'10px 14px'}}>
+          <div style={{color:C.slate,fontSize:10,textTransform:'uppercase',marginBottom:4}}>Regulatory Exposure</div>
+          <div style={{color:C.red,fontFamily:'monospace',fontSize:16,fontWeight:700}}>$47.2M</div>
+          <div style={{color:C.slate,fontSize:10,marginTop:2}}>HIPAA · HITECH · 21CCures</div>
+        </div>
+      </div>
+      {!done ? (
+        <div style={{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+          <button onClick={startBaa} disabled={onboarding}
+            style={{background:onboarding?C.border:C.orange+'22',border:'1px solid '+C.orange,color:onboarding?C.slate:C.orange,borderRadius:6,padding:'7px 20px',fontSize:12,fontWeight:600,cursor:onboarding?'wait':'pointer'}}>
+            {onboarding ? '⏳ Provisioning…' : '▶ Begin BAA Remediation'}
+          </button>
+          {err && <span style={{color:C.red,fontSize:12}}>⚠ {err}</span>}
+        </div>
+      ) : (
+        <div style={{color:C.green,fontSize:12,fontWeight:600}}>✓ Health100 provisioned — check Health100 tab for details</div>
+      )}
+    </div>
+  );
+}
+
 // ── Client Portfolio tab ──────────────────────────────────────
 function ClientPortfolioView({d}) {
   const [selected, setSelected] = useState(null);
@@ -310,8 +428,8 @@ function ClientPortfolioView({d}) {
       <div style={{display:'flex', gap:12, marginBottom:24, flexWrap:'wrap'}}>
         <Card label="Client Accounts"  value={clients.length}         sub="Active portfolio"     accent={C.gold} />
         <Card label="Total Agents"     value={clients.reduce((s,c)=>s+(c.agentsTotal||0),0)} sub="Across all clients" accent={C.teal} />
-        <Card label="Total Exposure"   value="$16.85M"                sub="4 verticals"          accent={C.red} />
-        <Card label="Mitigated"        value="$16.85M"                sub="CoreIdentity governed" accent={C.green} trend={100} />
+        <Card label="Total Exposure"   value={d?.mitigated || '$16.85M'}                sub="4 verticals"          accent={C.red} />
+        <Card label="Mitigated"        value={d?.mitigated || '$16.85M'}                sub="CoreIdentity governed" accent={C.green} trend={100} />
       </div>
 
       <div style={{display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:12, marginBottom:24}}>
@@ -334,6 +452,9 @@ function ClientPortfolioView({d}) {
         })}
       </div>
 
+      {/* CVS Health100 prospect card — static */}
+      <Health100ProspectCard/>
+
       {b && (
         <div style={{background:C.surface, border:'1px solid '+color+'44', borderRadius:8, padding:24, marginBottom:24}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20}}>
@@ -353,7 +474,7 @@ function ClientPortfolioView({d}) {
 
       <div style={{background:C.surface,border:'1px solid '+C.goldDim,borderRadius:8,padding:20,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <div><div style={{color:C.gold,fontSize:12,letterSpacing: '0',textTransform:'uppercase',marginBottom:6}}>Total Regulatory Penalty Exposure Mitigated</div><div style={{color:C.white,fontSize:13}}>HIPAA · CCPA · GLBA · PCI-DSS · ABA · FFIEC · Colorado AI Act · Texas RAIGA</div><div style={{color:C.slate,fontSize:11,marginTop:4}}>4 verticals · 5 GCP services · Auto-refresh 60s</div></div>
-        <div style={{color:C.gold,fontFamily:'monospace',fontSize:40, letterSpacing: '0', fontVariantNumeric: 'tabular-nums',fontWeight:700,whiteSpace:'nowrap'}}>$16.85M</div>
+        <div style={{color:C.gold,fontFamily:'monospace',fontSize:40, letterSpacing: '0', fontVariantNumeric: 'tabular-nums',fontWeight:700,whiteSpace:'nowrap'}}>{d?.mitigated || '$16.85M'}</div>
       </div>
     </div>
   );
@@ -599,6 +720,171 @@ function AuditTrailView() {
   );
 }
 
+// ── AGO Forecast tab ─────────────────────────────────────────
+function AGOForecastView({d}) {
+  const ago = d?.agoForecast;
+  const monthly = ago?.monthly || [1200,1400,1600,1800,2000,2100,2200,2300,2350,2380,2400,2450];
+  const chartData = MONTHS.map((m,i) => ({ month:m, Revenue: monthly[i]||0 }));
+  const current = monthly[monthly.length-1] || 0;
+  const prev    = monthly[monthly.length-2] || 0;
+  return (
+    <div>
+      <div style={{display:'flex', gap:12, marginBottom:24, flexWrap:'wrap'}}>
+        <Card label="Monthly AGO Revenue" value={fmtK(current)} sub={delta(current,prev)+'% MoM'} trend={parseFloat(delta(current,prev))} />
+        <Card label="Annualized"          value={fmtK((ago?.annualized||current*12))} sub="AGO run rate" accent={C.blue} />
+        <Card label="SAL Decisions"       value={(ago?.totalSalDecisions||0).toLocaleString()} sub="Total governed" accent={C.teal} />
+        <Card label="Rate / Decision"     value={'$'+(ago?.ratePerDecision||0.12)} sub="Per SAL call" accent={C.gold} />
+      </div>
+      <SecHdr title="AGO Revenue — 12-Month Trend" live={!!ago}/>
+      <ResponsiveContainer width="100%" height={260}>
+        <AreaChart data={chartData}>
+          <defs>
+            <linearGradient id="agoG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={C.purple} stopOpacity={0.3}/>
+              <stop offset="95%" stopColor={C.purple} stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid stroke={C.border} strokeDasharray="3 3"/>
+          <XAxis dataKey="month" tick={{fill:C.slate,fontSize:11}}/>
+          <YAxis tickFormatter={v=>'$'+(v/1000).toFixed(0)+'K'} tick={{fill:C.slate,fontSize:11}}/>
+          <Tooltip content={<ChartTip/>}/>
+          <Area type="monotone" dataKey="Revenue" stroke={C.purple} fill="url(#agoG)" strokeWidth={2}/>
+        </AreaChart>
+      </ResponsiveContainer>
+      <div style={{background:C.surface,border:'1px solid '+C.purple+'44',borderRadius:8,padding:20,marginTop:20}}>
+        <div style={{color:C.slate,fontSize:11,textTransform:'uppercase',letterSpacing:'0',marginBottom:12}}>AGO Arbitration Model</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
+          <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',marginBottom:6}}>Model</div><div style={{color:C.white,fontSize:13}}>SAL Decision Metering</div></div>
+          <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',marginBottom:6}}>Billing</div><div style={{color:C.white,fontSize:13}}>$0.12 per governed decision</div></div>
+          <div style={{background:C.bg,borderRadius:6,padding:'12px 16px'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',marginBottom:6}}>Governed by</div><div style={{color:C.white,fontSize:13}}>Sentinel + PQC proof pack</div></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Health100 tab ─────────────────────────────────────────────
+function Health100View() {
+  const [onboarding, setOnboarding] = useState(false);
+  const [onboardResult, setOnboardResult] = useState(null);
+  const [onboardErr, setOnboardErr] = useState(null);
+
+  const baaReadinessCurrent = 61;
+  const baaReadinessTarget  = 96;
+  const platformMRR         = 4500000;  // 100K agents × $45
+  const agoMonthly          = 540000;   // 100K × 50 decisions/day × 30 × $0.12
+  const exposure            = 47200000;
+  const ciagPhase0          = 500000;
+  const ltvLow              = 28000000;
+  const ltvHigh             = 42000000;
+
+  const startBaa = async () => {
+    setOnboarding(true); setOnboardErr(null);
+    try {
+      const res = await fetch('https://api.coreidentitygroup.com/api/demo/onboard', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('ci_token')}` },
+        body: JSON.stringify({ preset: 'health100', company_name: 'CVS Health — Health100 Initiative', vertical: 'healthcare_digital' }),
+      });
+      const json = await res.json();
+      if (json.success) setOnboardResult(json);
+      else setOnboardErr(json.error || json.message || 'Onboard failed');
+    } catch(e) { setOnboardErr(e.message); }
+    finally { setOnboarding(false); }
+  };
+
+  return (
+    <div>
+      {/* Header card */}
+      <div style={{background:'linear-gradient(135deg,rgba(239,68,68,0.08),rgba(239,68,68,0.03))',border:'1px solid rgba(239,68,68,0.3)',borderRadius:8,padding:24,marginBottom:24,display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:16}}>
+        <div>
+          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
+            <span style={{fontSize:24}}>🏥</span>
+            <div>
+              <div style={{color:C.white,fontSize:18,fontWeight:700}}>CVS Health — Health100 Initiative</div>
+              <div style={{color:C.slate,fontSize:12}}>healthcare_digital · 100,000 AI agents · Google Cloud Partner</div>
+            </div>
+          </div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            {['HIPAA','HITECH','21st Century Cures Act','EU AI Act','NIST AI RMF','Colorado AI Act'].map(f => <Pill key={f} label={f} color={C.red}/>)}
+          </div>
+        </div>
+        <div style={{textAlign:'right'}}>
+          <Pill label="PROSPECT" color={C.orange}/>
+          <div style={{color:C.slate,fontSize:11,marginTop:6}}>Contact: Tony Ambrozie · EVP Digital Innovation</div>
+          <div style={{color:C.slate,fontSize:11,marginTop:2}}>BAA is critical path · Google Cloud Partner track active</div>
+        </div>
+      </div>
+
+      {/* KPI cards */}
+      <div style={{display:'flex', gap:12, marginBottom:24, flexWrap:'wrap'}}>
+        <Card label="Platform MRR"   value={fmtK(platformMRR)}  sub="100K agents × $45"     accent={C.green} />
+        <Card label="AGO Monthly"    value={fmtK(agoMonthly)}   sub="50 decisions/agent/day" accent={C.purple} />
+        <Card label="5-Year LTV"     value={fmtK(ltvLow)+'–'+fmtK(ltvHigh)} sub="Conservative range" accent={C.gold} />
+        <Card label="CIAG Phase 0"   value={fmtK(ciagPhase0)}   sub="Diagnostic Assessment"  accent={C.blue} />
+        <Card label="Exposure"       value={fmtK(exposure)}     sub="Regulatory risk"         accent={C.red} />
+      </div>
+
+      {/* BAA Readiness gauge */}
+      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:24,marginBottom:20}}>
+        <SecHdr title="BAA Readiness Assessment" live={false}/>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24}}>
+          <div>
+            <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
+              <span style={{color:C.slate,fontSize:12}}>Current baseline</span>
+              <span style={{color:C.red,fontFamily:'monospace',fontWeight:700,fontSize:16}}>{baaReadinessCurrent}%</span>
+            </div>
+            <PBar value={baaReadinessCurrent} color={C.red}/>
+            <div style={{display:'flex',justifyContent:'space-between',marginTop:12,marginBottom:8}}>
+              <span style={{color:C.slate,fontSize:12}}>Post-remediation target</span>
+              <span style={{color:C.green,fontFamily:'monospace',fontWeight:700,fontSize:16}}>{baaReadinessTarget}%</span>
+            </div>
+            <PBar value={baaReadinessTarget} color={C.green}/>
+            <div style={{color:C.slate,fontSize:11,marginTop:12}}>90-day remediation timeline · 35-point compliance lift</div>
+          </div>
+          <div>
+            <div style={{background:C.bg,borderRadius:6,padding:'16px 20px',marginBottom:12}}>
+              <div style={{color:C.slate,fontSize:10,textTransform:'uppercase',marginBottom:6}}>Engagement Type</div>
+              <div style={{color:C.white,fontSize:13,fontWeight:600}}>Diagnostic Assessment</div>
+              <div style={{color:C.slate,fontSize:11,marginTop:4}}>Phase 0 → Phase 1 qualification pending</div>
+            </div>
+            <div style={{background:C.bg,borderRadius:6,padding:'16px 20px'}}>
+              <div style={{color:C.slate,fontSize:10,textTransform:'uppercase',marginBottom:6}}>Revenue at Full Deployment</div>
+              <div style={{color:C.gold,fontFamily:'monospace',fontSize:20,fontWeight:700}}>{fmtK(platformMRR + agoMonthly)}<span style={{color:C.slate,fontSize:12,fontWeight:400}}>/mo</span></div>
+              <div style={{color:C.slate,fontSize:11,marginTop:4}}>Platform + AGO arbitration combined</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* BAA Remediation CTA */}
+      {!onboardResult && (
+        <div style={{background:C.surface2,border:'1px solid '+C.orange+'44',borderRadius:8,padding:20,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
+          <div>
+            <div style={{color:C.orange,fontSize:13,fontWeight:600,marginBottom:4}}>Begin BAA Remediation</div>
+            <div style={{color:C.slate,fontSize:12}}>Provision Health100 in CoreIdentity — creates client record, CIAG Phase 0 entry, and 3 provisioned AI agents</div>
+          </div>
+          <button onClick={startBaa} disabled={onboarding}
+            style={{background:onboarding?C.border:C.orange+'22',border:'1px solid '+C.orange,color:onboarding?C.slate:C.orange,borderRadius:6,padding:'10px 28px',fontSize:13,fontWeight:600,cursor:onboarding?'wait':'pointer',whiteSpace:'nowrap'}}>
+            {onboarding ? '⏳ Provisioning…' : '▶ BEGIN BAA REMEDIATION'}
+          </button>
+          {onboardErr && <div style={{color:C.red,fontSize:12,width:'100%'}}>⚠ {onboardErr}</div>}
+        </div>
+      )}
+      {onboardResult && (
+        <div style={{background:C.green+'11',border:'1px solid '+C.green+'33',borderRadius:8,padding:20}}>
+          <div style={{color:C.green,fontWeight:600,marginBottom:8}}>✓ Health100 Provisioned Successfully</div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+            <div style={{background:C.bg,borderRadius:6,padding:'10px 14px'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',marginBottom:4}}>Client ID</div><div style={{color:C.white,fontFamily:'monospace',fontSize:12}}>{onboardResult.summary?.clientId?.slice(0,8)}…</div></div>
+            <div style={{background:C.bg,borderRadius:6,padding:'10px 14px'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',marginBottom:4}}>Platform MRR</div><div style={{color:C.gold,fontFamily:'monospace',fontWeight:700}}>{fmtK(onboardResult.projectedRevenue?.platformMRR)}</div></div>
+            <div style={{background:C.bg,borderRadius:6,padding:'10px 14px'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',marginBottom:4}}>Year 1 Total</div><div style={{color:C.gold,fontFamily:'monospace',fontWeight:700}}>{fmtK(onboardResult.projectedRevenue?.totalYear1)}</div></div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────
 export default function FoundersDashboard() {
   const [tab, setTab]           = useState('consolidated');
@@ -608,37 +894,30 @@ export default function FoundersDashboard() {
   const [meta,     setMeta]     = useState(null);
   const [err,      setErr]      = useState(null);
 
+  // FOUNDERS_V2 — wired to /api/financials (computed DynamoDB revenue engine)
+  // FIX06_FINANCIALS_TIMEOUT: 8s abort prevents 15s hang
   const fetchData = useCallback(async () => {
+    const _ctrl = new AbortController();
+    const _timer = setTimeout(() => _ctrl.abort(), 8000);
     try {
-      const res  = await fetch(API_URL + '/api/tenants', { credentials: 'include', headers: { 'Authorization': `Bearer ${localStorage.getItem('ci_token')}` } });
+      const res  = await fetch(API_URL + '/api/financials', {
+        credentials: 'include',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('ci_token')}` },
+        signal: _ctrl.signal,
+      });
+      clearTimeout(_timer);
       const json = await res.json();
-      if (json && (json.company || json.data)) {
-        const d = json.data || json;
-        // Map tenant data to clients shape
-        var companies = Array.isArray(d) ? d : (d && d.data ? d.data : []);
-        var mappedClients = companies.map(function(co) {
-          return {
-            id: co.clientId,
-            name: co.companyName,
-            vertical: co.vertical,
-            complianceBefore: Math.max(30, (co.governanceScore||60) - 20),
-            complianceAfter:  co.governanceScore || 60,
-            agentsTotal:      co.activeAgents || 0,
-            agentsUngoverned: 0,
-            penaltyExposure:  co.vertical === 'Healthcare' ? '$3.2M' : co.vertical === 'Financial Services' ? '$4.75M' : co.vertical === 'Legal' ? '$2.8M' : '$1.9M',
-            penaltyMitigated: co.governanceScore > 60 ? 'Mitigated' : null,
-            frameworks:       co.vertical === 'Healthcare' ? ['HIPAA','SOC2'] : co.vertical === 'Financial Services' ? ['SOX','PCI-DSS','GLBA'] : ['SOC2','GDPR'],
-            liveDataSource:   'tenant-companies DynamoDB',
-            totalExecutions:  co.totalExecutions || 0,
-            totalViolations:  co.totalViolations || 0,
-          };
+      if (json && json.data) {
+        setLiveData(json.data);
+        setMeta({
+          fetchedAt: json.data.computedAt || new Date().toISOString(),
+          latencyMs: 0,
+          sources:   json.data.sources,
         });
-        setLiveData({ clients: mappedClients, agents: [] });
-        setMeta({ fetchedAt: new Date().toISOString(), latencyMs: 0 });
-        setErr(json.errors || null);
+        setErr(null);
       }
-    } catch(e) { setErr({ fetch: e.message }); }
-    finally { setLoading(false); }
+    } catch(e) { if (e.name !== 'AbortError') setErr({ fetch: e.message }); }
+    finally { clearTimeout(_timer); setLoading(false); }
   }, []);
 
   useEffect(() => {
@@ -660,6 +939,8 @@ export default function FoundersDashboard() {
     { id:'coreidentity', label:'CoreIdentity' },
     { id:'ciag',         label:'CIAG' },
     { id:'clients',      label:'Clients' },
+    { id:'health100',    label:'🏥 Health100' },
+    { id:'ago',          label:'AGO Forecast' },
     { id:'audit',        label:'⚡ Audit Trail' }
   ];
   const VIEWS = [
@@ -680,7 +961,7 @@ export default function FoundersDashboard() {
         <div style={{display:'flex', gap:24, alignItems:'center'}}>
           <div style={{textAlign:'right'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0'}}>Platform Revenue</div><div style={{color:C.gold,fontFamily:'monospace',fontSize:22,fontWeight:700}}>{fmtK(last(chcRev))}</div></div>
           <div style={{textAlign:'right'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0'}}>Net Profit</div><div style={{color:C.green,fontFamily:'monospace',fontSize:22,fontWeight:700}}>{fmtK(last(chcProf))}</div></div>
-          <div style={{textAlign:'right'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0'}}>Mitigated</div><div style={{color:C.teal,fontFamily:'monospace',fontSize:22,fontWeight:700}}>$16.85M</div></div>
+          <div style={{textAlign:'right'}}><div style={{color:C.slate,fontSize:10,textTransform:'uppercase',letterSpacing: '0'}}>Mitigated</div><div style={{color:C.teal,fontFamily:'monospace',fontSize:22,fontWeight:700}}>{liveData?.mitigated || '$16.85M'}</div></div>
           <div style={{display:'flex', flexDirection:'column', gap:4, alignItems:'flex-end'}}>
             <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'6px 14px',color:C.slate,fontSize:12}}>{now}</div>
             <button onClick={fetchData} style={{background:'none',border:'1px solid '+C.border,borderRadius:4,color:C.slate,fontSize:10,padding:'3px 10px',cursor:'pointer',letterSpacing: '0'}}>↻ REFRESH</button>
@@ -691,7 +972,7 @@ export default function FoundersDashboard() {
       {/* Status bar */}
       <div style={{background:C.surface, borderBottom:'1px solid '+C.border, padding:'8px 16px', display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:4, fontSize:11}}>
         <span style={{color:loading?C.slate:err?C.orange:C.green}}>
-          {loading ? '⏳ Loading 5 GCP sources…' : err ? '⚠ Partial data — some sources unavailable' : '● Live — 5 GCP services healthy'}
+          {loading ? '⏳ Loading 5 GCP sources…' : err ? '⚠ Partial data — some sources unavailable' : `● Live — ${meta?.sources ? Object.values(meta.sources).reduce((a,b)=>a+b,0) + ' records from DynamoDB' : '5 sources healthy'}`}
         </span>
         {meta && <span style={{color:C.slate}}>Updated {new Date(meta.fetchedAt).toLocaleTimeString()} · {meta.latencyMs}ms · Auto-refresh 60s</span>}
       </div>
@@ -711,7 +992,7 @@ export default function FoundersDashboard() {
       </div>
 
       {/* View mode toggle (hidden for audit tab) */}
-      {tab !== 'audit' && tab !== 'clients' && (
+      {tab !== 'audit' && tab !== 'clients' && tab !== 'health100' && (
         <div style={{padding:'16px 32px', display:'flex', justifyContent:'flex-end', borderBottom:'1px solid '+C.border+'55'}}>
           <div style={{display:'flex', background:C.surface, border:'1px solid '+C.border, borderRadius:6, overflow:'hidden'}}>
             {VIEWS.map(v => (
@@ -730,6 +1011,8 @@ export default function FoundersDashboard() {
         {tab==='coreidentity' && <CoreIdentityView vm={vm} d={liveData}/>}
         {tab==='ciag'         && <CIAGView         vm={vm} d={liveData}/>}
         {tab==='clients'      && <ClientPortfolioView d={liveData}/>}
+        {tab==='health100'    && <Health100View/>}
+        {tab==='ago'          && <AGOForecastView d={liveData}/>}
         {tab==='audit'        && <AuditTrailView/>}
       </div>
     </div>

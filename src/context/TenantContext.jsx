@@ -21,16 +21,21 @@ export function TenantProvider({ children }) {
   }, []);
 
   // Load tenant detail when selection changes
+  // TENANTCTX_ABORT_FIX: AbortController + 8s timeout prevents back-button hang
   useEffect(() => {
     if (selectedTenant === 'consolidated') { setTenantData(null); return; }
     setLoading(true);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
     fetch(API + '/api/tenants/' + selectedTenant, {
-      headers: { 'Authorization': 'Bearer ' + tok() }
+      headers: { 'Authorization': 'Bearer ' + tok() },
+      signal: ctrl.signal,
     })
     .then(r => r.json())
     .then(d => setTenantData(d && d.data ? d.data : d))
     .catch(() => setTenantData(null))
-    .finally(() => setLoading(false));
+    .finally(() => { clearTimeout(timer); setLoading(false); });
+    return () => { ctrl.abort(); clearTimeout(timer); };
   }, [selectedTenant]);
 
   return (
