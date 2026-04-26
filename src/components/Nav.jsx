@@ -8,6 +8,7 @@ const LINKS = [
   ['#/pricing','Pricing'],
   ['#/docs','API Docs'],
   ['#/investor','Investors'],
+  ['#/blog','Blog'],
 ];
 
 export default function Nav({ route }) {

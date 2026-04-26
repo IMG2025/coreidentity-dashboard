@@ -26,9 +26,9 @@ const LAWS = [
   { law:'EU AI Act',       max:'€30M/7%',   who:'EU AI Office',  sector:'Global'     },
 ];
 const PLANES = [
-  { name:'Sentinel OS',    role:'Policy Gate',          desc:'Rate limit · permissions · data access · output safety. Blocks non-compliant executions before they run.',     color:C.red  },
-  { name:'Nexus OS',       role:'Routing + Resilience', desc:'Circuit breaker routes to correct GCP client service. Handles retries, timeouts, fallback — zero data loss.', color:C.blue },
-  { name:'AGO Modules',    role:'20 Vertical Handlers', desc:'HIPAA · GLBA · ABA · CCPA. Purpose-built compliance logic per industry vertical.',                             color:C.teal },
+  { name:'Sentinel',       role:'Policy Gate',          desc:'Rate limit · permissions · data access · output safety. Blocks non-compliant executions before they run.',     color:C.red  },
+  { name:'Nexus',          role:'Routing + Resilience', desc:'Circuit breaker routes to correct GCP client service. Handles retries, timeouts, fallback — zero data loss.', color:C.blue },
+  { name:'AGO',            role:'Autonomous Governance Orchestrator', desc:'HIPAA · GLBA · ABA · CCPA. Purpose-built compliance logic per industry vertical — 20 handlers across healthcare, finance, legal, and retail.',                             color:C.teal },
   { name:'SmartNation AI', role:'Continuous Monitor',   desc:'108 governance agents running continuously. Flags ungoverned drift, generates compliance telemetry every 30s.',color:C.gold },
 ];
 
@@ -57,6 +57,7 @@ export default function MarketingPage() {
           <span>Executions: <span style={{ color:C.gold, fontFamily:F.mono, fontWeight:700 }}>{count.toLocaleString()}</span></span>
           <span>Services: <span style={{ color:C.green }}>all healthy</span></span>
           <span>Score: <span style={{ color:C.green, fontFamily:F.mono }}>94%</span></span>
+          <span style={{ color:C.teal }}>Live in production · <span style={{ fontFamily:F.mono, fontWeight:700 }}>36,000+</span> verified agent interactions · <span style={{ fontFamily:F.mono, fontWeight:700 }}>20</span> autonomous agents</span>
         </div>
       </div>
 
@@ -200,6 +201,83 @@ export default function MarketingPage() {
         </div>
       </section>
 
+
+      {/* Entry-level products */}
+      <section style={{ padding: m ? '48px 16px' : '80px 40px', maxWidth:1200, margin:'0 auto' }}>
+        <div style={{ color:C.gold, fontSize:11, letterSpacing:'0.2em',
+          textTransform:'uppercase', marginBottom:8 }}>Platform Products</div>
+        <h2 style={{ fontFamily:F.display, fontSize: m ? 36 : 52,
+          color:C.white, margin:'0 0 12px', letterSpacing:'0.04em' }}>
+          START FAST. SCALE SOVEREIGN.
+        </h2>
+        <p style={{ color:C.slate, fontSize:15, lineHeight:1.7, margin:'0 0 32px',
+          maxWidth:640, fontWeight:300 }}>
+          Two entry-level products for enterprises beginning their AI governance journey.
+          No professional services required. Production-ready on day one.
+        </p>
+        <div style={{ display:'grid',
+          gridTemplateColumns: m ? '1fr' : 'repeat(2,1fr)', gap:20 }}>
+          {/* ShadowScan */}
+          <div style={{ background:C.surface, border:'1px solid '+C.red+'44',
+            borderRadius:12, padding: m ? 24 : 32,
+            borderLeft:'4px solid '+C.red, position:'relative', overflow:'hidden' }}>
+            <div style={{ position:'absolute', top:0, left:0, right:0, height:2,
+              background:`linear-gradient(90deg,${C.red},${C.orange})` }}/>
+            <div style={{ display:'flex', justifyContent:'space-between',
+              alignItems:'flex-start', marginBottom:16 }}>
+              <div>
+                <div style={{ fontFamily:F.display, fontSize:22, color:C.red,
+                  letterSpacing:'0.06em', marginBottom:4 }}>SHADOWSCAN</div>
+                <div style={{ color:C.slate, fontSize:12 }}>Automated attack surface monitoring</div>
+              </div>
+              <div style={{ background:C.red+'22', color:C.red, fontSize:10,
+                fontWeight:700, padding:'3px 10px', borderRadius:4,
+                letterSpacing:'0.1em', border:'1px solid '+C.red+'44' }}>LIVE</div>
+            </div>
+            <p style={{ color:C.slate, fontSize:13, lineHeight:1.7, margin:'0 0 20px' }}>
+              Continuous dark web monitoring, credential exposure detection, and attack surface
+              analysis. Delivers automated security snapshot reports that meet compliance
+              documentation requirements — without a security team.
+            </p>
+            <a href="https://shadowscan.coreidentitygroup.com"
+              target="_blank" rel="noopener noreferrer"
+              style={{ color:C.red, textDecoration:'none', fontSize:13, fontWeight:600,
+                display:'inline-flex', alignItems:'center', gap:6 }}>
+              shadowscan.coreidentitygroup.com &rarr;
+            </a>
+          </div>
+          {/* ClearShield */}
+          <div style={{ background:C.surface, border:'1px solid '+C.teal+'44',
+            borderRadius:12, padding: m ? 24 : 32,
+            borderLeft:'4px solid '+C.teal, position:'relative', overflow:'hidden' }}>
+            <div style={{ position:'absolute', top:0, left:0, right:0, height:2,
+              background:`linear-gradient(90deg,${C.teal},${C.blue})` }}/>
+            <div style={{ display:'flex', justifyContent:'space-between',
+              alignItems:'flex-start', marginBottom:16 }}>
+              <div>
+                <div style={{ fontFamily:F.display, fontSize:22, color:C.teal,
+                  letterSpacing:'0.06em', marginBottom:4 }}>CLEARSHIELD</div>
+                <div style={{ color:C.slate, fontSize:12 }}>Automated compliance reporting</div>
+              </div>
+              <div style={{ background:C.teal+'22', color:C.teal, fontSize:10,
+                fontWeight:700, padding:'3px 10px', borderRadius:4,
+                letterSpacing:'0.1em', border:'1px solid '+C.teal+'44' }}>LIVE</div>
+            </div>
+            <p style={{ color:C.slate, fontSize:13, lineHeight:1.7, margin:'0 0 20px' }}>
+              Instant incident response documentation and compliance reporting for security events.
+              Generates board-ready reports, regulatory submissions, and audit-ready records
+              in minutes — not weeks.
+            </p>
+            <a href="https://clearshield.coreidentitygroup.com"
+              target="_blank" rel="noopener noreferrer"
+              style={{ color:C.teal, textDecoration:'none', fontSize:13, fontWeight:600,
+                display:'inline-flex', alignItems:'center', gap:6 }}>
+              clearshield.coreidentitygroup.com &rarr;
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Client portfolio */}
       <section style={{ padding: m ? '48px 16px' : '80px 40px', maxWidth:1200, margin:'0 auto' }}>
         <div style={{ color:C.gold, fontSize:11, letterSpacing:'0.2em',
@@ -244,6 +322,66 @@ export default function MarketingPage() {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+
+      {/* Quantum hardening */}
+      <section style={{ padding: m ? '48px 16px' : '80px 40px',
+        background:C.bg, borderTop:'1px solid '+C.border }}>
+        <div style={{ maxWidth:1200, margin:'0 auto' }}>
+          <div style={{ color:C.teal, fontSize:11, letterSpacing:'0.2em',
+            textTransform:'uppercase', marginBottom:8,
+            display:'flex', alignItems:'center', gap:8 }}>
+            <div style={{ width:24, height:1, background:C.teal }}/> Cryptographic Infrastructure
+          </div>
+          <h2 style={{ fontFamily:F.display, fontSize: m ? 36 : 52,
+            color:C.white, margin:'0 0 16px', letterSpacing:'0.04em' }}>
+            POST-QUANTUM.<br/>PRODUCTION TODAY.
+          </h2>
+          <p style={{ color:C.slate, fontSize:15, lineHeight:1.7,
+            maxWidth:640, margin:'0 0 40px', fontWeight:300 }}>
+            The only agentic AI governance platform implementing all three NIST FIPS
+            post-quantum standards simultaneously in production. ECDSA P-256 retired
+            April&nbsp;26,&nbsp;2026.
+          </p>
+          <div style={{ display:'grid',
+            gridTemplateColumns: m ? '1fr' : 'repeat(3,1fr)', gap:16, marginBottom:36 }}>
+            {[
+              { std:'FIPS 204', algo:'ML-DSA-65', use:'Digital Signatures', color:C.teal },
+              { std:'FIPS 203', algo:'ML-KEM-768', use:'Key Encapsulation', color:C.blue },
+              { std:'FIPS 205', algo:'SLH-DSA-128s', use:'Hash-Based Signatures', color:C.purple },
+            ].map((item, i) => (
+              <div key={i} style={{ background:C.surface2, border:'1px solid '+item.color+'44',
+                borderRadius:10, padding: m ? '18px 16px' : '24px 20px',
+                borderTop:'2px solid '+item.color }}>
+                <div style={{ color:item.color, fontSize:11, fontWeight:700,
+                  letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:8 }}>
+                  {item.std}
+                </div>
+                <div style={{ color:C.white, fontFamily:F.mono,
+                  fontSize: m ? 14 : 16, fontWeight:700, marginBottom:6 }}>
+                  {item.algo}
+                </div>
+                <div style={{ color:C.slate, fontSize:12 }}>{item.use}</div>
+                <div style={{ color:item.color, fontSize:11, marginTop:10,
+                  fontWeight:600, letterSpacing:'0.08em' }}>LIVE</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ background:C.surface, border:'1px solid '+C.border,
+            borderRadius:8, padding: m ? '16px' : '20px 24px',
+            display:'flex', flexDirection: m ? 'column' : 'row',
+            alignItems: m ? 'flex-start' : 'center', gap: m ? 8 : 16 }}>
+            <div style={{ color:C.teal, fontSize:11, fontWeight:700,
+              letterSpacing:'0.12em', textTransform:'uppercase', flexShrink:0 }}>
+              Entropy Source
+            </div>
+            <div style={{ color:C.slate, fontSize:13 }}>
+              ANU Quantum Random Number Generator + OS CSPRNG (XOR-mixed) —
+              every signing key seeded with hardware quantum entropy.
+            </div>
+          </div>
         </div>
       </section>
 

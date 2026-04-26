@@ -31,3 +31,7 @@ gcp-credentials*.json
 credentials.json
 .aws/credentials
 .netrc
+node_modules/
+api/node_modules/
+api/coverage/
+*.log

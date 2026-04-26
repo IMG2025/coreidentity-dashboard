@@ -36,6 +36,8 @@ import CommandCenter     from './pages/CommandCenter.jsx';
 import IdentityGovernance from './pages/IdentityGovernance.jsx';
 import CompliancePage    from './pages/CompliancePage.jsx';
 import PipelinePage      from './pages/PipelinePage.jsx';
+import Blog              from './pages/Blog.jsx';
+import BlogPost          from './pages/BlogPost.jsx';
 
 // ── Notifications context ─────────────────────────────────────
 /* patch-33 */
@@ -75,6 +77,7 @@ const PUBLIC_PAGES = {
   '/#/pricing':  PricingPage,
   '/#/reports':  ReportsPage,
   '/#/docs':     DocsPage,
+  '/#/blog':     Blog,
 };
 
 const PUBLIC_ROUTES = new Set(Object.keys(PUBLIC_PAGES));
@@ -184,6 +187,13 @@ export default function App() {
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+
+  // Blog post routes — prefix match for /#/blog/:slug
+  if (route.startsWith('/#/blog/')) {
+    const slug = route.slice('/#/blog/'.length);
+    return <div style={{ minHeight:'100vh', background:'#070c18', fontFamily:"'DM Sans','Segoe UI',sans-serif" }}>
+      <DegradedBanner /><BlogPost slug={slug} /></div>;
+  }
 
   // Public/marketing routes
   if (PUBLIC_ROUTES.has(route)) {
