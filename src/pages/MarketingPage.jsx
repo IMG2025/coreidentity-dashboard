@@ -415,7 +415,7 @@ export default function MarketingPage() {
         <div style={{ display:'flex', gap:24, justifyContent:'center',
           flexWrap:'wrap', marginBottom:16 }}>
           {[['#/demo','Demo'],['#/pricing','Pricing'],['#/docs','API'],
-            ['#/investor','Investors'],['#/dashboard','Dashboard']].map(([h,l]) => (
+            ['#/investor','Investors'],['#/dashboard','Dashboard'],['#/blog','Blog']].map(([h,l]) => (
             <a key={h} href={h} style={{ color:C.slate, textDecoration:'none', fontSize:12 }}>{l}</a>
           ))}
         </div>

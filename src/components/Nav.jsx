@@ -38,8 +38,8 @@ export default function Nav({ route }) {
         height: 60, position: 'sticky', top: 0, zIndex: 100,
         fontFamily: F.body,
       }}>
-        {/* Logo */}
-        <a href="#/" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+        {/* Logo — links to homepage */}
+        <a href="/" style={{ textDecoration:'none', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
           <div style={{ width:28, height:28, background:C.gold, borderRadius:4,
             display:'flex', alignItems:'center', justifyContent:'center',
             fontSize:14, fontWeight:700, color:C.bg, flexShrink:0 }}>C</div>
