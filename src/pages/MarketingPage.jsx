@@ -57,7 +57,7 @@ export default function MarketingPage() {
           <span>Executions: <span style={{ color:C.gold, fontFamily:F.mono, fontWeight:700 }}>{count.toLocaleString()}</span></span>
           <span>Services: <span style={{ color:C.green }}>all healthy</span></span>
           <span>Score: <span style={{ color:C.green, fontFamily:F.mono }}>94%</span></span>
-          <span style={{ color:C.teal }}>Live in production · <span style={{ fontFamily:F.mono, fontWeight:700 }}>36,000+</span> verified agent interactions · <span style={{ fontFamily:F.mono, fontWeight:700 }}>20</span> autonomous agents</span>
+          <span style={{ color:C.teal }}><span style={{ fontWeight:700 }}>BAA-Ready</span> · <span style={{ fontWeight:700 }}>FIPS 204 Compliant</span> · <span style={{ fontWeight:700 }}>Enforcement-First Governance</span></span>
         </div>
       </div>
 
