@@ -8,32 +8,70 @@ const { ScanCommand } = require('@aws-sdk/lib-dynamodb');
 
 const ddb = DynamoDBDocument.from(new DynamoDB({ region: process.env.AWS_REGION || 'us-east-2' }));
 
-async function safeScan(TableName, FilterExpression, ExpressionAttributeValues) {
+// SCAN_TIMEOUT_MS — hard ceiling; single-page scan with Limit avoids unbounded pagination
+const SCAN_TIMEOUT_MS = 3500;
+const _analyticsCache = { data: null, expires: 0 };
+
+async function safeScan(TableName, signal) {
   try {
-    const params = { TableName };
-    if (FilterExpression) { params.FilterExpression = FilterExpression; params.ExpressionAttributeValues = ExpressionAttributeValues; }
-    // Paginate through all DynamoDB pages
-    let items = [];
-    let lastKey;
-    do {
-      if (lastKey) params.ExclusiveStartKey = lastKey;
-      const result = await ddb.send(new ScanCommand(params));
-      items = items.concat(result.Items || []);
-      lastKey = result.LastEvaluatedKey;
-    } while (lastKey);
-    return items;
-  } catch(e) { console.warn('[Analytics] scan failed:', TableName, e.message); return []; }
+    const result = await ddb.send(new ScanCommand({ TableName, Limit: 500 }), { abortSignal: signal });
+    return result.Items || [];
+  } catch (e) {
+    if (e.name === 'AbortError' || (e.message && e.message.includes('abort'))) {
+      console.warn('[Analytics] scan aborted (timeout):', TableName);
+    } else {
+      console.warn('[Analytics] scan failed:', TableName, e.message);
+    }
+    return [];
+  }
+}
+
+function buildFallbackData() {
+  const buckets = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(Date.now() - (6 - i) * 86400000);
+    return { date: d.toISOString().slice(0, 10), deployments: 0, executions: 0 };
+  });
+  return {
+    summary: { totalDeployments:0, activeDeployments:0, totalExecutions:0,
+      successRate:0, totalAgents:0, governedAgents:0, activeWorkflows:0, avgAgentRating:4.5 },
+    deploymentsByStatus:{}, deploymentsByCategory:{}, executionsByStatus:{},
+    executionsByType:{}, activityTimeline: buckets, recentDeployments:[], recentExecutions:[]
+  };
 }
 
 // GET /api/analytics
 router.get('/', async (req, res) => {
   const t0 = Date.now();
-  const [deployments, executions, agents, workflows] = await Promise.all([
-    safeScan('coreidentity-deployments'),
-    safeScan('coreidentity-executions'),
-    safeScan('smartnation-agents'),
-    safeScan('coreidentity-workflows'),
-  ]);
+
+  if (_analyticsCache.data && Date.now() < _analyticsCache.expires) {
+    return res.json({ ..._analyticsCache.data, _cache: true, latencyMs: Date.now() - t0 });
+  }
+
+  const controller = new AbortController();
+  const timeoutId  = setTimeout(() => controller.abort(), SCAN_TIMEOUT_MS);
+
+  let deployments, executions, agents, workflows;
+  try {
+    [deployments, executions, agents, workflows] = await Promise.all([
+      safeScan('coreidentity-deployments', controller.signal),
+      safeScan('coreidentity-executions',  controller.signal),
+      safeScan('smartnation-agents',       controller.signal),
+      safeScan('coreidentity-workflows',   controller.signal),
+    ]);
+  } catch (e) {
+    clearTimeout(timeoutId);
+    console.warn('[Analytics] scan error:', e.message);
+    return res.json({ success: true, data: buildFallbackData(), _error: true,
+      latencyMs: Date.now() - t0, fetchedAt: new Date().toISOString() });
+  }
+
+  clearTimeout(timeoutId);
+
+  if (controller.signal.aborted) {
+    console.warn('[Analytics] DynamoDB scans timed out — returning fallback');
+    return res.json({ success: true, data: buildFallbackData(), _timeout: true,
+      latencyMs: Date.now() - t0, fetchedAt: new Date().toISOString() });
+  }
 
   // Deployment stats
   const depByStatus = deployments.reduce((acc, d) => {
@@ -78,7 +116,7 @@ router.get('/', async (req, res) => {
     ? (agents.reduce((s, a) => s + (parseFloat(a.rating) || 4.5), 0) / agents.length).toFixed(1)
     : 4.5;
 
-  res.json({
+  const responseBody = {
     success: true,
     data: {
       summary: {
@@ -109,7 +147,10 @@ router.get('/', async (req, res) => {
     },
     latencyMs: Date.now() - t0,
     fetchedAt: new Date().toISOString()
-  });
+  };
+  _analyticsCache.data = responseBody;
+  _analyticsCache.expires = Date.now() + 60000;
+  res.json({ ...responseBody, _cache: false, latencyMs: Date.now() - t0 });
 });
 
 module.exports = router;
