@@ -32,6 +32,8 @@ const marketRouter = require('./routes/market');
 const commercialRouter = require('./routes/commercial');
 const demoOnboardRouter = require('./routes/demoOnboard');
 const dpoRouter         = require('./routes/dpo');
+const policyRouter = require('./routes/policy'); /* plgs-001-require */
+
 
 const app = express();
 app.set('trust proxy', 1); // Trust ELB/ALB proxy headers
@@ -119,6 +121,8 @@ app.use('/api/market',         marketRouter);
 app.use('/api/commercial',     commercialRouter);
 app.use('/api/demo/onboard', authenticate, demoOnboardRouter);
 app.use('/api/ago/dpo', authenticate, dpoRouter);
+app.use('/api/policy', authenticate, policyRouter); /* plgs-001-route */
+
 
 // ── 404 catch-all (MUST be after all routes) ─────────────────────────────────
 app.use((req, res) => {
@@ -134,6 +138,11 @@ app.use('/api', missingRouter);
 demoOnboardRouter.ensureGovernanceProfilesTable().catch(err =>
   logger.warn('ensureGovernanceProfilesTable failed', { err: err.message })
 );
+const { runMigrations } = require('./db/migrate'); /* plgs-001-migrate */
+runMigrations().catch(err =>
+  logger.warn('plgs_migration_startup_error', { err: err.message })
+);
+
 
 app.listen(PORT, '0.0.0.0', () => {
   logger.info('server_started', { port: PORT, env: process.env.NODE_ENV || 'development' });
