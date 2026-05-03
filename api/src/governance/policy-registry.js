@@ -22,6 +22,8 @@ const { signGovernanceDocument }  = require('./document-signing-service');
 const { AlgorithmRegistry }       = require('../lib/pqc/algorithm-registry');
 const { sha3Digest }              = require('../lib/pqc/hybrid-kdf');
 const logger                      = require('../utils/logger');
+const approval   = require('./policy-approval'); /* plgs-002-approval-require */
+
 
 // ── Signing keypair ───────────────────────────────────────────────────────────
 // Sourced from env PLGS_SIGN_SK_HEX / PLGS_SIGN_PK_HEX (64/32 bytes hex).
@@ -104,11 +106,11 @@ class PolicyRegistry {
    * @returns {object} created policy row
    */
   async register(policy, author) {
-    const { name, version, policy_type, rules = {}, simulation_result = null } = policy;
+    const { name, version, policy_type, rules = {}, simulation_result = null } = policy; /* plgs-002-optional-id */
     if (!name || !version || !policy_type)
       throw Object.assign(new Error('name, version, and policy_type are required'), { code: 'VALIDATION_ERROR' });
 
-    const id     = uuidv4();
+    const id     = policy.id || uuidv4(); /* plgs-002-use-provided-id */
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
@@ -161,6 +163,19 @@ class PolicyRegistry {
         throw Object.assign(new Error(`Cannot deploy policy in status '${p.status}'`), { code: 'INVALID_TRANSITION' });
       if (!p.simulation_result)
         throw Object.assign(new Error('simulation_result must be present before deploying'), { code: 'PRECONDITION_FAILED' });
+      /* plgs-002-approval-check */
+      {
+        const { rows: _apr } = await client.query(
+          `SELECT 1 FROM policy_approval_requests
+            WHERE policy_id = $1 AND status = 'APPROVED' AND expires_at > NOW()
+            LIMIT 1`,
+          [policyId]);
+        if (!_apr.length)
+          throw Object.assign(
+            new Error('Policy requires an approved approval request before deployment'),
+            { code: 'APPROVAL_REQUIRED' });
+      }
+
 
       const { rows: [updated] } = await client.query(
         `UPDATE policies SET status = 'ACTIVE', deployed_at = NOW() WHERE id = $1 RETURNING *`,
@@ -296,6 +311,123 @@ class PolicyRegistry {
     } finally {
       client.release();
     }
+  }
+
+
+  /**
+   * simulate(policyId, options, actor)
+   * Runs the simulator stub, persists simulation_result, writes SIMULATED audit entry.
+   * @param {string} policyId
+   * @param {object} options   { sampleSize?: number }
+   * @param {string} actor
+   * @returns {object} simulation_result
+   */
+  async simulate(policyId, options, actor) { /* plgs-002-simulate */
+    const simulator = require('./policy-simulator');
+    const client    = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const { rows } = await client.query('SELECT * FROM policies WHERE id = $1 FOR UPDATE', [policyId]);
+      if (!rows.length) throw Object.assign(new Error('Policy not found'), { code: 'NOT_FOUND' });
+
+      const simResult = simulator.simulate(rows[0], options || {});
+
+      await client.query(
+        'UPDATE policies SET simulation_result = $1 WHERE id = $2',
+        [JSON.stringify(simResult), policyId]);
+
+      const chain = await chainHash(client, policyId);
+      const sig   = signPolicy(policyId, { id: policyId, event: 'SIMULATED', ...simResult }, chain);
+
+      await writeAuditEntry(client, policyId, 'SIMULATED', actor,
+        { sample_size: simResult.sample_size, recommendation: simResult.recommendation,
+          passed: simResult.passed, stub: simResult.stub, signerKeyId: sig.signerKeyId },
+        sig.signatureHex);
+
+      await client.query('COMMIT');
+      logger.info('policy_simulated', { id: policyId, recommendation: simResult.recommendation, actor });
+      return simResult;
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * runPipeline(policy, author)
+   * Convenience method: validate → register → simulate → approve → deploy.
+   * In solo mode, approvedBy = author (console.warn issued by approval service).
+   * Returns { success, policy_id, stages, stopped_at? }.
+   */
+  async runPipeline(policy, author) { /* plgs-002-run-pipeline */
+    const validator = require('./policy-validator');
+    const apprSvc   = require('./policy-approval');
+
+    const stages = {};
+
+    // ── 1. Register (assigns id, creates DRAFT) ───────────────────────────
+    let registered;
+    try {
+      const id = policy.id || require('uuid').v4();
+      registered = await this.register({ ...policy, id }, author);
+      stages.register = { policy_id: registered.id, status: registered.status };
+    } catch (err) {
+      return { success: false, stages, stopped_at: 'register', error: err.message };
+    }
+
+    // ── 2. Validate (now has id + DB-backed record) ───────────────────────
+    // Fetch last deployed version for increment check
+    const { rows: prevRows } = await pool.query(
+      `SELECT version FROM policies
+        WHERE name = $1 AND status = 'ACTIVE'
+        ORDER BY deployed_at DESC LIMIT 1`,
+      [registered.name]).catch(() => ({ rows: [] }));
+    const lastDeployedVersion = prevRows[0]?.version;
+
+    const validation = validator.validate(
+      { ...policy, id: registered.id },
+      lastDeployedVersion ? { lastDeployedVersion } : {}
+    );
+    stages.validate = validation;
+    if (!validation.valid) {
+      logger.warn('plgs_pipeline_validation_failed', { id: registered.id, errors: validation.errors });
+      return { success: false, policy_id: registered.id, stages, stopped_at: 'validate' };
+    }
+
+    // ── 3. Simulate ───────────────────────────────────────────────────────
+    try {
+      const simResult = await this.simulate(registered.id, {}, author);
+      stages.simulate = simResult;
+      if (!simResult.passed) {
+        return { success: false, policy_id: registered.id, stages,
+                 stopped_at: 'simulate',
+                 reason: `Simulation recommendation is '${simResult.recommendation}' (not APPROVE)` };
+      }
+    } catch (err) {
+      return { success: false, policy_id: registered.id, stages, stopped_at: 'simulate', error: err.message };
+    }
+
+    // ── 4. Approve (auto / solo mode) ─────────────────────────────────────
+    try {
+      await apprSvc.requestApproval(registered.id, author);
+      const approveResult = await apprSvc.approve(registered.id, author);
+      stages.approve = { status: approveResult.status, approved_by: approveResult.approved_by };
+    } catch (err) {
+      return { success: false, policy_id: registered.id, stages, stopped_at: 'approve', error: err.message };
+    }
+
+    // ── 5. Deploy ─────────────────────────────────────────────────────────
+    try {
+      const deployed = await this.deploy(registered.id, author);
+      stages.deploy  = { status: deployed.status, deployed_at: deployed.deployed_at };
+    } catch (err) {
+      return { success: false, policy_id: registered.id, stages, stopped_at: 'deploy', error: err.message };
+    }
+
+    logger.info('plgs_pipeline_complete', { id: registered.id, author });
+    return { success: true, policy_id: registered.id, stages };
   }
 
   /**

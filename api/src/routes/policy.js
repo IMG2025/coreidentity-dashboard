@@ -11,6 +11,9 @@
 
 const express  = require('express');
 const registry = require('../governance/policy-registry');
+const simulator = require('../governance/policy-simulator'); /* plgs-002-route-requires */
+const approval  = require('../governance/policy-approval');
+
 const logger   = require('../utils/logger');
 
 const router = express.Router();
@@ -22,7 +25,8 @@ function actor(req) {
 function handleErr(res, err) {
   const code = err.code || 'INTERNAL_ERROR';
   const map  = { NOT_FOUND: 404, VALIDATION_ERROR: 400,
-                 INVALID_TRANSITION: 409, PRECONDITION_FAILED: 422 };
+                 INVALID_TRANSITION: 409, PRECONDITION_FAILED: 422,
+                 APPROVAL_REQUIRED: 422, APPROVAL_SELF_NOT_ALLOWED: 403 }; /* plgs-002-err-codes */
   const status = map[code] || 500;
   if (status >= 500) logger.error('policy_route_error', { error: err.message, code });
   res.status(status).json({ error: err.message, code });
@@ -63,6 +67,34 @@ router.post('/:id/rollback', async (req, res) => {
     if (!version) return res.status(400).json({ error: 'version is required', code: 'VALIDATION_ERROR' });
     const result = await registry.rollback(req.params.id, version, actor(req));
     res.json({ data: result, timestamp: new Date().toISOString() });
+  } catch (err) { handleErr(res, err); }
+});
+
+
+// POST /api/policy/:id/simulate  /* plgs-002-routes */
+router.post('/:id/simulate', async (req, res) => {
+  try {
+    const result = await registry.simulate(req.params.id, req.body || {}, actor(req));
+    res.json({ data: result, timestamp: new Date().toISOString() });
+  } catch (err) { handleErr(res, err); }
+});
+
+// POST /api/policy/:id/approve
+router.post('/:id/approve', async (req, res) => {
+  try {
+    const result = await approval.approve(req.params.id, actor(req));
+    res.json({ data: result, timestamp: new Date().toISOString() });
+  } catch (err) { handleErr(res, err); }
+});
+
+// POST /api/policy/:id/pipeline
+// Runs the full pipeline: validate → register → simulate → approve → deploy
+router.post('/:id/pipeline', async (req, res) => {
+  try {
+    const policy = { ...req.body, id: req.params.id };
+    const result = await registry.runPipeline(policy, actor(req));
+    const status = result.success ? 200 : 422;
+    res.status(status).json({ data: result, timestamp: new Date().toISOString() });
   } catch (err) { handleErr(res, err); }
 });
 
